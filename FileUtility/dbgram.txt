@@ -72,7 +72,8 @@ table prenotazione {
   id integer [primary key, increment]
   ref_cliente integer [ref: - cliente.id]
   ref_camera integer [ref: - camera.id]
-  data date [not null]
+  dataInizio date [not null]
+  dataFine date [not null]
   costo float [not null, default: 0]
 }
 
@@ -97,4 +98,3 @@ table ospite {
   dataNascita date [not null]
   ref_prenotazione number [ref: - prenotazione.id]
 }
-

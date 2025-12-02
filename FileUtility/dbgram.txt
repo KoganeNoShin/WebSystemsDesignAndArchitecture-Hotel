@@ -1,0 +1,100 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+
+Table utente {
+  id integer [primary key, increment]
+  username varchar [not null]
+  password varchar [not null]
+  nome varchar [not null]
+  cognome varchar [not null]
+}
+
+table cliente {
+  id integer [primary key, increment]
+  cittadinanza varchar [not null]
+  luogo varchar [not null]
+  dataNascita varchar [not null]
+  tipoDocumento varchar [not null]
+  numDocumento varchar [not null]
+  ref_utente number [ref: - utente.id]
+}
+
+table dipendente {
+  id integer [primary key, increment]
+  ruolo enum [not null]
+  ref_sede integer [ref: - sede.id, null]
+  ref_utente number [ref: - utente.id]
+}
+
+table sede {
+  id integer [primary key, increment]
+  nome varchar [not null]
+  location varchar [not null]
+  tassaSoggiorno varchar [not null]
+}
+
+table camera {
+  id integer [primary key, increment]
+  ref_sede integer [ref: > sede.id]
+  postiLetto integer [not null]
+  status enum [not null, default: 'Libera']
+  luce boolean [not null, default: 0]
+  tapparelle boolean [not null, default: 0]
+  temperatura float [not null]
+}
+
+table service {
+  id integer [primary key, increment]
+  nome varchar [not null]
+  costo float [not null]
+}
+
+table sede_service {
+  id integer [primary key, increment]
+  ref_sede number [ref: - sede.id]
+  ref_service number [ref: - service.id]
+}
+
+table multimedia {
+  id integer [primary key, increment]
+  immagine blob [not null]
+  costo integer [not null]
+}
+
+table prenotazione_multimedia{
+  id integer [primary key, increment]
+  ref_prenotazione number [ref: - prenotazione.id]
+  ref_multimedia number [ref: - multimedia.id]
+}
+
+table prenotazione {
+  id integer [primary key, increment]
+  ref_cliente integer [ref: - cliente.id]
+  ref_camera integer [ref: - camera.id]
+  data date [not null]
+  costo float [not null, default: 0]
+}
+
+table prenotazione_service {
+  id integer [primary key, increment]
+  ref_prenotazione integer [ref: > prenotazione.id]
+  ref_service integer [ref: > service.id]
+}
+
+table note {
+  id integer [primary key, increment]
+  nota varchar [not null]
+  ref_prenotazione integer [ref: - prenotazione.id]
+}
+
+table ospite {
+  id integer [primary key, increment]
+  nome varchar [not null]
+  cognome varchar [not null]
+  cittadinanza varchar [not null]
+  luogo varchar [not null]
+  dataNascita date [not null]
+  ref_prenotazione number [ref: - prenotazione.id]
+}
+

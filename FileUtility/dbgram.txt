@@ -1,6 +1,25 @@
-// Use DBML to define your database structure
-// Docs: https://dbml.dbdiagram.io/docs
+// --- ENUMS (Per definire i valori fissi) ---
 
+Enum Ruolo {
+  CLIENTE
+  STAFF
+  AMMINISTRATORE
+}
+
+Enum StatoCamera {
+  LIBERA
+  OCCUPATA
+  DA_PULIRE
+}
+
+Enum StatoPrenotazione {
+  CONFERMATA    // Prenotata, cliente non ancora arrivato
+  CHECKED_IN    // Cliente attualmente in hotel (Domotica attiva)
+  CHECKED_OUT   // Cliente partito (Fatturazione e pulizie)
+  CANCELLATA
+}
+
+// --- TABELLE UTENTI ---
 
 Table utente {
   id integer [primary key, increment]
@@ -8,45 +27,53 @@ Table utente {
   password varchar [not null]
   nome varchar [not null]
   cognome varchar [not null]
+  email varchar [not null]
 }
 
 table cliente {
   id integer [primary key, increment]
   cittadinanza varchar [not null]
-  luogo varchar [not null]
-  dataNascita varchar [not null]
+  luogoNascita varchar [not null]
+  dataNascita date [not null]
   tipoDocumento varchar [not null]
   numDocumento varchar [not null]
-  ref_utente number [ref: - utente.id]
+  telefono varchar
+  ref_utente integer [ref: - utente.id]
 }
 
 table dipendente {
   id integer [primary key, increment]
-  ruolo enum [not null]
+  ruolo Ruolo [not null]
   ref_sede integer [ref: - sede.id, null]
-  ref_utente number [ref: - utente.id]
+  ref_utente integer [ref: - utente.id]
 }
+
+// --- STRUTTURA HOTEL ---
 
 table sede {
   id integer [primary key, increment]
   nome varchar [not null]
   location varchar [not null]
-  tassaSoggiorno varchar [not null]
+  tassaSoggiorno float [not null]
 }
 
 table camera {
-  id integer [primary key, increment]
+  id integer [primary key, increment] // Questo sarà il NUMERO CAMERA (es. 101)
   ref_sede integer [ref: > sede.id]
-  postiLetto integer [not null]
-  status enum [not null, default: 'Libera']
+  postiLetto integer [not null] // Il prezzo si calcolerà: postiLetto * PrezzoBase
+  status StatoCamera [not null, default: 'LIBERA']
+  // Domotica
   luce boolean [not null, default: 0]
   tapparelle boolean [not null, default: 0]
   temperatura float [not null]
 }
 
+// --- SERVIZI E MULTIMEDIA ---
+
 table service {
   id integer [primary key, increment]
   nome varchar [not null]
+  descrizione varchar
   costo float [not null]
 }
 
@@ -58,37 +85,38 @@ table sede_service {
 
 table multimedia {
   id integer [primary key, increment]
-  immagine blob [not null]
-  costo integer [not null]
+  titolo varchar [not null]
+  immagine blob // O varchar per il path del file
+  costo float [not null]
 }
 
-table prenotazione_multimedia{
-  id integer [primary key, increment]
-  ref_prenotazione number [ref: - prenotazione.id]
-  ref_multimedia number [ref: - multimedia.id]
-}
+// --- PRENOTAZIONI ---
 
 table prenotazione {
   id integer [primary key, increment]
-  ref_cliente integer [ref: - cliente.id]
-  ref_camera integer [ref: - camera.id]
+  ref_cliente integer [ref: > cliente.id]
+  ref_camera integer [ref: > camera.id]
   dataInizio date [not null]
   dataFine date [not null]
-  costo float [not null, default: 0]
+  stato StatoPrenotazione [not null, default: 'CONFERMATA']
+  costoTotale float [not null] // Prezzo calcolato e congelato alla prenotazione
+  dataPrenotazione timestamp [default: `now()`]
 }
 
+// Collegamenti per acquisti extra
 table prenotazione_service {
   id integer [primary key, increment]
   ref_prenotazione integer [ref: > prenotazione.id]
   ref_service integer [ref: > service.id]
 }
 
-table note {
+table prenotazione_multimedia{
   id integer [primary key, increment]
-  nota varchar [not null]
-  ref_prenotazione integer [ref: - prenotazione.id]
+  ref_prenotazione number [ref: > prenotazione.id]
+  ref_multimedia number [ref: > multimedia.id]
 }
 
+// --- REPORTISTICA E NOTE ---
 table ospite {
   id integer [primary key, increment]
   nome varchar [not null]
@@ -96,5 +124,12 @@ table ospite {
   cittadinanza varchar [not null]
   luogo varchar [not null]
   dataNascita date [not null]
-  ref_prenotazione number [ref: - prenotazione.id]
+  ref_prenotazione number [ref: > prenotazione.id]
+}
+
+table note {
+  id integer [primary key, increment]
+  nota varchar [not null]
+  ref_prenotazione integer [ref: > prenotazione.id]
+  dataInserimento timestamp
 }

@@ -11,6 +11,6 @@ public class HomeController {
     @GetMapping("/")
     @ResponseBody
     public String home() {
-        return "<h1>Benvenuto nel sistema Hotel!</h1><p>L'applicazione funziona senza database.</p>";
+        return "<h1>Benvenuto nel sistema Hotel!</h1><p>L'applicazione funziona con database.</p>";
     }
 }

@@ -1,4 +1,4 @@
-package com.websystemdesign.controller.controllerBackend;
+package com.websystemdesign.controller.api;
 
 import com.websystemdesign.model.Camera;
 import com.websystemdesign.service.CameraService;

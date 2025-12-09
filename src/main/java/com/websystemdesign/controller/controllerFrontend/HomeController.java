@@ -1,16 +1,15 @@
-package com.websystemdesign.controller;
+package com.websystemdesign.controller.controllerFrontend;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class HomeController {
 
     // Quando l'utente va sull'indirizzo base (http://localhost:8080/)
     @GetMapping("/")
-    @ResponseBody
     public String home() {
-        return "<h1>Benvenuto nel sistema Hotel!</h1><p>L'applicazione funziona con database.</p>";
+        // Restituisce il nome del file HTML che si trova in src/main/resources/templates
+        return "index";
     }
 }

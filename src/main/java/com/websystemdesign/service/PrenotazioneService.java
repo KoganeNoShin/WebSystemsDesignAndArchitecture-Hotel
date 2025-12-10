@@ -27,6 +27,10 @@ public class PrenotazioneService {
         return prenotazioneRepository.findById(id);
     }
 
+    // se non è detto che la prenotazione vada a buon fine, bisognerebbe mettere un tipo di ritorno diverso...
+    // però non ha senso che la verifica della disponibilità sia fatta sul metodo di salvataggio, le camere disponibili
+    // si verificano in fase di creazione della pagina per la prenotazione così che quelle selezionabili siano già
+    // necessariamente disponibili
     public Prenotazione savePrenotazione(Prenotazione prenotazione) {
         // Qui in futuro andrà la logica per verificare la disponibilità, calcolare il costo, etc.
         return prenotazioneRepository.save(prenotazione);
@@ -40,6 +44,7 @@ public class PrenotazioneService {
         return prenotazioneRepository.findByClienteId(clienteId);
     }
 
+    // questo è un metodo helper? va utilizzato in save prenotazioni? avrebbe più senso metterlo in CameraService
     public boolean isCameraDisponibile(Long camera_id, LocalDate inizio, LocalDate fine) {
         List<Prenotazione> sovrapposizioni = prenotazioneRepository.findByCameraIdAndDataInizioBeforeAndDataFineAfter(camera_id, fine, inizio);
         return sovrapposizioni.isEmpty();

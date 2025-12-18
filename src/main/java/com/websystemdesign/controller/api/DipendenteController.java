@@ -1,41 +1,51 @@
 package com.websystemdesign.controller.api;
 
+import com.websystemdesign.dto.DipendenteDto;
+import com.websystemdesign.mapper.DipendenteMapper;
 import com.websystemdesign.model.Dipendente;
 import com.websystemdesign.service.DipendenteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/employee")
+@RequestMapping("/api/dipendenti")
 public class DipendenteController {
 
     private final DipendenteService dipendenteService;
+    private final DipendenteMapper dipendenteMapper;
 
     @Autowired
-    public DipendenteController(DipendenteService employeeService){
-        this.dipendenteService = employeeService;
+    public DipendenteController(DipendenteService dipendenteService, DipendenteMapper dipendenteMapper) {
+        this.dipendenteService = dipendenteService;
+        this.dipendenteMapper = dipendenteMapper;
     }
 
     @GetMapping
-    public List<Dipendente> getAllDipendenti(){
-        return dipendenteService.getAllDipendenti();
+    public List<DipendenteDto> getAllDipendenti() {
+        return dipendenteService.getAllDipendenti().stream()
+                .map(dipendenteMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public Optional<Dipendente> getDipendenteByID(@PathVariable Long id){
-        return dipendenteService.getDipendenteById(id);
+    public DipendenteDto getDipendenteById(@PathVariable Long id) {
+        return dipendenteService.getDipendenteById(id)
+                .map(dipendenteMapper::toDto)
+                .orElse(null);
     }
 
     @PostMapping
-    public Dipendente saveDipendente(@RequestBody Dipendente employee){
-        return dipendenteService.saveDipendente(employee);
+    public DipendenteDto createDipendente(@RequestBody DipendenteDto dipendenteDto) {
+        Dipendente dipendente = dipendenteMapper.toEntity(dipendenteDto);
+        Dipendente savedDipendente = dipendenteService.saveDipendente(dipendente);
+        return dipendenteMapper.toDto(savedDipendente);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteDipendente(@PathVariable Long id){
+    public void deleteDipendente(@PathVariable Long id) {
         dipendenteService.deleteDipendente(id);
     }
 }

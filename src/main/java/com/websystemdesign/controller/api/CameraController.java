@@ -1,42 +1,55 @@
 package com.websystemdesign.controller.api;
 
+import com.websystemdesign.dto.CameraDto;
+import com.websystemdesign.mapper.CameraMapper;
 import com.websystemdesign.model.Camera;
 import com.websystemdesign.service.CameraService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
-// @RestController dice a Spring che qui gestiamo dati (JSON), non pagine HTML semplici
 @RestController
-@RequestMapping("/api/rooms") // L'indirizzo base per le stanze
+@RequestMapping("/api/rooms")
 public class CameraController {
 
     private final CameraService cameraService;
+    private final CameraMapper cameraMapper;
 
-    // Colleghiamo lo Chef (Service) al Cameriere (Controller)
     @Autowired
-    public CameraController(CameraService roomService) {
-        this.cameraService = roomService;
+    public CameraController(CameraService cameraService, CameraMapper cameraMapper) {
+        this.cameraService = cameraService;
+        this.cameraMapper = cameraMapper;
     }
 
-    // 1. Leggi tutte le stanze
+    // 1. Leggi tutte le stanze (Restituisce DTO)
     @GetMapping
-    public List<Camera> getAllCamera() {
-        return cameraService.getAllCamera();
+    public List<CameraDto> getAllCamera() {
+        return cameraService.getAllCamera().stream()
+                .map(cameraMapper::toDto)
+                .collect(Collectors.toList());
     }
 
-    // 2. Leggi una stanza specifica per ID
+    // 2. Leggi una stanza specifica per ID (Restituisce DTO)
     @GetMapping("/{id}")
-    public Optional<Camera> getRoomById(@PathVariable Long id) {
-        return cameraService.getRoomById(id);
+    public CameraDto getRoomById(@PathVariable Long id) {
+        return cameraService.getRoomById(id)
+                .map(cameraMapper::toDto)
+                .orElse(null); // In un'app reale, qui restituiremmo un 404 Not Found
     }
 
-    // 3. Crea una nuova stanza (Salva nel DB)
+    // 3. Crea una nuova stanza (Accetta DTO, Restituisce DTO)
     @PostMapping
-    public Camera createRoom(@RequestBody Camera camera) {
-        return cameraService.saveRoom(camera);
+    public CameraDto createRoom(@RequestBody CameraDto cameraDto) {
+        // Convertiamo DTO -> Entity
+        Camera camera = cameraMapper.toEntity(cameraDto);
+        
+        // Salviamo usando il service
+        Camera savedCamera = cameraService.saveRoom(camera);
+        
+        // Convertiamo Entity salvata -> DTO per la risposta
+        return cameraMapper.toDto(savedCamera);
     }
 
     // 4. Cancella una stanza

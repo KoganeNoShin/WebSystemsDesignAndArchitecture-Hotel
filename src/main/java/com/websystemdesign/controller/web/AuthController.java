@@ -1,5 +1,7 @@
 package com.websystemdesign.controller.web;
 
+import com.websystemdesign.dto.UtenteDto;
+import com.websystemdesign.mapper.UtenteMapper;
 import com.websystemdesign.model.Utente;
 import com.websystemdesign.service.UtenteService;
 import jakarta.validation.Valid;
@@ -16,10 +18,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AuthController {
 
     private final UtenteService utenteService;
+    private final UtenteMapper utenteMapper;
 
     @Autowired
-    public AuthController(UtenteService utenteService) {
+    public AuthController(UtenteService utenteService, UtenteMapper utenteMapper) {
         this.utenteService = utenteService;
+        this.utenteMapper = utenteMapper;
     }
 
     @GetMapping("/login")
@@ -29,31 +33,33 @@ public class AuthController {
 
     @GetMapping("/register")
     public String showRegisterPage(Model model) {
-        // Passiamo un oggetto Utente vuoto al form, necessario per la validazione
-        model.addAttribute("utente", new Utente());
+        // Passiamo un DTO vuoto al form, non più l'entità
+        model.addAttribute("utenteDto", new UtenteDto());
         return "register";
     }
 
     @PostMapping("/register")
-    public String processRegistration(@Valid @ModelAttribute("utente") Utente utente,
+    public String processRegistration(@Valid @ModelAttribute("utenteDto") UtenteDto utenteDto,
                                       BindingResult bindingResult,
                                       RedirectAttributes redirectAttributes) {
 
         // Se ci sono errori di validazione, torna al form di registrazione
         if (bindingResult.hasErrors()) {
-            return "register"; // La vista mostrerà gli errori
+            return "register";
         }
 
-        // (Opzionale ma consigliato) Controlla se l'username esiste già
-        if (utenteService.getUtenteByUsername(utente.getUsername()).isPresent()) {
+        // Controlla se l'username esiste già
+        if (utenteService.getUtenteByUsername(utenteDto.getUsername()).isPresent()) {
             bindingResult.rejectValue("username", "error.utente", "Questo username è già stato preso.");
             return "register";
         }
 
-        // TODO: Criptare la password prima di salvarla!
-        utenteService.saveUtente(utente);
+        // Convertiamo il DTO in Entità prima di salvarlo
+        Utente nuovoUtente = utenteMapper.toEntity(utenteDto);
 
-        // Passa un messaggio di successo alla pagina di login
+        // TODO: Criptare la password prima di salvarla!
+        utenteService.saveUtente(nuovoUtente);
+
         redirectAttributes.addFlashAttribute("successMessage", "Registrazione completata! Ora puoi accedere.");
         return "redirect:/login";
     }

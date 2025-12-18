@@ -1,9 +1,14 @@
 package com.websystemdesign.model;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.util.Set;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@RequiredArgsConstructor
 @Entity
 @Table(name = "service")
 public class Service {
@@ -12,65 +17,19 @@ public class Service {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NonNull
     @Column(unique = true, nullable = false)
     private String nome;
 
+    @NonNull
     @Column(nullable = false)
     private float costo;
 
     @ManyToMany(mappedBy = "services")
+    @ToString.Exclude
     private Set<Sede> sedi;
 
     @ManyToMany(mappedBy = "services")
+    @ToString.Exclude
     private Set<Prenotazione> prenotazioni;
-
-    // Costruttori
-    public Service() {
-    }
-
-    public Service(String nome, float costo) {
-        this.nome = nome;
-        this.costo = costo;
-    }
-
-    // Getter e Setter
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public float getCosto() {
-        return costo;
-    }
-
-    public void setCosto(float costo) {
-        this.costo = costo;
-    }
-
-    public Set<Sede> getSedi() {
-        return sedi;
-    }
-
-    public void setSedi(Set<Sede> sedi) {
-        this.sedi = sedi;
-    }
-
-    public Set<Prenotazione> getPrenotazioni() {
-        return prenotazioni;
-    }
-
-    public void setPrenotazioni(Set<Prenotazione> prenotazioni) {
-        this.prenotazioni = prenotazioni;
-    }
 }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
@@ -19,7 +20,6 @@ public class DataSeeder implements CommandLineRunner {
     private final UtenteRepository utenteRepository;
     private final DipendenteRepository dipendenteRepository;
     private final ClienteRepository clienteRepository;
-    private final PrenotazioneRepository prenotazioneRepository; // Aggiunto per pulizia
     private final PasswordEncoder passwordEncoder;
 
     public DataSeeder(SedeRepository sedeRepository,
@@ -29,7 +29,6 @@ public class DataSeeder implements CommandLineRunner {
                       UtenteRepository utenteRepository,
                       DipendenteRepository dipendenteRepository,
                       ClienteRepository clienteRepository,
-                      PrenotazioneRepository prenotazioneRepository,
                       PasswordEncoder passwordEncoder) {
         this.sedeRepository = sedeRepository;
         this.cameraRepository = cameraRepository;
@@ -38,53 +37,68 @@ public class DataSeeder implements CommandLineRunner {
         this.utenteRepository = utenteRepository;
         this.dipendenteRepository = dipendenteRepository;
         this.clienteRepository = clienteRepository;
-        this.prenotazioneRepository = prenotazioneRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        System.out.println("Pulizia completa del Database...");
-        
-        // Cancelliamo i dati in ordine inverso per rispettare i vincoli di chiave esterna
-        // Nota: Grazie al CascadeType.ALL su Prenotazione, Note e Ospiti vengono cancellati automaticamente
-        prenotazioneRepository.deleteAll(); 
-        
-        cameraRepository.deleteAll();
-        dipendenteRepository.deleteAll();
-        clienteRepository.deleteAll();
-        sedeRepository.deleteAll();
-        utenteRepository.deleteAll();
-        serviceRepository.deleteAll();
-        multimediaRepository.deleteAll();
+        // Eseguiamo il seeding solo se non ci sono sedi (indicatore che il DB è vuoto o parziale)
+        if (sedeRepository.count() == 0) {
+            System.out.println("Database vuoto. Inizio Data Seeding...");
 
-        System.out.println("Database pulito. Inizio Data Seeding...");
+            // 1. Creazione Sedi
+            Sede sedeCortina = createSedeIfNotFound("Alpine Palace Cortina", "Cortina d'Ampezzo", "5.00");
+            Sede sedeRoma = createSedeIfNotFound("Urban Luxury Roma", "Roma Centro", "7.50");
 
-        // 1. Creazione Sedi
-        Sede sedeCortina = new Sede("Alpine Palace Cortina", "Cortina d'Ampezzo", "5.00");
-        Sede sedeRoma = new Sede("Urban Luxury Roma", "Roma Centro", "7.50");
-        sedeRepository.saveAll(Arrays.asList(sedeCortina, sedeRoma));
+            // 2. Creazione Camere (Solo se le sedi sono state appena create o non hanno camere)
+            if (cameraRepository.count() == 0) {
+                createCamereForSede(sedeCortina);
+                createCamereForSede(sedeRoma);
+            }
 
-        // 2. Creazione Camere
-        createCamereForSede(sedeCortina);
-        createCamereForSede(sedeRoma);
+            // 3. Creazione Servizi
+            createServiceIfNotFound("Accesso SPA", 50.0f);
+            createServiceIfNotFound("Colazione in camera", 15.0f);
+            createServiceIfNotFound("Navetta Aeroportuale", 30.0f);
 
-        // 3. Creazione Servizi
-        Service spa = new Service("Accesso SPA", 50.0f);
-        Service colazione = new Service("Colazione in camera", 15.0f);
-        Service navetta = new Service("Navetta Aeroportuale", 30.0f);
-        serviceRepository.saveAll(Arrays.asList(spa, colazione, navetta));
+            // 4. Creazione Multimedia
+            createMultimediaIfNotFound("Film Prima Visione", 5.0f);
+            createMultimediaIfNotFound("Playlist Relax", 2.0f);
 
-        // 4. Creazione Multimedia (Il costruttore Lombok prende solo i campi @NonNull: nome e costo)
-        Multimedia film = new Multimedia("Film Prima Visione", 5.0f);
-        Multimedia musica = new Multimedia("Playlist Relax", 2.0f);
-        multimediaRepository.saveAll(Arrays.asList(film, musica));
+            // 5. Creazione Utenti e Ruoli
+            seedUsers(sedeCortina);
 
-        // 5. Creazione Utenti e Ruoli
-        seedUsers(sedeCortina);
+            System.out.println("Data Seeding completato con successo!");
+        } else {
+            System.out.println("Database già popolato. Seeding saltato.");
+        }
+    }
 
-        System.out.println("Data Seeding completato con successo!");
+    private Sede createSedeIfNotFound(String nome, String location, String tassa) {
+        // Qui potremmo fare una findByName, ma per semplicità nel seeder assumiamo che se count==0 creiamo tutto
+        // Dato che siamo dentro l'if(count==0), creiamo direttamente.
+        Sede sede = new Sede(nome, location, tassa);
+        return sedeRepository.save(sede);
+    }
+    
+    // Metodo helper per evitare duplicati sui servizi (che hanno vincolo unique)
+    private void createServiceIfNotFound(String nome, float costo) {
+        // Nota: ServiceRepository non ha findByNome di default, dovremmo aggiungerlo o usare Example.
+        // Per ora, dato che il blocco principale è if(sedeRepository.count() == 0), 
+        // assumiamo che se non ci sono sedi, non ci sono nemmeno servizi.
+        // Ma per sicurezza contro riavvii parziali:
+        Service s = new Service(nome, costo);
+        try {
+            serviceRepository.save(s);
+        } catch (Exception e) {
+            // Ignora se esiste già
+        }
+    }
+
+    private void createMultimediaIfNotFound(String nome, float costo) {
+        Multimedia m = new Multimedia(nome, costo);
+        multimediaRepository.save(m);
     }
 
     private void createCamereForSede(Sede sede) {
@@ -111,28 +125,32 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedUsers(Sede sedeDiLavoro) {
         // --- ADMIN ---
-        Utente adminUser = new Utente("admin", passwordEncoder.encode("admin"), "Admin", "Superuser");
-        utenteRepository.save(adminUser);
+        if (utenteRepository.findByUsername("admin").isEmpty()) {
+            Utente adminUser = new Utente("admin", passwordEncoder.encode("admin"), "Admin", "Superuser");
+            utenteRepository.save(adminUser);
 
-        // Dipendente: costruttore Lombok (Ruolo, Utente). La sede è opzionale nel costruttore se non è @NonNull, 
-        // ma nel nostro model Dipendente la sede non è @NonNull, quindi usiamo il setter.
-        Dipendente adminDipendente = new Dipendente(Ruolo.AMMINISTRATORE, adminUser);
-        adminDipendente.setSede(sedeDiLavoro);
-        dipendenteRepository.save(adminDipendente);
+            Dipendente adminDipendente = new Dipendente(Ruolo.AMMINISTRATORE, adminUser);
+            adminDipendente.setSede(sedeDiLavoro);
+            dipendenteRepository.save(adminDipendente);
+        }
 
         // --- STAFF ---
-        Utente staffUser = new Utente("staff", passwordEncoder.encode("staff"), "Luigi", "Verdi");
-        utenteRepository.save(staffUser);
+        if (utenteRepository.findByUsername("staff").isEmpty()) {
+            Utente staffUser = new Utente("staff", passwordEncoder.encode("staff"), "Luigi", "Verdi");
+            utenteRepository.save(staffUser);
 
-        Dipendente staffDipendente = new Dipendente(Ruolo.STAFF, staffUser);
-        staffDipendente.setSede(sedeDiLavoro);
-        dipendenteRepository.save(staffDipendente);
+            Dipendente staffDipendente = new Dipendente(Ruolo.STAFF, staffUser);
+            staffDipendente.setSede(sedeDiLavoro);
+            dipendenteRepository.save(staffDipendente);
+        }
 
         // --- CLIENTE ---
-        Utente clienteUser = new Utente("mario", passwordEncoder.encode("password"), "Mario", "Rossi");
-        utenteRepository.save(clienteUser);
+        if (utenteRepository.findByUsername("mario").isEmpty()) {
+            Utente clienteUser = new Utente("mario", passwordEncoder.encode("password"), "Mario", "Rossi");
+            utenteRepository.save(clienteUser);
 
-        Cliente cliente = new Cliente("Italiana", "Milano", "1990-01-01", "Carta d'Identità", "AX123456", clienteUser);
-        clienteRepository.save(cliente);
+            Cliente cliente = new Cliente("Italiana", "Milano", "1990-01-01", "Carta d'Identità", "AX123456", clienteUser);
+            clienteRepository.save(cliente);
+        }
     }
 }

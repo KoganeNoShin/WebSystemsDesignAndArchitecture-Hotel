@@ -4,6 +4,9 @@
 :root {
     --primary-gold: #c5a059; /* Colore oro simile al sito di riferimento */
     --text-light: #ffffff;
+    --red: #8b3126;
+    --dark-red: #622119;
+    --background: #fdf9f3;
     --bg-overlay: rgba(0, 0, 0, 0.4); /* Per scurire l'immagine di sfondo */
     --bg-form: rgba(0, 0, 0, 0.85); /* Sfondo scuro per i box dei form */
 }
@@ -44,7 +47,7 @@ header {
     text-decoration: none;
 }
 
-.btn-login, .btn-register {
+.btn-login {
     font-family: 'Lato', sans-serif;
     font-size: 0.9rem;
     text-transform: uppercase;
@@ -66,7 +69,7 @@ header {
 .hero {
     height: 100vh;
     width: 100%;
-    background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('../image/background.avif');
+    background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('../image/background.webp');
     background-size: cover;
     background-position: center;
     display: flex;
@@ -128,7 +131,7 @@ footer {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('../image/background.avif');
+    background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('../image/background.webp');
     background-size: cover;
     background-position: center;
 }

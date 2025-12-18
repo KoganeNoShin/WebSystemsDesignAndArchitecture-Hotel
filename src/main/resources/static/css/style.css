@@ -1,0 +1,214 @@
+/* Importiamo font eleganti da Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap');
+
+:root {
+    --primary-gold: #c5a059; /* Colore oro simile al sito di riferimento */
+    --text-light: #ffffff;
+    --bg-overlay: rgba(0, 0, 0, 0.4); /* Per scurire l'immagine di sfondo */
+    --bg-form: rgba(0, 0, 0, 0.85); /* Sfondo scuro per i box dei form */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Lato', sans-serif;
+    color: var(--text-light);
+    background-color: #1a1a1a;
+    overflow-x: hidden;
+}
+
+/* --- HEADER (Logo e Login) --- */
+header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 2rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+}
+
+.logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-light);
+    text-decoration: none;
+}
+
+.btn-login, .btn-register {
+    font-family: 'Lato', sans-serif;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-light);
+    text-decoration: none;
+    padding: 10px 25px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    transition: all 0.3s ease;
+}
+
+.btn-login:hover {
+    border-color: var(--primary-gold);
+    color: var(--primary-gold);
+    background-color: rgba(0,0,0,0.2);
+}
+
+/* --- HERO SECTION (Sfondo e Benvenuto) --- */
+.hero {
+    height: 100vh;
+    width: 100%;
+    background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('../image/background.avif');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.hero-content h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 4.5rem;
+    font-weight: 400;
+    margin-bottom: 1rem;
+    font-style: italic;
+}
+
+.hero-content p {
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    font-weight: 300;
+}
+
+/* --- FOOTER & NAV LINKS --- */
+footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 2rem;
+    background-color: rgba(0,0,0,0.3);
+    text-align: center;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+}
+
+.nav-links a {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: var(--primary-gold);
+}
+
+
+/* --- FORMS (Login & Register) --- */
+.form-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('../image/background.avif');
+    background-size: cover;
+    background-position: center;
+}
+
+.form-container {
+    background-color: var(--bg-form);
+    padding: 3rem;
+    width: 100%;
+    max-width: 450px;
+    border: 1px solid rgba(197, 160, 89, 0.3); /* Bordo oro sottile */
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.form-container h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    color: var(--primary-gold);
+    margin-bottom: 2rem;
+    font-style: italic;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+    color: #aaa;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #555;
+    color: var(--text-light);
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-bottom-color: var(--primary-gold);
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 15px;
+    margin-top: 1rem;
+    background-color: transparent;
+    border: 1px solid var(--primary-gold);
+    color: var(--primary-gold);
+    font-family: 'Lato', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-submit:hover {
+    background-color: var(--primary-gold);
+    color: #000;
+}
+
+.form-footer {
+    margin-top: 2rem;
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+.form-footer a {
+    color: var(--text-light);
+    text-decoration: none;
+    border-bottom: 1px solid var(--primary-gold);
+}

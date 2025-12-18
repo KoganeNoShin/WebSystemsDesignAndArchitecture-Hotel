@@ -2,15 +2,40 @@
 <html lang="it" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Benvenuto - Gestione Hotel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benvenuto - Comitini Residence</title>
+    <!-- Colleghiamo il nostro nuovo file CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-<h1>Benvenuto nel Sistema di Gestione Hotel</h1>
-<p>L'applicazione è funzionante.</p>
 
-<p>Da qui potrai navigare verso le varie sezioni:</p>
-<ul>
-    <li><a th:href="@{/api/rooms}">Visualizza le camere (API)</a></li>
-</ul>
+    <!-- Header con logo e tasto login -->
+    <header>
+        <a href="/" class="logo">Comitini Residence</a>
+        <div>
+            <a th:href="@{/register}" class="btn-register">Register</a>
+            <a th:href="@{/login}" class="btn-login">Login</a>
+        </div>
+    </header>
+
+    <!-- Sezione principale con immagine di sfondo -->
+    <main class="hero">
+        <div class="hero-content">
+            <h1>L'Eleganza Incontra Le Vette</h1>
+            <p>La tua esperienza di lusso inizia qui.</p>
+        </div>
+    </main>
+
+    <!-- Footer con i link di navigazione -->
+    <footer>
+        <nav>
+            <ul class="nav-links">
+                <li><a th:href="@{/register}">Registrati</a></li>
+                <li><a th:href="@{/rooms}">Le Nostre Camere</a></li>
+                <li><a th:href="@{/contact}">Contatti</a></li>
+            </ul>
+        </nav>
+    </footer>
+
 </body>
 </html>

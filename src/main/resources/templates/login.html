@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Alpine Palace</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+    <div class="form-page">
+        <div class="form-container">
+            <h2>Accedi</h2>
+
+            <!-- Il form punterà a /login, gestito da Spring Security -->
+            <form th:action="@{/login}" method="post">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn-submit">Login</button>
+            </form>
+
+            <div class="form-footer">
+                <p>Non hai un account? <a th:href="@{/register}">Registrati ora</a>.</p>
+                <p><a th:href="@{/}">Torna alla Home</a>.</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

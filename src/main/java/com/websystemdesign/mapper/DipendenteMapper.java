@@ -12,6 +12,10 @@ public interface DipendenteMapper {
 
     @Mapping(source = "sede.id", target = "sedeId")
     @Mapping(source = "utente.id", target = "utenteId")
+    @Mapping(source = "utente.nome", target = "nome")
+    @Mapping(source = "utente.cognome", target = "cognome")
+    @Mapping(source = "utente.username", target = "username")
+    @Mapping(source = "sede.nome", target = "nomeSede")
     DipendenteDto toDto(Dipendente dipendente);
 
     @Mapping(source = "sedeId", target = "sede.id")

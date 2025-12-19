@@ -1,35 +1,60 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const input = document.getElementById('luogoNascita');
-    if (input) {
+    const cittadinanzaSelect = document.getElementById('cittadinanza');
+    const luogoNascitaInput = document.getElementById('luogoNascita');
+
+    if (cittadinanzaSelect && luogoNascitaInput) {
         const suggestions = document.createElement('div');
         suggestions.setAttribute('id', 'suggestions');
-        input.parentNode.appendChild(suggestions);
+        luogoNascitaInput.parentNode.appendChild(suggestions);
 
-        let comuni = [];
+        let cityList = [];
 
-        // Carica i comuni dal file JSON
-        fetch('/json/comuni.json')
-            .then(response => response.json())
-            .then(data => {
-                comuni = data;
-            })
-            .catch(error => console.error('Errore nel caricamento dei comuni:', error));
+        const countryToJSON = {
+            "Italiana": "italia.json",
+            "Francese": "francia.json",
+            "Tedesca": "germania.json",
+            "Spagnola": "spagna.json",
+            "Statunitense": "usa.json"
+        };
 
-        input.addEventListener('input', function () {
+        function loadCities(country) {
+            const jsonFile = countryToJSON[country];
+            if (jsonFile) {
+                luogoNascitaInput.disabled = false;
+                fetch(`/json/${jsonFile}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        cityList = data;
+                    })
+                    .catch(error => console.error(`Errore nel caricamento di ${jsonFile}:`, error));
+            } else {
+                cityList = [];
+                luogoNascitaInput.disabled = true;
+                luogoNascitaInput.value = 'N/A per questa cittadinanza';
+            }
+        }
+
+        cittadinanzaSelect.addEventListener('change', function() {
+            const selectedCountry = this.value;
+            luogoNascitaInput.value = ''; // Pulisce l'input al cambio
+            loadCities(selectedCountry);
+        });
+
+        luogoNascitaInput.addEventListener('input', function () {
             const value = this.value.toLowerCase();
             suggestions.innerHTML = '';
-            if (!value) return;
+            if (!value || cityList.length === 0) return;
 
-            const filteredComuni = comuni.filter(comune =>
-                comune.toLowerCase().startsWith(value)
+            const filteredCities = cityList.filter(city =>
+                city.toLowerCase().startsWith(value)
             );
 
-            filteredComuni.slice(0, 10).forEach(comune => { // Mostra solo i primi 10 risultati
+            filteredCities.slice(0, 10).forEach(city => {
                 const suggestionItem = document.createElement('div');
                 suggestionItem.classList.add('suggestion-item');
-                suggestionItem.textContent = comune;
+                suggestionItem.textContent = city;
                 suggestionItem.addEventListener('click', function () {
-                    input.value = this.textContent;
+                    luogoNascitaInput.value = this.textContent;
                     suggestions.innerHTML = '';
                 });
                 suggestions.appendChild(suggestionItem);
@@ -37,9 +62,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         document.addEventListener('click', function (e) {
-            if (e.target !== input) {
+            if (e.target !== luogoNascitaInput) {
                 suggestions.innerHTML = '';
             }
         });
+
+        // Carica la lista iniziale se una cittadinanza è già selezionata
+        if (cittadinanzaSelect.value) {
+            loadCities(cittadinanzaSelect.value);
+        } else {
+            luogoNascitaInput.disabled = true;
+            luogoNascitaInput.placeholder = 'Seleziona prima la cittadinanza';
+        }
     }
 });

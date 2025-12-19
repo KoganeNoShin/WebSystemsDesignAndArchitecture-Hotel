@@ -55,8 +55,7 @@ public class AdminStaffController {
                            Model model,
                            RedirectAttributes redirectAttributes,
                            @AuthenticationPrincipal UserDetails currentUser) {
-        
-        // Rimosso il controllo sull'username perché ora è generato automaticamente
+
 
         if (bindingResult.hasErrors()) {
             List<DipendenteDto> dipendenti = dipendenteService.getAllDipendenti().stream()

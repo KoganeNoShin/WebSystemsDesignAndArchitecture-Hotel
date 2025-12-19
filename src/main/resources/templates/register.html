@@ -7,7 +7,7 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
         .error-message {
-            color: #ffb3b3; /* Rosso chiaro per gli errori */
+            color: #ffb3b3;
             font-size: 0.8rem;
             margin-top: 5px;
         }
@@ -19,8 +19,9 @@
         <div class="form-container">
             <h2>Crea il tuo Account</h2>
 
-            <!-- Aggiornato a th:object="${utenteDto}" -->
-            <form th:action="@{/register}" th:object="${utenteDto}" method="post">
+            <form th:action="@{/register}" th:object="${registrationDto}" method="post">
+
+                <!-- Dati Utente -->
                 <div class="form-group">
                     <label for="nome">Nome</label>
                     <input type="text" id="nome" th:field="*{nome}" class="form-control">
@@ -41,6 +42,49 @@
                     <input type="password" id="password" th:field="*{password}" class="form-control">
                     <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="error-message"></div>
                 </div>
+
+                <hr style="border-color: rgba(197, 160, 89, 0.3); margin: 2rem 0;">
+
+                <!-- Dati Cliente -->
+                <div class="form-group">
+                    <label for="cittadinanza">Cittadinanza</label>
+                    <select id="cittadinanza" th:field="*{cittadinanza}" class="form-control">
+                        <option value="">Seleziona...</option>
+                        <option value="Italiana">Italiana</option>
+                        <option value="Francese">Francese</option>
+                        <option value="Tedesca">Tedesca</option>
+                        <option value="Spagnola">Spagnola</option>
+                        <option value="Statunitense">Statunitense</option>
+                        <option value="Altro">Altro</option>
+                    </select>
+                    <div th:if="${#fields.hasErrors('cittadinanza')}" th:errors="*{cittadinanza}" class="error-message"></div>
+                </div>
+                <div class="form-group">
+                    <label for="luogoNascita">Luogo di Nascita</label>
+                    <input type="text" id="luogoNascita" th:field="*{luogoNascita}" class="form-control" autocomplete="off">
+                    <div th:if="${#fields.hasErrors('luogoNascita')}" th:errors="*{luogoNascita}" class="error-message"></div>
+                </div>
+                <div class="form-group">
+                    <label for="dataNascita">Data di Nascita</label>
+                    <input type="date" id="dataNascita" th:field="*{dataNascita}" class="form-control">
+                    <div th:if="${#fields.hasErrors('dataNascita')}" th:errors="*{dataNascita}" class="error-message"></div>
+                </div>
+                <div class="form-group">
+                    <label for="tipoDocumento">Tipo Documento</label>
+                    <select id="tipoDocumento" th:field="*{tipoDocumento}" class="form-control">
+                        <option value="">Seleziona...</option>
+                        <option th:each="doc : ${T(com.websystemdesign.model.TipoDocumento).values()}"
+                                th:value="${doc}"
+                                th:text="${doc.descrizione}"></option>
+                    </select>
+                    <div th:if="${#fields.hasErrors('tipoDocumento')}" th:errors="*{tipoDocumento}" class="error-message"></div>
+                </div>
+                <div class="form-group">
+                    <label for="numDocumento">Numero Documento</label>
+                    <input type="text" id="numDocumento" th:field="*{numDocumento}" class="form-control">
+                    <div th:if="${#fields.hasErrors('numDocumento')}" th:errors="*{numDocumento}" class="error-message"></div>
+                </div>
+
                 <button type="submit" class="btn-submit">Registrati</button>
             </form>
 
@@ -51,5 +95,6 @@
         </div>
     </div>
 
+    <script th:src="@{/js/autocomplete.js}"></script>
 </body>
 </html>

@@ -43,6 +43,16 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
+        System.out.println("Inizio Data Seeding...");
+        // L'ordine di eliminazione è importante a causa delle chiavi esterne
+        clienteRepository.deleteAll();
+        dipendenteRepository.deleteAll();
+        utenteRepository.deleteAll();
+        cameraRepository.deleteAll();
+        sedeRepository.deleteAll();
+        serviceRepository.deleteAll();
+        multimediaRepository.deleteAll();
+
         // Eseguiamo il seeding solo se non ci sono sedi (indicatore che il DB è vuoto o parziale)
         if (sedeRepository.count() == 0) {
             System.out.println("Database vuoto. Inizio Data Seeding...");

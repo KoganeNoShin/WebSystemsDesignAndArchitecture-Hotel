@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -16,22 +15,19 @@ public class SecurityConfig {
 
     private final UtenteService utenteService;
     private final CustomAuthenticationSuccessHandler successHandler;
+    private final PasswordEncoder passwordEncoder;
 
-    public SecurityConfig(UtenteService utenteService, CustomAuthenticationSuccessHandler successHandler) {
+    public SecurityConfig(UtenteService utenteService, CustomAuthenticationSuccessHandler successHandler, PasswordEncoder passwordEncoder) {
         this.utenteService = utenteService;
         this.successHandler = successHandler;
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(utenteService);
-        authProvider.setPasswordEncoder(passwordEncoder());
+        authProvider.setPasswordEncoder(passwordEncoder); // Usa il bean PasswordEncoder iniettato
         return authProvider;
     }
 
@@ -39,12 +35,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/", "/login", "/register", "/css/**", "/image/**").permitAll()
+                        .requestMatchers("/", "/login", "/register", "/css/**", "/image/**", "/js/**", "/json/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .successHandler(successHandler) // Usiamo il nostro success handler
+                        .successHandler(successHandler)
                         .permitAll()
                 )
                 .logout(logout -> logout

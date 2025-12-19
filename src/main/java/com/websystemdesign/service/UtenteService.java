@@ -1,5 +1,7 @@
 package com.websystemdesign.service;
 
+import com.websystemdesign.dto.RegistrationDto;
+import com.websystemdesign.model.Cliente;
 import com.websystemdesign.model.Dipendente;
 import com.websystemdesign.model.Utente;
 import com.websystemdesign.repository.ClienteRepository;
@@ -12,8 +14,12 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -25,12 +31,39 @@ public class UtenteService implements UserDetailsService {
     private final UtenteRepository utenteRepository;
     private final DipendenteRepository dipendenteRepository;
     private final ClienteRepository clienteRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UtenteService(UtenteRepository utenteRepository, DipendenteRepository dipendenteRepository, ClienteRepository clienteRepository) {
+    public UtenteService(UtenteRepository utenteRepository, DipendenteRepository dipendenteRepository, ClienteRepository clienteRepository, PasswordEncoder passwordEncoder) {
         this.utenteRepository = utenteRepository;
         this.dipendenteRepository = dipendenteRepository;
         this.clienteRepository = clienteRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Transactional
+    public void registraNuovoCliente(RegistrationDto registrationDto) {
+        if (Period.between(registrationDto.getDataNascita(), LocalDate.now()).getYears() > 120) {
+            throw new IllegalArgumentException("L'età non può superare i 120 anni.");
+        }
+        
+        // 1. Crea e salva l'Utente
+        Utente nuovoUtente = new Utente();
+        nuovoUtente.setNome(registrationDto.getNome());
+        nuovoUtente.setCognome(registrationDto.getCognome());
+        nuovoUtente.setUsername(registrationDto.getUsername());
+        nuovoUtente.setPassword(passwordEncoder.encode(registrationDto.getPassword()));
+        utenteRepository.save(nuovoUtente);
+
+        // 2. Crea e salva il Cliente collegato
+        Cliente nuovoCliente = new Cliente();
+        nuovoCliente.setUtente(nuovoUtente);
+        nuovoCliente.setCittadinanza(registrationDto.getCittadinanza());
+        nuovoCliente.setLuogo(registrationDto.getLuogoNascita());
+        nuovoCliente.setDataNascita(registrationDto.getDataNascita().toString()); // Convertiamo LocalDate in String come nel model
+        nuovoCliente.setTipoDocumento(registrationDto.getTipoDocumento().getDescrizione()); // Salviamo la descrizione
+        nuovoCliente.setNumDocumento(registrationDto.getNumDocumento());
+        clienteRepository.save(nuovoCliente);
     }
 
     @Override
@@ -40,13 +73,10 @@ public class UtenteService implements UserDetailsService {
 
         Collection<GrantedAuthority> authorities = new ArrayList<>();
         
-        // Cerchiamo se è un dipendente per assegnare il ruolo
         Optional<Dipendente> dipendenteOpt = dipendenteRepository.findByUtenteId(utente.getId());
         if (dipendenteOpt.isPresent()) {
-            // Spring Security richiede il prefisso "ROLE_"
             authorities.add(new SimpleGrantedAuthority("ROLE_" + dipendenteOpt.get().getRuolo().name()));
         } else {
-            // Se non è un dipendente, assumiamo sia un cliente
             clienteRepository.findByUtenteId(utente.getId()).ifPresent(cliente -> {
                 authorities.add(new SimpleGrantedAuthority("ROLE_CLIENTE"));
             });
@@ -59,7 +89,6 @@ public class UtenteService implements UserDetailsService {
         return utenteRepository.findAll();
     }
     
-    // ... altri metodi del service ...
     public Optional<Utente> getUtenteById(Long id) { return utenteRepository.findById(id); }
     public Optional<Utente> getUtenteByUsername(String username) { return utenteRepository.findByUsername(username); }
     public Utente saveUtente(Utente utente) { return utenteRepository.save(utente); }

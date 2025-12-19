@@ -4,9 +4,6 @@
 :root {
     --primary-gold: #c5a059; /* Colore oro simile al sito di riferimento */
     --text-light: #ffffff;
-    --red: #8b3126;
-    --dark-red: #622119;
-    --background: #fdf9f3;
     --bg-overlay: rgba(0, 0, 0, 0.4); /* Per scurire l'immagine di sfondo */
     --bg-form: rgba(0, 0, 0, 0.85); /* Sfondo scuro per i box dei form */
 }
@@ -85,12 +82,14 @@ header {
     font-weight: 400;
     margin-bottom: 1rem;
     font-style: italic;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7); /* Aggiunto contorno/ombra */
 }
 
 .hero-content p {
     font-size: 1.2rem;
     letter-spacing: 1px;
     font-weight: 300;
+    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.7); /* Aggiunto contorno/ombra più leggero */
 }
 
 /* --- FOOTER & NAV LINKS --- */
@@ -134,6 +133,7 @@ footer {
     background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('../image/background.webp');
     background-size: cover;
     background-position: center;
+    padding: 2rem 0; /* Aggiunto padding per schermi piccoli */
 }
 
 .form-container {
@@ -157,6 +157,7 @@ footer {
 .form-group {
     margin-bottom: 1.5rem;
     text-align: left;
+    position: relative; /* Per posizionare i suggerimenti */
 }
 
 .form-group label {
@@ -183,6 +184,25 @@ footer {
 .form-control:focus {
     outline: none;
     border-bottom-color: var(--primary-gold);
+}
+
+/* Stile specifico per SELECT e DATE */
+select.form-control {
+    background-color: #1a1a1a; /* Sfondo scuro per il menu chiuso */
+    color: var(--text-light);
+    cursor: pointer;
+}
+
+select.form-control option {
+    background-color: #1a1a1a; /* Sfondo scuro per le opzioni */
+    color: var(--text-light);
+    padding: 10px;
+}
+
+/* Icona calendario bianca per input date (funziona su Chrome/Edge) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
 }
 
 .btn-submit {
@@ -214,4 +234,26 @@ footer {
     color: var(--text-light);
     text-decoration: none;
     border-bottom: 1px solid var(--primary-gold);
+}
+
+/* Stili per l'autocomplete */
+#suggestions {
+    position: absolute;
+    background-color: #2c2c2c;
+    border: 1px solid #444;
+    width: 100%;
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.suggestion-item {
+    padding: 10px;
+    cursor: pointer;
+    color: var(--text-light);
+}
+
+.suggestion-item:hover {
+    background-color: var(--primary-gold);
+    color: #000;
 }

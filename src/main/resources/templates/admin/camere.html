@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestione Camere - Admin</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+
+<header>
+  <div style="display: flex; flex-direction: column;">
+    <a th:href="@{/admin/dashboard}" class="logo">Comitini Admin</a>
+    <a th:href="@{/admin/sedi}" class="back-link">&larr; Torna alle Strutture</a>
+  </div>
+  <form th:action="@{/logout}" method="post">
+    <button type="submit" class="btn-login" style="border:none; background:none; cursor:pointer;">Logout</button>
+  </form>
+</header>
+
+<div class="form-page" style="flex-direction: column; justify-content: flex-start; padding-top: 100px;">
+
+  <div style="width: 100%; max-width: 1200px; margin-bottom: 2rem;">
+    <h2 style="color: #aaa; font-size: 1rem; text-transform: uppercase;">Gestione Camere per:</h2>
+    <h1 style="font-family: 'Playfair Display', serif; font-size: 3rem;" th:text="${sede.nome}">Nome Hotel</h1>
+    <p th:text="${sede.location}">Location</p>
+  </div>
+
+  <div th:if="${successMessage}" class="alert-box success" th:text="${successMessage}"
+       style="background-color: #28a745; color: white; padding: 10px; margin-bottom: 20px; border-radius: 5px; width: 100%; max-width: 1200px;"></div>
+
+  <div style="width: 100%; max-width: 1200px; text-align: right; margin-bottom: 1rem;">
+    <button id="openModalBtn" class="btn-submit" style="width: auto; padding: 10px 20px;">+ Nuova Camera</button>
+  </div>
+
+  <table class="admin-table" style="width: 100%; max-width: 1200px;">
+    <thead>
+    <tr>
+      <th>Numero/Nome</th>
+      <th>Posti Letto</th>
+      <th>Prezzo Base</th>
+      <th>Extra (Domotica)</th>
+      <th>Stato</th>
+      <th>Azioni</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="camera : ${camere}">
+      <td th:text="${camera.numero}" style="font-weight:bold; color: var(--primary-gold);">101</td>
+      <td th:text="${camera.postiLetto}">2</td>
+      <td th:text="'€ ' + ${camera.prezzoBase}">€ 100.0</td>
+
+      <td>
+        <span th:if="${camera.luce}" title="Luci Smart">💡</span>
+        <span th:if="${camera.tapparelle}" title="Tapparelle Smart">🪟</span>
+        <span th:if="${camera.temperatura > 0}" title="Termostato Smart">🌡️</span>
+      </td>
+
+      <td>
+        <span th:class="'badge ' + ${camera.status}" th:text="${camera.status}">LIBERA</span>
+      </td>
+
+      <td style="display: flex; gap: 5px;">
+        <button type="button" class="action-btn"
+                style="background-color: var(--primary-gold); color: black;"
+                th:data-id="${camera.id}"
+                th:data-numero="${camera.numero}"
+                th:data-posti="${camera.postiLetto}"
+                th:data-prezzo="${camera.prezzoBase}"
+                th:data-luce="${camera.luce}"
+                th:data-tapparelle="${camera.tapparelle}"
+                th:data-temp="${camera.temperatura}"
+                th:data-status="${camera.status}"
+                onclick="openEditModal(this)">
+          Modifica
+        </button>
+
+        <form th:action="@{/admin/sedi/camere/delete/{id}(id=${camera.id})}" method="post">
+          <input type="hidden" name="sedeId" th:value="${sede.id}">
+          <button type="submit" class="action-btn btn-delete" onclick="return confirm('Sei sicuro di voler eliminare questa camera?')">X</button>
+        </form>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+
+<div id="addCameraModal" class="modal" th:style="${openModal} ? 'display:block' : 'display:none'">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2 id="modalTitle" style="font-family: 'Playfair Display'; color: var(--primary-gold);">Aggiungi Camera</h2>
+
+    <div th:if="${#fields.hasErrors('${cameraDto.*}')}" style="background-color: #ffcccc; color: #cc0000; padding: 10px; margin-bottom: 15px; border-radius: 5px;">
+      <p style="font-weight: bold;">Attenzione, correggi i seguenti errori:</p>
+      <ul>
+        <li th:each="err : ${#fields.errors('${cameraDto.*}')}" th:text="${err}"></li>
+      </ul>
+    </div>
+
+    <form th:action="@{/admin/sedi/{id}/camere/save(id=${sede.id})}" th:object="${cameraDto}" method="post" id="cameraForm">
+
+      <input type="hidden" id="field-id" th:field="*{id}">
+      <input type="hidden" th:field="*{sedeId}">
+
+      <input type="hidden" id="field-status" th:field="*{status}">
+
+      <div class="form-group">
+        <label>Numero o Nome Camera</label>
+        <input type="text" id="field-numero" th:field="*{numero}" class="form-control" placeholder="Es. 101 o Suite">
+        <div th:if="${#fields.hasErrors('numero')}" th:errors="*{numero}" class="error-message"></div>
+      </div>
+
+      <div style="display: flex; gap: 20px;">
+        <div class="form-group" style="flex: 1;">
+          <label>Posti Letto</label>
+          <input type="number" id="field-posti" th:field="*{postiLetto}" class="form-control" min="1">
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label>Prezzo per Notte (€)</label>
+          <input type="number" step="0.01" id="field-prezzo" th:field="*{prezzoBase}" class="form-control" placeholder="0.00">
+        </div>
+      </div>
+
+      <hr style="border-color: #444; margin: 20px 0;">
+      <p style="color: var(--primary-gold); margin-bottom: 10px;">Funzionalità Smart</p>
+
+      <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 10px;">
+        <label style="color: white; cursor: pointer;">
+          <input type="checkbox" id="field-luce" th:field="*{luce}"> Luci Smart
+        </label>
+        <label style="color: white; cursor: pointer;">
+          <input type="checkbox" id="field-tapparelle" th:field="*{tapparelle}"> Tapparelle Auto
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label>Temperatura Default (°C)</label>
+        <input type="number" step="0.1" id="field-temp" th:field="*{temperatura}" class="form-control">
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">Salva Camera</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Seleziona elementi del DOM
+  var modal = document.getElementById("addCameraModal");
+  var span = document.getElementsByClassName("close")[0];
+
+  // Funzione chiusura modale
+  function closeModal() { modal.style.display = "none"; }
+  if(span) span.onclick = closeModal;
+  window.onclick = function(event) { if (event.target == modal) closeModal(); }
+
+  // --- AZIONE: NUOVA CAMERA ---
+  document.getElementById("openModalBtn").onclick = function() {
+      // Resetta tutti i campi
+      document.getElementById("field-id").value = "";
+      document.getElementById("field-numero").value = "";
+      document.getElementById("field-posti").value = "2";
+      document.getElementById("field-prezzo").value = "";
+      document.getElementById("field-luce").checked = false;
+      document.getElementById("field-tapparelle").checked = false;
+      document.getElementById("field-temp").value = "20.0";
+
+      // Imposta lo status di default a LIBERA
+      document.getElementById("field-status").value = "LIBERA";
+
+      // Aggiorna testi
+      document.getElementById("submitBtn").innerText = "Crea Camera";
+      document.getElementById("modalTitle").innerText = "Nuova Camera";
+
+      modal.style.display = "block";
+  }
+
+  // --- AZIONE: MODIFICA CAMERA ---
+  // Questa funzione viene chiamata dal bottone nella tabella
+  function openEditModal(btn) {
+      // 1. Legge i dati dagli attributi del bottone HTML
+      var id = btn.getAttribute("data-id");
+      var numero = btn.getAttribute("data-numero");
+      var posti = btn.getAttribute("data-posti");
+      var prezzo = btn.getAttribute("data-prezzo");
+      var luce = btn.getAttribute("data-luce") === 'true';
+      var tapparelle = btn.getAttribute("data-tapparelle") === 'true';
+      var temp = btn.getAttribute("data-temp");
+      var status = btn.getAttribute("data-status"); // <-- IMPORTANTE
+
+      // 2. Popola il form con i dati letti
+      document.getElementById("field-id").value = id;
+      document.getElementById("field-numero").value = numero;
+      document.getElementById("field-posti").value = posti;
+      document.getElementById("field-prezzo").value = prezzo;
+      document.getElementById("field-luce").checked = luce;
+      document.getElementById("field-tapparelle").checked = tapparelle;
+      document.getElementById("field-temp").value = temp;
+
+      // 3. Imposta lo status nel campo nascosto per non perderlo
+      document.getElementById("field-status").value = status;
+
+      // 4. Aggiorna testi
+      document.getElementById("submitBtn").innerText = "Aggiorna Camera";
+      document.getElementById("modalTitle").innerText = "Modifica Camera " + numero;
+
+      modal.style.display = "block";
+  }
+</script>
+
+</body>
+</html>

@@ -1,6 +1,7 @@
 package com.websystemdesign.dto;
 
 import com.websystemdesign.model.StatoCamera;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
@@ -17,6 +18,12 @@ public class CameraDto {
 
     @NotNull(message = "Lo stato della camera è obbligatorio")
     private StatoCamera status;
+
+    @NotBlank(message = "Il numero o nome della camera è obbligatorio")
+    private String numero; // Es. "101" o "Suite Vista Mare"
+
+    @Positive(message = "Il prezzo base deve essere positivo")
+    private float prezzoBase;
 
     private boolean luce;
     private boolean tapparelle;

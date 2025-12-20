@@ -69,6 +69,11 @@
             <version>${org.mapstruct.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+        </dependency>
+
         <!-- Dev & Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

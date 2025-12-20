@@ -112,20 +112,20 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void createCamereForSede(Sede sede) {
-        // Camera Singola
-        Camera c1 = new Camera(sede, 1, StatoCamera.LIBERA);
+        // Versione per Lombok @RequiredArgsConstructor che include TUTTI i campi @NonNull
+        // Ordine presunto: Sede, Posti, Status, Numero, Prezzo
+
+        Camera c1 = new Camera(sede, 1, StatoCamera.LIBERA, "101", 80.0f);
         c1.setLuce(false);
         c1.setTapparelle(true);
         c1.setTemperatura(20.0f);
 
-        // Camera Doppia
-        Camera c2 = new Camera(sede, 2, StatoCamera.LIBERA);
+        Camera c2 = new Camera(sede, 2, StatoCamera.LIBERA, "102", 120.0f);
         c2.setLuce(true);
         c2.setTapparelle(false);
         c2.setTemperatura(21.5f);
 
-        // Suite (4 posti)
-        Camera c3 = new Camera(sede, 4, StatoCamera.OCCUPATA);
+        Camera c3 = new Camera(sede, 4, StatoCamera.OCCUPATA, "201 - Suite", 250.0f);
         c3.setLuce(true);
         c3.setTapparelle(true);
         c3.setTemperatura(22.0f);

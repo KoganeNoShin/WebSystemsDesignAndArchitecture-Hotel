@@ -1,6 +1,7 @@
 package com.websystemdesign.service;
 
 import com.websystemdesign.model.Prenotazione;
+import com.websystemdesign.model.StatoPrenotazione;
 import com.websystemdesign.repository.PrenotazioneRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,13 @@ public class PrenotazioneService {
 
     // se non è detto che la prenotazione vada a buon fine, bisognerebbe mettere un tipo di ritorno diverso...
     public Prenotazione savePrenotazione(Prenotazione prenotazione) {
-        // Qui in futuro andrà la logica per verificare la disponibilità, calcolare il costo, etc.
+        // --- AGGIUNTA LOGICA ---
+        if (prenotazione.getId() == null && prenotazione.getStato() == null) {
+            // Se è una nuova prenotazione e non ha stato, la impostiamo CONFERMATA di default
+            prenotazione.setStato(StatoPrenotazione.CONFERMATA);
+        }
+        // Qui in futuro calcolerai il costo: prenotazione.setCosto(...)
+
         return prenotazioneRepository.save(prenotazione);
     }
 
@@ -43,7 +50,7 @@ public class PrenotazioneService {
 
     // questo è un metodo helper? va utilizzato in save prenotazioni? avrebbe più senso metterlo in CameraService
     public boolean isCameraDisponibile(Long camera_id, LocalDate inizio, LocalDate fine) {
-        List<Prenotazione> sovrapposizioni = prenotazioneRepository.findByCameraIdAndDataInizioBeforeAndDataFineAfter(camera_id, fine, inizio);
+        List<Prenotazione> sovrapposizioni = prenotazioneRepository.findSovrapposizioni(camera_id, fine, inizio);
         return sovrapposizioni.isEmpty();
     }
 }

@@ -1,5 +1,6 @@
 package com.websystemdesign.dto;
 
+import com.websystemdesign.model.StatoPrenotazione;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -26,6 +27,8 @@ public class PrenotazioneDto {
 
     @PositiveOrZero(message = "Il costo non può essere negativo")
     private float costo;
+
+    private StatoPrenotazione stato;
 
     // Includiamo i DTO delle entità collegate per avere una risposta completa
     private Set<NotaDto> note;

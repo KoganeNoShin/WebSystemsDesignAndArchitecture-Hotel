@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="ReportTassaSoggiorno">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Periodo" type="xs:string"/>
+                <xs:element name="ListaPernottamenti">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Scheda" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="capogruppo" type="xs:string"/>
+                                        <xs:element name="numeroOspitiTotali" type="xs:int"/>
+                                        <xs:element name="numeroEsenzioni" type="xs:int"/>
+                                        <xs:element name="motivoEsenzione" type="xs:string"/>
+                                        <xs:element name="importoTotale" type="xs:double"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

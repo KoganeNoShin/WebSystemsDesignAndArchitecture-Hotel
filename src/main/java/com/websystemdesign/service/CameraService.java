@@ -36,4 +36,8 @@ public class CameraService {
     public void deleteRoom(Long id) {
         cameraRepository.deleteById(id);
     }
+
+    public List<Camera> getCamereBySede(Long sedeId) {
+        return cameraRepository.findBySedeId(sedeId);
+    }
 }

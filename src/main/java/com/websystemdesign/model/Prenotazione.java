@@ -65,4 +65,9 @@ public class Prenotazione {
     )
     @ToString.Exclude
     private Set<Multimedia> multimedia;
+
+    @NonNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatoPrenotazione stato; // Per gestire Check-in/Check-out
 }

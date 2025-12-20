@@ -43,4 +43,12 @@ public class Camera {
     @OneToMany(mappedBy = "camera")
     @ToString.Exclude
     private Set<Prenotazione> prenotazioni;
+
+    @NonNull
+    @Column(nullable = false)
+    private String numero; // Es. "101", "204B"
+
+    @NonNull
+    @Column(nullable = false)
+    private float prezzoBase; // Prezzo per notte
 }

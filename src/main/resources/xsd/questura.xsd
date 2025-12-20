@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="ReportQuestura">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="DataGenerazione" type="xs:string"/>
+                <xs:element name="ElencoOspiti">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Ospite" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="nome" type="xs:string"/>
+                                        <xs:element name="cognome" type="xs:string"/>
+                                        <xs:element name="dataNascita" type="xs:string"/>
+                                        <xs:element name="luogoNascita" type="xs:string"/>
+                                        <xs:element name="cittadinanza" type="xs:string"/>
+                                        <xs:element name="tipoDocumento" type="xs:string" minOccurs="0"/>
+                                        <xs:element name="numeroDocumento" type="xs:string" minOccurs="0"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

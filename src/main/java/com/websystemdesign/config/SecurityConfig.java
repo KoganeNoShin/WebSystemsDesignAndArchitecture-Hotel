@@ -27,7 +27,7 @@ public class SecurityConfig {
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(utenteService);
-        authProvider.setPasswordEncoder(passwordEncoder); // Usa il bean PasswordEncoder iniettato
+        authProvider.setPasswordEncoder(passwordEncoder);
         return authProvider;
     }
 
@@ -35,7 +35,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/", "/login", "/register", "/css/**", "/image/**", "/js/**", "/json/**").permitAll()
+                        // Permetti l'accesso a tutto ciò che è sotto /home, oltre a login, register e risorse statiche
+                        .requestMatchers("/", "/home/**", "/login", "/register", "/css/**", "/image/**", "/js/**", "/json/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("AMMINISTRATORE")
                         .requestMatchers("/staff/**").hasRole("STAFF")
                         .anyRequest().authenticated()
@@ -46,7 +47,7 @@ public class SecurityConfig {
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/")
+                        .logoutSuccessUrl("/home") // Logout riporta alla home pubblica
                         .permitAll()
                 );
         return http.build();

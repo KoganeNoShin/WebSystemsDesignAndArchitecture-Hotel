@@ -42,6 +42,12 @@ header {
     text-transform: uppercase;
     color: var(--text-light);
     text-decoration: none;
+    transition: color 0.3s ease; /* Aggiunta transizione */
+}
+
+/* Effetto hover per rendere ovvio che è un link */
+.logo:hover {
+    color: var(--primary-gold);
 }
 
 .btn-login {

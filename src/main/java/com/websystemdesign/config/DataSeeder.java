@@ -7,7 +7,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -86,18 +88,11 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private Sede createSedeIfNotFound(String nome, String location, String tassa) {
-        // Qui potremmo fare una findByName, ma per semplicità nel seeder assumiamo che se count==0 creiamo tutto
-        // Dato che siamo dentro l'if(count==0), creiamo direttamente.
         Sede sede = new Sede(nome, location, tassa);
         return sedeRepository.save(sede);
     }
     
-    // Metodo helper per evitare duplicati sui servizi (che hanno vincolo unique)
     private void createServiceIfNotFound(String nome, float costo) {
-        // Nota: ServiceRepository non ha findByNome di default, dovremmo aggiungerlo o usare Example.
-        // Per ora, dato che il blocco principale è if(sedeRepository.count() == 0), 
-        // assumiamo che se non ci sono sedi, non ci sono nemmeno servizi.
-        // Ma per sicurezza contro riavvii parziali:
         Service s = new Service(nome, costo);
         try {
             serviceRepository.save(s);
@@ -112,25 +107,29 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void createCamereForSede(Sede sede) {
-        // Versione per Lombok @RequiredArgsConstructor che include TUTTI i campi @NonNull
-        // Ordine presunto: Sede, Posti, Status, Numero, Prezzo
+        List<Camera> camere = new ArrayList<>();
 
-        Camera c1 = new Camera(sede, 1, StatoCamera.LIBERA, "101", 80.0f);
-        c1.setLuce(false);
-        c1.setTapparelle(true);
-        c1.setTemperatura(20.0f);
+        // 5 Camere Standard
+        for (int i = 1; i <= 5; i++) {
+            Camera c = new Camera(sede, 2, StatoCamera.LIBERA, "10" + i, 100.0f + (i * 10));
+            c.setLuce(false);
+            c.setTapparelle(true);
+            c.setTemperatura(20.0f);
+            c.setTipologia("Standard");
+            camere.add(c);
+        }
 
-        Camera c2 = new Camera(sede, 2, StatoCamera.LIBERA, "102", 120.0f);
-        c2.setLuce(true);
-        c2.setTapparelle(false);
-        c2.setTemperatura(21.5f);
+        // 5 Suite
+        for (int i = 1; i <= 5; i++) {
+            Camera c = new Camera(sede, 4, StatoCamera.LIBERA, "20" + i, 250.0f + (i * 20));
+            c.setLuce(true);
+            c.setTapparelle(true);
+            c.setTemperatura(22.0f);
+            c.setTipologia("Suite");
+            camere.add(c);
+        }
 
-        Camera c3 = new Camera(sede, 4, StatoCamera.OCCUPATA, "201 - Suite", 250.0f);
-        c3.setLuce(true);
-        c3.setTapparelle(true);
-        c3.setTemperatura(22.0f);
-
-        cameraRepository.saveAll(Arrays.asList(c1, c2, c3));
+        cameraRepository.saveAll(camere);
     }
 
     private void seedUsers(Sede sedeDiLavoro) {

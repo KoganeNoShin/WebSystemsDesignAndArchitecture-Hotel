@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Nostre Camere - Comitini Residence</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/rooms.css}">
+</head>
+<body>
+
+    <header>
+        <a href="/home" class="logo">Comitini Residence</a>
+        <a th:href="@{/login}" class="btn-login">Login</a>
+    </header>
+
+    <div class="rooms-container">
+        <h1 style="text-align: center; margin-bottom: 2rem; font-family: 'Playfair Display', serif; color: var(--primary-gold);">Le Nostre Camere</h1>
+
+        <!-- Filtri -->
+        <div class="filters-container">
+            <!-- Filtro Tipologia -->
+            <div class="filter-group">
+                <button class="filter-btn active" onclick="setTypeFilter('all')">Tutte</button>
+                <button class="filter-btn" onclick="setTypeFilter('Standard')">Standard</button>
+                <button class="filter-btn" onclick="setTypeFilter('Suite')">Suite</button>
+            </div>
+
+            <!-- Filtro Sede -->
+            <div class="filter-group">
+                <select id="sedeFilter" class="filter-select" onchange="applyFilters()">
+                    <option value="all">Tutte le Sedi</option>
+                    <option th:each="sede : ${sedi}"
+                            th:value="${sede.id}"
+                            th:text="${sede.nome}"></option>
+                </select>
+            </div>
+        </div>
+
+        <div class="rooms-grid">
+            <div th:each="camera : ${camere}"
+                 class="room-card"
+                 th:data-type="${camera.tipologia ?: 'Standard'}"
+                 th:data-sede="${camera.sede.id}">
+
+                <!-- Carosello Immagini -->
+                <div class="room-carousel">
+                    <div th:each="imgUrl, iterStat : ${@cameraService.getImmaginiCamera(camera)}"
+                         class="carousel-image"
+                         th:classappend="${iterStat.index == 0} ? 'active'"
+                         th:style="'background-image: url(' + @{${imgUrl}} + ');'">
+                    </div>
+                </div>
+
+                <div class="room-details">
+                    <h3 th:text="'Camera ' + ${camera.numero}">Camera 101</h3>
+                    <p th:text="${camera.sede.nome} + ' - ' + ${camera.sede.location}">Sede</p>
+                    <p th:text="'Posti letto: ' + ${camera.postiLetto}">Posti letto: 2</p>
+                    <p th:text="'Tipologia: ' + (${camera.tipologia} ?: 'Standard')">Tipologia: Standard</p>
+                    <div class="room-price" th:text="'€ ' + ${camera.prezzoBase} + ' / notte'">€ 150.00 / notte</div>
+                    <a th:href="@{/login}" class="btn-book">Prenota Ora</a>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${camere.empty}" style="text-align: center; color: #ccc;">
+            <p>Al momento non ci sono camere disponibili.</p>
+        </div>
+    </div>
+
+    <footer>
+        <nav>
+            <ul class="nav-links">
+                <li><a th:href="@{/register}">Registrati</a></li>
+                <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
+                <li><a th:href="@{/home/contact}">Contatti</a></li>
+            </ul>
+        </nav>
+    </footer>
+
+    <script>
+        let currentType = 'all';
+
+        function setTypeFilter(type) {
+            currentType = type;
+
+            // Aggiorna stato bottoni
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const sedeId = document.getElementById('sedeFilter').value;
+            const cards = document.querySelectorAll('.room-card');
+
+            cards.forEach(card => {
+                const cardType = card.getAttribute('data-type');
+                const cardSede = card.getAttribute('data-sede');
+
+                const typeMatch = (currentType === 'all' || cardType === currentType);
+                const sedeMatch = (sedeId === 'all' || cardSede === sedeId);
+
+                if (typeMatch && sedeMatch) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Funzione Carosello Automatico
+        document.addEventListener('DOMContentLoaded', function() {
+            const carousels = document.querySelectorAll('.room-carousel');
+
+            carousels.forEach(carousel => {
+                const images = carousel.querySelectorAll('.carousel-image');
+                if (images.length > 1) { // Avvia solo se c'è più di un'immagine
+                    let currentIndex = 0;
+                    setInterval(() => {
+                        images[currentIndex].classList.remove('active');
+                        currentIndex = (currentIndex + 1) % images.length;
+                        images[currentIndex].classList.add('active');
+                    }, 3000 + Math.random() * 1000);
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

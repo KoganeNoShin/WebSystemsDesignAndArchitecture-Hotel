@@ -51,4 +51,7 @@ public class Camera {
     @NonNull
     @Column(nullable = false)
     private float prezzoBase; // Prezzo per notte
+
+    @Column(nullable = false)
+    private String tipologia = "Standard"; // "Standard" o "Suite"
 }

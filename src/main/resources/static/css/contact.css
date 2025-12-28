@@ -1,0 +1,60 @@
+/* --- CONTACT PAGE --- */
+.contact-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../image/background.webp');
+    background-size: cover;
+    background-position: center;
+    padding: 2rem;
+    padding-bottom: 100px; /* Spazio per il footer */
+}
+
+.contact-container {
+    background-color: rgba(0, 0, 0, 0.85);
+    padding: 3rem;
+    max-width: 800px;
+    width: 100%;
+    border: 1px solid rgba(197, 160, 89, 0.3);
+    text-align: center;
+}
+
+.contact-container h1 {
+    font-family: 'Playfair Display', serif;
+    color: var(--primary-gold);
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Layout a triangolo inverso */
+.contact-info {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.info-item {
+    flex: 1 1 300px; /* Larghezza base, si adatta */
+    max-width: 350px;
+}
+
+/* L'ultimo elemento (Orari) occuperà una riga intera se c'è spazio, centrandosi */
+.info-item:last-child {
+    flex-basis: 100%;
+    margin-top: 1rem;
+}
+
+.info-item h3 {
+    color: var(--primary-gold);
+    margin-bottom: 0.5rem;
+    font-family: 'Playfair Display', serif;
+}
+
+.info-item p {
+    color: #ccc;
+    line-height: 1.6;
+}

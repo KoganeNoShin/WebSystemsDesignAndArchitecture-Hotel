@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contatti - Comitini Residence</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/contact.css}">
+</head>
+<body>
+
+    <header>
+        <a href="/home" class="logo" title="Torna alla Home">Comitini Residence</a>
+        <a th:href="@{/login}" class="btn-login">Login</a>
+    </header>
+
+    <div class="contact-page">
+        <div class="contact-container">
+            <h1>Contattaci</h1>
+
+            <div class="contact-info">
+                <!-- Indirizzi delle Sedi (dal DB) -->
+                <div class="info-item">
+                    <h3>Le Nostre Sedi</h3>
+                    <div th:if="${sedi.empty}">
+                        <p>Nessuna sede disponibile al momento.</p>
+                    </div>
+                    <div th:each="sede : ${sedi}" style="margin-bottom: 1rem;">
+                        <strong th:text="${sede.nome}" style="color: #e0b86c;">Nome Sede</strong><br>
+                        <span th:text="${sede.location}">Indirizzo Sede</span>
+                    </div>
+                </div>
+
+                <!-- Recapiti dei Gestori (Statici o potremmo prenderli dal DB se ci fosse una tabella contatti) -->
+                <div class="info-item">
+                    <h3>Recapiti Gestori</h3>
+                    <p>
+                        <strong>Email:</strong><br>
+                        <a href="mailto:gestione@comitiniresidence.com" style="color: #ccc; text-decoration: none;">gestione@comitiniresidence.com</a><br>
+                        <a href="mailto:info@comitiniresidence.com" style="color: #ccc; text-decoration: none;">info@comitiniresidence.com</a>
+                    </p>
+                    <p style="margin-top: 10px;">
+                        <strong>Telefono:</strong><br>
+                        +39 0922 123456
+                    </p>
+                </div>
+
+                <!-- Orari (Centrato in basso) -->
+                <div class="info-item">
+                    <h3>Orari Reception</h3>
+                    <p>Lunedì - Domenica<br>24h su 24h</p>
+                </div>
+            </div>
+
+            <p style="color: #aaa; font-style: italic;">Siamo a tua disposizione per qualsiasi richiesta o informazione.</p>
+        </div>
+    </div>
+
+    <footer>
+        <nav>
+            <ul class="nav-links">
+                <li><a th:href="@{/register}">Registrati</a></li>
+                <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
+                <li><a th:href="@{/home/contact}">Contatti</a></li>
+            </ul>
+        </nav>
+    </footer>
+
+</body>
+</html>

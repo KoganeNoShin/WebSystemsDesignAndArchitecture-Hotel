@@ -11,7 +11,7 @@
 
     <!-- Header con logo e tasto login -->
     <header>
-        <a href="/" class="logo">Comitini Residence</a>
+        <a href="/home" class="logo">Comitini Residence</a>
         <a th:href="@{/login}" class="btn-login">Login</a>
     </header>
 
@@ -28,8 +28,8 @@
         <nav>
             <ul class="nav-links">
                 <li><a th:href="@{/register}">Registrati</a></li>
-                <li><a th:href="@{/rooms}">Le Nostre Camere</a></li>
-                <li><a th:href="@{/contact}">Contatti</a></li>
+                <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
+                <li><a th:href="@{/home/contact}">Contatti</a></li>
             </ul>
         </nav>
     </footer>

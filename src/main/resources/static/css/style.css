@@ -4,7 +4,7 @@
 :root {
     --primary-gold: #c5a059; /* Colore oro simile al sito di riferimento */
     --text-light: #ffffff;
-    --bg-overlay: rgba(0, 0, 0, 0.4); /* Per scurire l'immagine di sfondo */
+    --bg-overlay: rgba(0, 0, 0, 0.3); /* Ridotto oscuramento (era 0.4/0.6) */
     --bg-form: rgba(0, 0, 0, 0.85); /* Sfondo scuro per i box dei form */
 }
 
@@ -26,7 +26,8 @@ body {
     min-height: 100vh;
 
     /* Sfondo globale per tutte le pagine */
-    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../image/background.webp');
+    /* Uso percorso assoluto web per sicurezza */
+    background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('/image/background.webp');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -82,8 +83,6 @@ header {
 .hero {
     flex: 1;
     width: 100%;
-    /* L'hero ha già lo sfondo dal body, ma se vogliamo scurirlo di più o cambiarlo possiamo sovrascrivere */
-    /* background-image: ... */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -111,7 +110,7 @@ header {
 footer {
     width: 100%;
     padding: 2rem;
-    background-color: rgba(0,0,0,0.3); /* Ripristinato opaco */
+    background-color: rgba(0,0,0,0.3);
     text-align: center;
     margin-top: auto;
     z-index: 10;
@@ -144,7 +143,6 @@ footer {
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Rimuovo background specifico se voglio usare quello globale, o lo lascio per scurire diversamente */
     padding: 8rem 0 4rem;
 }
 

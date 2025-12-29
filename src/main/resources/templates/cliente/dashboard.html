@@ -24,7 +24,7 @@
                 <h1 th:text="'Benvenuto, ' + ${utente.nome}">Benvenuto, Diego</h1>
                 <p>Area Personale</p>
             </div>
-            <a href="#" class="btn-action">✏️ I Miei Dati</a>
+            <a th:href="@{/cliente/profile}" class="btn-action">✏️ I Miei Dati</a>
         </div>
 
         <div class="dashboard-layout">

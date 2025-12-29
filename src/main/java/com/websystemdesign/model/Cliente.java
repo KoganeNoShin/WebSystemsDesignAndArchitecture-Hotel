@@ -17,24 +17,19 @@ public class Cliente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NonNull
-    @Column(nullable = false)
+    @Column // Nullable by default
     private String cittadinanza;
 
-    @NonNull
-    @Column(nullable = false)
+    @Column
     private String luogo;
 
-    @NonNull
-    @Column(nullable = false)
+    @Column
     private String dataNascita;
 
-    @NonNull
-    @Column(nullable = false)
+    @Column
     private String tipoDocumento;
 
-    @NonNull
-    @Column(nullable = false)
+    @Column
     private String numDocumento;
 
     @NonNull
@@ -45,4 +40,14 @@ public class Cliente {
     @OneToMany(mappedBy = "cliente")
     @ToString.Exclude
     private Set<Prenotazione> prenotazioni;
+    
+    // Costruttore completo per il seeder (opzionale, ma utile per non rompere il codice esistente)
+    public Cliente(String cittadinanza, String luogo, String dataNascita, String tipoDocumento, String numDocumento, Utente utente) {
+        this.cittadinanza = cittadinanza;
+        this.luogo = luogo;
+        this.dataNascita = dataNascita;
+        this.tipoDocumento = tipoDocumento;
+        this.numDocumento = numDocumento;
+        this.utente = utente;
+    }
 }

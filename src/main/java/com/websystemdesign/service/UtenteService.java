@@ -49,17 +49,11 @@ public class UtenteService implements UserDetailsService {
         nuovoUtente.setPassword(passwordEncoder.encode(registrationDto.getPassword()));
         utenteRepository.save(nuovoUtente);
 
-        // 2. Crea e salva il Cliente collegato (con dati anagrafici vuoti per ora)
+        // 2. Crea e salva il Cliente collegato (con dati anagrafici nulli)
         Cliente nuovoCliente = new Cliente();
         nuovoCliente.setUtente(nuovoUtente);
+        // I campi anagrafici sono ora nullable nel DB, quindi non serve settarli a ""
         
-        // Impostiamo valori vuoti per evitare null pointer se i campi non sono nullable nel DB
-        nuovoCliente.setCittadinanza("");
-        nuovoCliente.setLuogo("");
-        nuovoCliente.setDataNascita(""); 
-        nuovoCliente.setTipoDocumento(""); 
-        nuovoCliente.setNumDocumento("");
-
         clienteRepository.save(nuovoCliente);
     }
 

@@ -3,62 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Cliente</title>
+    <title>Dashboard Cliente - Comitini Residence</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
+        /* Sfondo specifico per la dashboard */
         body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            text-align: center;
-            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/image/background.avif');
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/image/background.webp');
             background-size: cover;
             background-position: center;
+            background-attachment: fixed;
         }
-        .dashboard-container {
-            background-color: rgba(0, 0, 0, 0.8);
-            padding: 3rem;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+
+        .dashboard-page {
+            padding: 8rem 2rem 4rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
         }
-        h1 {
+
+        /* Header Dashboard */
+        .welcome-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid rgba(197, 160, 89, 0.3);
+            padding-bottom: 1rem;
+        }
+
+        .welcome-text h1 {
             color: var(--primary-gold);
             font-family: 'Playfair Display', serif;
             font-size: 3rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
-        p {
-            color: var(--text-light);
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
+
+        .welcome-text p {
+            color: #aaa;
+            font-size: 1rem;
         }
-        .logout-form {
-            margin-top: 2rem;
+
+        .btn-action {
+            background-color: transparent;
+            border: 1px solid var(--primary-gold);
+            color: var(--primary-gold);
+            padding: 10px 25px;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+            white-space: nowrap;
         }
-        .logout-button {
+
+        .btn-action:hover {
             background-color: var(--primary-gold);
             color: #000;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s ease;
         }
-        .logout-button:hover {
-            background-color: #e0b86c;
+
+        .section-title {
+            color: var(--text-light);
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(197, 160, 89, 0.3);
+            padding-bottom: 10px;
+            margin-top: 1rem;
+        }
+
+        /* --- LAYOUT A 2 COLONNE --- */
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Due colonne uguali */
+            gap: 3rem;
+            align-items: start; /* Allinea in alto */
+        }
+
+        @media (max-width: 992px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr; /* Colonna singola su schermi piccoli */
+            }
+        }
+
+        .main-column {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Contenitore scrollabile per le card dello storico */
+        .scrollable-content {
+            max-height: 550px; /* Altezza ridotta come richiesto */
+            overflow-y: auto; /* Scroll se necessario */
+            padding-right: 10px; /* Spazio per la scrollbar */
+            /* Bordo sottile per indicare l'area scrollabile */
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* Scrollbar personalizzata */
+        .scrollable-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        .scrollable-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        .scrollable-content::-webkit-scrollbar-thumb {
+            background: var(--primary-gold);
+            border-radius: 4px;
+        }
+
+        /* --- CARDS --- */
+        .cards-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .booking-card {
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 5px;
+            transition: transform 0.3s ease;
+        }
+
+        .booking-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-gold);
+        }
+
+        .booking-card h3 {
+            color: var(--primary-gold);
+            font-family: 'Playfair Display', serif;
+            margin-bottom: 0.5rem;
+        }
+
+        .booking-info {
+            color: #ccc;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .booking-info strong {
+            color: #fff;
+        }
+
+        /* Card Attiva (Evidenziata) */
+        .active-stay-card {
+            background-color: rgba(197, 160, 89, 0.15);
+            border: 2px solid var(--primary-gold);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .active-stay-card h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+        .status-confermata { background-color: rgba(77, 255, 77, 0.2); color: #4dff4d; }
+        .status-passata { background-color: rgba(255, 255, 255, 0.1); color: #aaa; }
+
+        .empty-msg {
+            color: #777;
+            font-style: italic;
+            text-align: center;
+            padding: 2rem;
+            border: 1px dashed #444;
+            border-radius: 5px;
+        }
+
+        /* Fix Logout Button */
+        .btn-logout {
+            background-color: transparent;
+            border: 1px solid var(--primary-gold); /* Bordo oro */
+            color: var(--primary-gold); /* Testo oro */
+            padding: 8px 20px;
+            text-transform: uppercase;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-logout:hover {
+            background-color: var(--primary-gold);
+            color: #000;
         }
     </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <h1>Benvenuto, Cliente!</h1>
-        <p>Questa è la tua dashboard.</p>
-        <form th:action="@{/logout}" method="post" class="logout-form">
-            <button type="submit" class="logout-button">Logout</button>
+
+    <header>
+        <a href="/home" class="logo">Comitini Residence</a>
+        <form th:action="@{/logout}" method="post" style="display: inline;">
+            <button type="submit" class="btn-logout">Logout</button>
         </form>
+    </header>
+
+    <div class="dashboard-page">
+
+        <!-- Header Dashboard: Benvenuto + Azione -->
+        <div class="welcome-section">
+            <div class="welcome-text">
+                <h1 th:text="'Benvenuto, ' + ${utente.nome}">Benvenuto, Diego</h1>
+                <p>Area Personale</p>
+            </div>
+            <a href="#" class="btn-action">✏️ I Miei Dati</a>
+        </div>
+
+        <div class="dashboard-layout">
+            <!-- COLONNA SINISTRA: Storico (Scrollabile) -->
+            <div class="left-column">
+                <h2 class="section-title" style="margin-top: 0;">Storico Soggiorni</h2>
+
+                <!-- Contenitore scrollabile -->
+                <div class="scrollable-content">
+                    <div th:if="${!prenotazioniPassate.empty}" class="cards-grid">
+                        <div th:each="p : ${prenotazioniPassate}" class="booking-card" style="opacity: 0.7;">
+                            <h3 th:text="'Camera ' + ${p.camera.numero}">101</h3>
+                            <p class="booking-info"><strong th:text="${p.camera.sede.nome}">Roma</strong></p>
+                            <p class="booking-info" th:text="${p.dataInizio} + ' - ' + ${p.dataFine}">Date</p>
+                            <p class="booking-info">Totale: <span th:text="'€ ' + ${p.costo}">€ 500</span></p>
+                            <span class="status-badge status-passata">COMPLETATA</span>
+                        </div>
+                    </div>
+                    <div th:if="${prenotazioniPassate.empty}" class="empty-msg">
+                        Nessun soggiorno passato.
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLONNA DESTRA: Attive e Future -->
+            <div class="main-column">
+                <!-- Soggiorno in Corso -->
+                <h2 class="section-title" style="margin-top: 0;">Soggiorno in Corso</h2>
+                <div th:if="${prenotazioneAttiva != null}" class="active-stay-card">
+                    <h3 th:text="'Camera ' + ${prenotazioneAttiva.camera.numero}">201</h3>
+                    <p class="booking-info" th:text="${prenotazioneAttiva.camera.sede.nome}">Alpine Palace Cortina</p>
+                    <p class="booking-info" th:text="'Dal ' + ${prenotazioneAttiva.dataInizio} + ' al ' + ${prenotazioneAttiva.dataFine}">Date</p>
+                    <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem;">
+                        <a href="#" class="btn-action">🏠 Domotica</a>
+                        <a href="#" class="btn-action">🍽️ Servizi</a>
+                    </div>
+                </div>
+                <div th:if="${prenotazioneAttiva == null}" class="empty-msg">
+                    Nessun soggiorno in corso al momento.
+                </div>
+
+                <!-- Prenotazioni Future -->
+                <h2 class="section-title">Prenotazioni Future</h2>
+                <div th:if="${!prenotazioniFuture.empty}" class="cards-grid">
+                    <div th:each="p : ${prenotazioniFuture}" class="booking-card">
+                        <h3 th:text="'Camera ' + ${p.camera.numero}">101</h3>
+                        <p class="booking-info"><strong th:text="${p.camera.sede.nome}">Cortina</strong></p>
+                        <p class="booking-info">Check-in: <span th:text="${p.dataInizio}">2023-01-01</span></p>
+                        <p class="booking-info">Check-out: <span th:text="${p.dataFine}">2023-01-05</span></p>
+                        <span class="status-badge status-confermata" th:text="${p.stato}">CONFERMATA</span>
+                    </div>
+                </div>
+                <div th:if="${prenotazioniFuture.empty}" class="empty-msg">
+                    Non hai prenotazioni future. <a th:href="@{/home/rooms}" style="color: var(--primary-gold);">Prenota ora!</a>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <footer>
+        <nav>
+            <ul class="nav-links">
+                <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
+                <li><a th:href="@{/home/services}">Servizi</a></li>
+                <li><a th:href="@{/home/contact}">Contatti</a></li>
+            </ul>
+        </nav>
+    </footer>
+
 </body>
 </html>

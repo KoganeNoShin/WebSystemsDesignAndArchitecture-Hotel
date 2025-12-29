@@ -18,8 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -43,10 +41,6 @@ public class UtenteService implements UserDetailsService {
 
     @Transactional
     public void registraNuovoCliente(RegistrationDto registrationDto) {
-        if (Period.between(registrationDto.getDataNascita(), LocalDate.now()).getYears() > 120) {
-            throw new IllegalArgumentException("L'età non può superare i 120 anni.");
-        }
-        
         // 1. Crea e salva l'Utente
         Utente nuovoUtente = new Utente();
         nuovoUtente.setNome(registrationDto.getNome());
@@ -55,14 +49,17 @@ public class UtenteService implements UserDetailsService {
         nuovoUtente.setPassword(passwordEncoder.encode(registrationDto.getPassword()));
         utenteRepository.save(nuovoUtente);
 
-        // 2. Crea e salva il Cliente collegato
+        // 2. Crea e salva il Cliente collegato (con dati anagrafici vuoti per ora)
         Cliente nuovoCliente = new Cliente();
         nuovoCliente.setUtente(nuovoUtente);
-        nuovoCliente.setCittadinanza(registrationDto.getCittadinanza());
-        nuovoCliente.setLuogo(registrationDto.getLuogoNascita());
-        nuovoCliente.setDataNascita(registrationDto.getDataNascita().toString()); // Convertiamo LocalDate in String come nel model
-        nuovoCliente.setTipoDocumento(registrationDto.getTipoDocumento().getDescrizione()); // Salviamo la descrizione
-        nuovoCliente.setNumDocumento(registrationDto.getNumDocumento());
+        
+        // Impostiamo valori vuoti per evitare null pointer se i campi non sono nullable nel DB
+        nuovoCliente.setCittadinanza("");
+        nuovoCliente.setLuogo("");
+        nuovoCliente.setDataNascita(""); 
+        nuovoCliente.setTipoDocumento(""); 
+        nuovoCliente.setNumDocumento("");
+
         clienteRepository.save(nuovoCliente);
     }
 

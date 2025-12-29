@@ -48,13 +48,9 @@ public class AuthController {
             return "register";
         }
 
-        // Prova a registrare l'utente e gestisci l'errore di età
+        // Prova a registrare l'utente
         try {
             utenteService.registraNuovoCliente(registrationDto);
-        } catch (IllegalArgumentException e) {
-            // Aggiungi l'errore specifico al campo 'dataNascita'
-            bindingResult.rejectValue("dataNascita", "error.registrationDto", e.getMessage());
-            return "register";
         } catch (Exception e) {
             // Gestione per altri errori imprevisti
             bindingResult.reject("error.global", "Si è verificato un errore durante la registrazione. Riprova.");

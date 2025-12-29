@@ -8,20 +8,32 @@
     <link rel="stylesheet" th:href="@{/css/services.css}">
     <style>
         /* Stile per il filtro specifico di questa pagina */
-        .filter-container {
-            text-align: center;
+        .header-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             margin-bottom: 3rem;
         }
+
+        .title-filter-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
         .filter-select {
             background-color: rgba(0, 0, 0, 0.8);
             border: 1px solid var(--primary-gold);
             color: var(--primary-gold);
-            padding: 10px 15px;
+            padding: 8px 15px;
             font-family: 'Lato', sans-serif;
             text-transform: uppercase;
             cursor: pointer;
             outline: none;
-            font-size: 1rem;
+            font-size: 0.9rem;
+            height: fit-content;
         }
         .filter-select option {
             background-color: #1a1a1a;
@@ -30,7 +42,7 @@
 
         /* Stile per l'elenco delle sedi nella card */
         .sedi-list {
-            list-style-type: none; /* O disc se preferisci i pallini */
+            list-style-type: none;
             padding: 0;
             margin-top: 10px;
             text-align: left;
@@ -55,12 +67,6 @@
             padding-right: 5px;
             text-align: right;
         }
-        /* Per centrare visivamente la lista se le card sono centrate */
-        .sedi-list-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
     </style>
 </head>
 <body>
@@ -72,21 +78,23 @@
 
     <div class="services-page">
         <div class="services-container">
-            <h1>I Nostri Servizi Esclusivi</h1>
-            <p class="intro-text">Arricchisci il tuo soggiorno con le nostre esperienze premium.</p>
 
-            <!-- Filtro Sede -->
-            <div class="filter-container">
-                <select id="sedeFilter" class="filter-select" onchange="filterServices()">
-                    <option value="all">Tutte le Sedi</option>
-                    <option th:each="sede : ${sedi}" th:value="${sede.id}" th:text="${sede.nome}"></option>
-                </select>
+            <div class="header-container">
+                <div class="title-filter-wrapper">
+                    <h1>I Nostri Servizi Esclusivi</h1>
+                    <!-- Filtro Sede spostato qui -->
+                    <select id="sedeFilter" class="filter-select" onchange="filterServices()">
+                        <option value="all">Tutte le Sedi</option>
+                        <option th:each="sede : ${sedi}" th:value="${sede.id}" th:text="${sede.nome}"></option>
+                    </select>
+                </div>
+                <p class="intro-text">Arricchisci il tuo soggiorno con le nostre esperienze premium.</p>
             </div>
 
             <div class="services-grid">
                 <div th:each="servizio : ${servizi}"
                      class="service-card"
-                     th:data-sedi="${#strings.listJoin(servizio.sedi.![id], ',')}"> <!-- Lista ID sedi separati da virgola -->
+                     th:data-sedi="${#strings.listJoin(servizio.sedi.![id], ',')}">
 
                     <div class="service-icon">✨</div>
                     <h3 th:text="${servizio.nome}">Nome Servizio</h3>
@@ -94,7 +102,6 @@
 
                     <p class="service-desc" style="margin-bottom: 5px;">Disponibile presso:</p>
 
-                    <!-- Elenco puntato delle sedi -->
                     <ul class="sedi-list">
                         <li th:each="s : ${servizio.sedi}" th:text="${s.nome}">Nome Sede</li>
                     </ul>
@@ -124,10 +131,10 @@
             const cards = document.querySelectorAll('.service-card');
 
             cards.forEach(card => {
-                const sediIds = card.getAttribute('data-sedi').split(','); // Array di stringhe ID
+                const sediIds = card.getAttribute('data-sedi').split(',');
 
                 if (selectedSedeId === 'all' || sediIds.includes(selectedSedeId)) {
-                    card.style.display = 'flex'; // Ripristina display flex
+                    card.style.display = 'flex';
                 } else {
                     card.style.display = 'none';
                 }

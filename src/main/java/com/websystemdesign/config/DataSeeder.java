@@ -53,7 +53,7 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("Inizio Data Seeding...");
         
         // Pulizia relazioni
-        prenotazioneRepository.deleteAll(); // Importante: cancellare prima le prenotazioni
+        prenotazioneRepository.deleteAll();
         clienteRepository.deleteAll();
         dipendenteRepository.deleteAll();
         utenteRepository.deleteAll();
@@ -104,18 +104,46 @@ public class DataSeeder implements CommandLineRunner {
             // 5. Utenti
             seedUsers(sedeCortina);
             
-            // 6. Prenotazioni di Test
-            // Recuperiamo il cliente Mario
+            // 6. Prenotazioni di Test per Mario
             Utente marioUser = utenteRepository.findByUsername("mario").orElseThrow();
             Cliente mario = clienteRepository.findByUtenteId(marioUser.getId()).orElseThrow();
             
-            // Prenotiamo la prima camera di Cortina per i prossimi giorni
-            Camera cameraTest = camereCortina.get(0);
-            createPrenotazioneTest(mario, cameraTest, LocalDate.now().plusDays(2), LocalDate.now().plusDays(5));
-            
-            // Prenotiamo un'altra camera tra 10 giorni
-            Camera cameraTest2 = camereCortina.get(1);
-            createPrenotazioneTest(mario, cameraTest2, LocalDate.now().plusDays(10), LocalDate.now().plusDays(15));
+            createPrenotazioneTest(mario, camereCortina.get(0), LocalDate.now().plusDays(2), LocalDate.now().plusDays(5));
+            createPrenotazioneTest(mario, camereCortina.get(1), LocalDate.now().plusDays(10), LocalDate.now().plusDays(15));
+
+            // 7. Utente Diego (Richiesto)
+            if (utenteRepository.findByUsername("Diego").isEmpty()) {
+                Utente diegoUser = new Utente("Diego", passwordEncoder.encode("password"), "Diego", "Bianchi");
+                utenteRepository.save(diegoUser);
+
+                Cliente diego = new Cliente("Italiana", "Roma", "1995-05-05", "Patente", "RM987654", diegoUser);
+                clienteRepository.save(diego);
+                
+                // 4 Prenotazioni Passate
+                createPrenotazioneTest(diego, camereRoma.get(0), LocalDate.now().minusDays(30), LocalDate.now().minusDays(25));
+                createPrenotazioneTest(diego, camereCortina.get(3), LocalDate.now().minusDays(60), LocalDate.now().minusDays(55));
+                createPrenotazioneTest(diego, camereRoma.get(2), LocalDate.now().minusDays(100), LocalDate.now().minusDays(95));
+                createPrenotazioneTest(diego, camereCortina.get(4), LocalDate.now().minusDays(150), LocalDate.now().minusDays(145));
+                
+                // 1 Prenotazione Futura
+                createPrenotazioneTest(diego, camereCortina.get(2), LocalDate.now().plusDays(20), LocalDate.now().plusDays(25));
+            }
+
+            // 8. Utente Simone (Richiesto)
+            if (utenteRepository.findByUsername("Simone").isEmpty()) {
+                Utente simoneUser = new Utente("Simone", passwordEncoder.encode("password"), "Simone", "Verdi");
+                utenteRepository.save(simoneUser);
+
+                Cliente simone = new Cliente("Italiana", "Milano", "1992-02-02", "Carta d'Identità", "MI123456", simoneUser);
+                clienteRepository.save(simone);
+                
+                // Stesse prenotazioni di Diego
+                createPrenotazioneTest(simone, camereRoma.get(0), LocalDate.now().minusDays(30), LocalDate.now().minusDays(25));
+                createPrenotazioneTest(simone, camereCortina.get(3), LocalDate.now().minusDays(60), LocalDate.now().minusDays(55));
+                createPrenotazioneTest(simone, camereRoma.get(2), LocalDate.now().minusDays(100), LocalDate.now().minusDays(95));
+                createPrenotazioneTest(simone, camereCortina.get(4), LocalDate.now().minusDays(150), LocalDate.now().minusDays(145));
+                createPrenotazioneTest(simone, camereCortina.get(2), LocalDate.now().plusDays(20), LocalDate.now().plusDays(25));
+            }
 
             System.out.println("Data Seeding completato con successo!");
         } else {

@@ -37,32 +37,23 @@
         }
 
         /* --- COLORI CALENDARIO --- */
-
-        /* Date occupate (disabilitate) -> Rosso */
         .flatpickr-day.flatpickr-disabled,
         .flatpickr-day.flatpickr-disabled:hover {
-            background-color: rgba(255, 77, 77, 0.3) !important; /* Rosso semi-trasparente */
+            background-color: rgba(255, 77, 77, 0.3) !important;
             color: #ff4d4d !important;
             border-color: transparent !important;
             text-decoration: line-through;
         }
-
-        /* Date disponibili (default) -> Verde */
-        /* Escludiamo i giorni del mese precedente/successivo e quelli disabilitati */
         .flatpickr-day:not(.flatpickr-disabled):not(.prevMonthDay):not(.nextMonthDay) {
-            background-color: rgba(77, 255, 77, 0.2); /* Verde semi-trasparente */
+            background-color: rgba(77, 255, 77, 0.2);
             color: #4dff4d;
             border: 1px solid #4dff4d;
         }
-
-        /* Hover su date disponibili */
         .flatpickr-day:not(.flatpickr-disabled):not(.prevMonthDay):not(.nextMonthDay):hover {
             background-color: #4dff4d;
             color: #000;
             border-color: #4dff4d;
         }
-
-        /* Oggi */
         .flatpickr-day.today {
             border-color: var(--primary-gold) !important;
         }
@@ -99,7 +90,7 @@
                  th:data-type="${camera.tipologia ?: 'Standard'}"
                  th:data-sede="${camera.sede.id}">
 
-                <!-- Carosello Immagini (Cliccabile per aprire la modale) -->
+                <!-- Carosello Immagini -->
                 <div class="room-carousel" onclick="openModal(this)" style="cursor: pointer;" title="Clicca per ingrandire">
                     <div th:each="imgUrl, iterStat : ${@cameraService.getImmaginiCamera(camera)}"
                          class="carousel-image"
@@ -107,7 +98,6 @@
                          th:data-src="@{${imgUrl}}"
                          th:style="'background-image: url(' + @{${imgUrl}} + ');'">
                     </div>
-                    <!-- Icona lente d'ingrandimento overlay -->
                     <div class="zoom-icon">🔍</div>
                 </div>
 
@@ -218,7 +208,6 @@
         // --- MODALE GALLERIA ---
         let modalImages = [];
         let modalIndex = 0;
-        const galleryModal = document.getElementById('galleryModal');
         const modalImg = document.getElementById('modalImage');
 
         function openModal(carouselElement) {
@@ -231,7 +220,7 @@
             if (modalImages.length > 0) {
                 modalIndex = 0;
                 updateModalImage();
-                galleryModal.style.display = "flex";
+                document.getElementById('galleryModal').style.display = "flex";
                 document.body.style.overflow = "hidden";
             }
         }
@@ -259,7 +248,6 @@
             const modal = document.getElementById('calendarModal');
             const container = document.getElementById('flatpickr-container');
 
-            // Pulisci istanza precedente
             if (calendarInstance) {
                 calendarInstance.destroy();
                 container.innerHTML = '';
@@ -268,19 +256,13 @@
             modal.style.display = "flex";
             document.body.style.overflow = "hidden";
 
-            // Chiamata API per ottenere date occupate
             fetch(`/api/availability/camera/${cameraId}`)
                 .then(response => response.json())
                 .then(data => {
-                    // Converti DTO in formato Flatpickr disable
                     const disableDates = data.map(d => {
-                        return {
-                            from: d.from,
-                            to: d.to
-                        };
+                        return { from: d.from, to: d.to };
                     });
 
-                    // Inizializza Flatpickr
                     calendarInstance = flatpickr(container, {
                         inline: true,
                         locale: "it",
@@ -292,7 +274,6 @@
                 .catch(err => console.error("Errore caricamento disponibilità:", err));
         }
 
-        // Chiudi modali cliccando fuori
         window.onclick = function(event) {
             if (event.target.classList.contains('modal')) {
                 event.target.style.display = "none";

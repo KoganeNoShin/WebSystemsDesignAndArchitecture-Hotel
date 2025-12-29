@@ -1,17 +1,10 @@
 /* --- SERVICES PAGE --- */
 
-body {
-    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../image/background.webp');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    min-height: 100vh;
-    position: relative;
-    padding-bottom: 150px;
-}
+/* Rimuoviamo stili body che vanno in conflitto con style.css */
 
 .services-page {
-    padding: 8rem 2rem 2rem;
+    flex: 1; /* Occupa lo spazio disponibile */
+    padding: 8rem 2rem 4rem;
     display: flex;
     justify-content: center;
 }
@@ -83,11 +76,4 @@ body {
 .service-desc {
     font-size: 0.9rem;
     color: #aaa;
-}
-
-footer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
 }

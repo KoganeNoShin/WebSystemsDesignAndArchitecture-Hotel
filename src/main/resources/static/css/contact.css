@@ -1,15 +1,14 @@
 /* --- CONTACT PAGE --- */
+
+/* Rimuoviamo stili body che vanno in conflitto con style.css */
+
 .contact-page {
-    min-height: 100vh;
+    flex: 1; /* Occupa lo spazio disponibile */
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../image/background.webp');
-    background-size: cover;
-    background-position: center;
-    padding: 2rem;
-    padding-bottom: 100px; /* Spazio per il footer */
+    padding: 8rem 2rem 4rem;
 }
 
 .contact-container {

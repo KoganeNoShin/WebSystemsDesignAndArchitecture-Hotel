@@ -19,6 +19,17 @@ body {
     color: var(--text-light);
     background-color: #1a1a1a;
     overflow-x: hidden;
+
+    /* Layout Flexbox per Sticky Footer */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+
+    /* Sfondo globale per tutte le pagine */
+    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../image/background.webp');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
 }
 
 /* --- HEADER (Logo e Login) --- */
@@ -69,11 +80,10 @@ header {
 
 /* --- HERO SECTION (Sfondo e Benvenuto) --- */
 .hero {
-    height: 100vh;
+    flex: 1;
     width: 100%;
-    background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('../image/background.webp');
-    background-size: cover;
-    background-position: center;
+    /* L'hero ha già lo sfondo dal body, ma se vogliamo scurirlo di più o cambiarlo possiamo sovrascrivere */
+    /* background-image: ... */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -99,13 +109,12 @@ header {
 
 /* --- FOOTER & NAV LINKS --- */
 footer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
     width: 100%;
     padding: 2rem;
-    background-color: rgba(0,0,0,0.3);
+    background-color: rgba(0,0,0,0.3); /* Ripristinato opaco */
     text-align: center;
+    margin-top: auto;
+    z-index: 10;
 }
 
 .nav-links {
@@ -131,14 +140,12 @@ footer {
 
 /* --- FORMS (Login & Register) --- */
 .form-page {
-    min-height: 100vh;
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('../image/background.webp');
-    background-size: cover;
-    background-position: center;
-    padding: 2rem 0;
+    /* Rimuovo background specifico se voglio usare quello globale, o lo lascio per scurire diversamente */
+    padding: 8rem 0 4rem;
 }
 
 .form-container {

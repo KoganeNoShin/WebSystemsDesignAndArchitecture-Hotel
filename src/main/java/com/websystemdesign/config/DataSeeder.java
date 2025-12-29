@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -23,6 +24,7 @@ public class DataSeeder implements CommandLineRunner {
     private final UtenteRepository utenteRepository;
     private final DipendenteRepository dipendenteRepository;
     private final ClienteRepository clienteRepository;
+    private final PrenotazioneRepository prenotazioneRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataSeeder(SedeRepository sedeRepository,
@@ -32,6 +34,7 @@ public class DataSeeder implements CommandLineRunner {
                       UtenteRepository utenteRepository,
                       DipendenteRepository dipendenteRepository,
                       ClienteRepository clienteRepository,
+                      PrenotazioneRepository prenotazioneRepository,
                       PasswordEncoder passwordEncoder) {
         this.sedeRepository = sedeRepository;
         this.cameraRepository = cameraRepository;
@@ -40,6 +43,7 @@ public class DataSeeder implements CommandLineRunner {
         this.utenteRepository = utenteRepository;
         this.dipendenteRepository = dipendenteRepository;
         this.clienteRepository = clienteRepository;
+        this.prenotazioneRepository = prenotazioneRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -47,17 +51,14 @@ public class DataSeeder implements CommandLineRunner {
     @Transactional
     public void run(String... args) throws Exception {
         System.out.println("Inizio Data Seeding...");
-        // L'ordine di eliminazione è importante a causa delle chiavi esterne
+        
+        // Pulizia relazioni
+        prenotazioneRepository.deleteAll(); // Importante: cancellare prima le prenotazioni
         clienteRepository.deleteAll();
         dipendenteRepository.deleteAll();
         utenteRepository.deleteAll();
         cameraRepository.deleteAll();
-        // Prima di cancellare sedi e servizi, dobbiamo rompere le relazioni ManyToMany se non c'è CascadeType.ALL/REMOVE
-        // Ma deleteAll() dovrebbe gestire se configurato bene, altrimenti potrebbe dare errore di constraint.
-        // Per sicurezza, puliamo le relazioni manualmente se necessario, ma proviamo così.
-        // Nota: Service e Sede hanno una relazione ManyToMany.
         
-        // Pulizia relazioni Sede-Service
         List<Sede> allSedi = sedeRepository.findAll();
         for(Sede s : allSedi) {
             s.setServices(null);
@@ -71,42 +72,50 @@ public class DataSeeder implements CommandLineRunner {
         if (sedeRepository.count() == 0) {
             System.out.println("Database vuoto. Inizio Data Seeding...");
 
-            // 1. Creazione Sedi
+            // 1. Sedi
             Sede sedeCortina = createSedeIfNotFound("Alpine Palace Cortina", "Cortina d'Ampezzo", "5.00");
             Sede sedeRoma = createSedeIfNotFound("Urban Luxury Roma", "Roma Centro", "7.50");
 
-            // 2. Creazione Servizi
+            // 2. Servizi
             Service spa = createService("Accesso SPA", 50.0f);
             Service colazione = createService("Colazione in camera", 15.0f);
             Service navetta = createService("Navetta Aeroportuale", 30.0f);
             Service tour = createService("Tour Guidato", 40.0f);
             Service sci = createService("Noleggio Sci", 25.0f);
 
-            // 3. Associazione Servizi alle Sedi
-            // Cortina: SPA, Colazione, Sci
             addServiceToSede(sedeCortina, spa);
             addServiceToSede(sedeCortina, colazione);
             addServiceToSede(sedeCortina, sci);
-
-            // Roma: Colazione, Navetta, Tour
             addServiceToSede(sedeRoma, colazione);
             addServiceToSede(sedeRoma, navetta);
             addServiceToSede(sedeRoma, tour);
             
-            // Salviamo le sedi aggiornate con le relazioni
             sedeRepository.save(sedeCortina);
             sedeRepository.save(sedeRoma);
 
-            // 4. Creazione Camere
-            createCamereForSede(sedeCortina);
-            createCamereForSede(sedeRoma);
+            // 3. Camere
+            List<Camera> camereCortina = createCamereForSede(sedeCortina);
+            List<Camera> camereRoma = createCamereForSede(sedeRoma);
 
-            // 5. Creazione Multimedia
+            // 4. Multimedia
             createMultimediaIfNotFound("Film Prima Visione", 5.0f);
             createMultimediaIfNotFound("Playlist Relax", 2.0f);
 
-            // 6. Creazione Utenti e Ruoli
+            // 5. Utenti
             seedUsers(sedeCortina);
+            
+            // 6. Prenotazioni di Test
+            // Recuperiamo il cliente Mario
+            Utente marioUser = utenteRepository.findByUsername("mario").orElseThrow();
+            Cliente mario = clienteRepository.findByUtenteId(marioUser.getId()).orElseThrow();
+            
+            // Prenotiamo la prima camera di Cortina per i prossimi giorni
+            Camera cameraTest = camereCortina.get(0);
+            createPrenotazioneTest(mario, cameraTest, LocalDate.now().plusDays(2), LocalDate.now().plusDays(5));
+            
+            // Prenotiamo un'altra camera tra 10 giorni
+            Camera cameraTest2 = camereCortina.get(1);
+            createPrenotazioneTest(mario, cameraTest2, LocalDate.now().plusDays(10), LocalDate.now().plusDays(15));
 
             System.out.println("Data Seeding completato con successo!");
         } else {
@@ -129,8 +138,6 @@ public class DataSeeder implements CommandLineRunner {
             sede.setServices(new HashSet<>());
         }
         sede.getServices().add(service);
-        // La relazione è bidirezionale, ma spesso basta settare un lato se il mapping è corretto.
-        // Nel model Sede c'è @JoinTable, quindi Sede è l'owner.
     }
 
     private void createMultimediaIfNotFound(String nome, float costo) {
@@ -138,10 +145,9 @@ public class DataSeeder implements CommandLineRunner {
         multimediaRepository.save(m);
     }
 
-    private void createCamereForSede(Sede sede) {
+    private List<Camera> createCamereForSede(Sede sede) {
         List<Camera> camere = new ArrayList<>();
 
-        // 5 Camere Standard
         for (int i = 1; i <= 5; i++) {
             Camera c = new Camera(sede, 2, StatoCamera.LIBERA, "10" + i, 100.0f + (i * 10));
             c.setLuce(false);
@@ -151,7 +157,6 @@ public class DataSeeder implements CommandLineRunner {
             camere.add(c);
         }
 
-        // 5 Suite
         for (int i = 1; i <= 5; i++) {
             Camera c = new Camera(sede, 4, StatoCamera.LIBERA, "20" + i, 250.0f + (i * 20));
             c.setLuce(true);
@@ -161,35 +166,40 @@ public class DataSeeder implements CommandLineRunner {
             camere.add(c);
         }
 
-        cameraRepository.saveAll(camere);
+        return cameraRepository.saveAll(camere);
+    }
+    
+    private void createPrenotazioneTest(Cliente cliente, Camera camera, LocalDate start, LocalDate end) {
+        Prenotazione p = new Prenotazione();
+        p.setCliente(cliente);
+        p.setCamera(camera);
+        p.setDataInizio(start);
+        p.setDataFine(end);
+        p.setCosto(camera.getPrezzoBase() * (end.toEpochDay() - start.toEpochDay()));
+        p.setStato(StatoPrenotazione.CONFERMATA);
+        prenotazioneRepository.save(p);
     }
 
     private void seedUsers(Sede sedeDiLavoro) {
-        // --- ADMIN ---
         if (utenteRepository.findByUsername("admin").isEmpty()) {
             Utente adminUser = new Utente("admin", passwordEncoder.encode("admin"), "Admin", "Superuser");
             utenteRepository.save(adminUser);
-
             Dipendente adminDipendente = new Dipendente(Ruolo.AMMINISTRATORE, adminUser);
             adminDipendente.setSede(sedeDiLavoro);
             dipendenteRepository.save(adminDipendente);
         }
 
-        // --- STAFF ---
         if (utenteRepository.findByUsername("staff").isEmpty()) {
             Utente staffUser = new Utente("staff", passwordEncoder.encode("staff"), "Luigi", "Verdi");
             utenteRepository.save(staffUser);
-
             Dipendente staffDipendente = new Dipendente(Ruolo.STAFF, staffUser);
             staffDipendente.setSede(sedeDiLavoro);
             dipendenteRepository.save(staffDipendente);
         }
 
-        // --- CLIENTE ---
         if (utenteRepository.findByUsername("mario").isEmpty()) {
             Utente clienteUser = new Utente("mario", passwordEncoder.encode("password"), "Mario", "Rossi");
             utenteRepository.save(clienteUser);
-
             Cliente cliente = new Cliente("Italiana", "Milano", "1990-01-01", "Carta d'Identità", "AX123456", clienteUser);
             clienteRepository.save(cliente);
         }

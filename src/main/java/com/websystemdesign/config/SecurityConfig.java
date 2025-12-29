@@ -35,8 +35,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        // Permetti l'accesso a tutto ciò che è sotto /home, oltre a login, register e risorse statiche
-                        .requestMatchers("/", "/home/**", "/login", "/register", "/css/**", "/image/**", "/js/**", "/json/**").permitAll()
+                        // Permetti l'accesso a tutto ciò che è sotto /home, API pubbliche, login, register e risorse statiche
+                        .requestMatchers("/", "/home/**", "/api/availability/**", "/login", "/register", "/css/**", "/image/**", "/js/**", "/json/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("AMMINISTRATORE")
                         .requestMatchers("/staff/**").hasRole("STAFF")
                         .anyRequest().authenticated()
@@ -47,7 +47,7 @@ public class SecurityConfig {
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/home") // Logout riporta alla home pubblica
+                        .logoutSuccessUrl("/home")
                         .permitAll()
                 );
         return http.build();

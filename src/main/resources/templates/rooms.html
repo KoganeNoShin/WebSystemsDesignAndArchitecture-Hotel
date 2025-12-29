@@ -6,6 +6,67 @@
     <title>Le Nostre Camere - Comitini Residence</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/rooms.css}">
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <style>
+        /* Stile extra per il calendario modale */
+        #calendarModal .modal-content {
+            background-color: #1a1a1a;
+            padding: 2rem;
+            border: 1px solid var(--primary-gold);
+            text-align: center;
+            max-width: 400px;
+        }
+        .flatpickr-calendar {
+            margin: 0 auto;
+        }
+        .check-btn {
+            background-color: transparent;
+            border: 1px solid #fff;
+            color: #fff;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        .check-btn:hover {
+            border-color: var(--primary-gold);
+            color: var(--primary-gold);
+        }
+
+        /* --- COLORI CALENDARIO --- */
+
+        /* Date occupate (disabilitate) -> Rosso */
+        .flatpickr-day.flatpickr-disabled,
+        .flatpickr-day.flatpickr-disabled:hover {
+            background-color: rgba(255, 77, 77, 0.3) !important; /* Rosso semi-trasparente */
+            color: #ff4d4d !important;
+            border-color: transparent !important;
+            text-decoration: line-through;
+        }
+
+        /* Date disponibili (default) -> Verde */
+        /* Escludiamo i giorni del mese precedente/successivo e quelli disabilitati */
+        .flatpickr-day:not(.flatpickr-disabled):not(.prevMonthDay):not(.nextMonthDay) {
+            background-color: rgba(77, 255, 77, 0.2); /* Verde semi-trasparente */
+            color: #4dff4d;
+            border: 1px solid #4dff4d;
+        }
+
+        /* Hover su date disponibili */
+        .flatpickr-day:not(.flatpickr-disabled):not(.prevMonthDay):not(.nextMonthDay):hover {
+            background-color: #4dff4d;
+            color: #000;
+            border-color: #4dff4d;
+        }
+
+        /* Oggi */
+        .flatpickr-day.today {
+            border-color: var(--primary-gold) !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -56,7 +117,11 @@
                     <p th:text="'Posti letto: ' + ${camera.postiLetto}">Posti letto: 2</p>
                     <p th:text="'Tipologia: ' + (${camera.tipologia} ?: 'Standard')">Tipologia: Standard</p>
                     <div class="room-price" th:text="'€ ' + ${camera.prezzoBase} + ' / notte'">€ 150.00 / notte</div>
-                    <a th:href="@{/login}" class="btn-book">Prenota Ora</a>
+
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button class="check-btn" th:onclick="'openCalendar(' + ${camera.id} + ')'">📅 Disponibilità</button>
+                        <a th:href="@{/login}" class="btn-book">Prenota Ora</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -68,11 +133,24 @@
 
     <!-- MODALE GALLERIA -->
     <div id="galleryModal" class="modal">
-        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <span class="close-modal" onclick="closeModal('galleryModal')">&times;</span>
         <div class="modal-content">
             <img id="modalImage" src="" alt="Room Image">
             <a class="prev" onclick="changeModalImage(-1)">&#10094;</a>
             <a class="next" onclick="changeModalImage(1)">&#10095;</a>
+        </div>
+    </div>
+
+    <!-- MODALE CALENDARIO -->
+    <div id="calendarModal" class="modal">
+        <span class="close-modal" onclick="closeModal('calendarModal')">&times;</span>
+        <div class="modal-content">
+            <h3 style="color: var(--primary-gold); margin-bottom: 1rem;">Verifica Disponibilità</h3>
+            <div id="flatpickr-container"></div>
+            <div style="margin-top: 1rem; font-size: 0.8rem; display: flex; justify-content: center; gap: 15px;">
+                <span style="color: #4dff4d;">● Disponibile</span>
+                <span style="color: #ff4d4d;">● Occupata</span>
+            </div>
         </div>
     </div>
 
@@ -86,6 +164,10 @@
             </ul>
         </nav>
     </footer>
+
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
 
     <script>
         // --- FILTRI ---
@@ -117,7 +199,7 @@
             });
         }
 
-        // --- CAROSELLO AUTOMATICO (Card) ---
+        // --- CAROSELLO AUTOMATICO ---
         document.addEventListener('DOMContentLoaded', function() {
             const carousels = document.querySelectorAll('.room-carousel');
             carousels.forEach(carousel => {
@@ -136,11 +218,10 @@
         // --- MODALE GALLERIA ---
         let modalImages = [];
         let modalIndex = 0;
-        const modal = document.getElementById('galleryModal');
+        const galleryModal = document.getElementById('galleryModal');
         const modalImg = document.getElementById('modalImage');
 
         function openModal(carouselElement) {
-            // Recupera tutte le immagini dalla card cliccata
             const imageDivs = carouselElement.querySelectorAll('.carousel-image');
             modalImages = [];
             imageDivs.forEach(div => {
@@ -150,23 +231,20 @@
             if (modalImages.length > 0) {
                 modalIndex = 0;
                 updateModalImage();
-                modal.style.display = "flex";
-                document.body.style.overflow = "hidden"; // Blocca lo scroll della pagina
+                galleryModal.style.display = "flex";
+                document.body.style.overflow = "hidden";
             }
         }
 
-        function closeModal() {
-            modal.style.display = "none";
-            document.body.style.overflow = "auto"; // Riabilita lo scroll
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+            document.body.style.overflow = "auto";
         }
 
         function changeModalImage(step) {
             modalIndex += step;
-            if (modalIndex >= modalImages.length) {
-                modalIndex = 0;
-            } else if (modalIndex < 0) {
-                modalIndex = modalImages.length - 1;
-            }
+            if (modalIndex >= modalImages.length) modalIndex = 0;
+            else if (modalIndex < 0) modalIndex = modalImages.length - 1;
             updateModalImage();
         }
 
@@ -174,10 +252,51 @@
             modalImg.src = modalImages[modalIndex];
         }
 
-        // Chiudi modale cliccando fuori dall'immagine
+        // --- CALENDARIO DISPONIBILITÀ ---
+        let calendarInstance = null;
+
+        function openCalendar(cameraId) {
+            const modal = document.getElementById('calendarModal');
+            const container = document.getElementById('flatpickr-container');
+
+            // Pulisci istanza precedente
+            if (calendarInstance) {
+                calendarInstance.destroy();
+                container.innerHTML = '';
+            }
+
+            modal.style.display = "flex";
+            document.body.style.overflow = "hidden";
+
+            // Chiamata API per ottenere date occupate
+            fetch(`/api/availability/camera/${cameraId}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Converti DTO in formato Flatpickr disable
+                    const disableDates = data.map(d => {
+                        return {
+                            from: d.from,
+                            to: d.to
+                        };
+                    });
+
+                    // Inizializza Flatpickr
+                    calendarInstance = flatpickr(container, {
+                        inline: true,
+                        locale: "it",
+                        minDate: "today",
+                        disable: disableDates,
+                        dateFormat: "Y-m-d"
+                    });
+                })
+                .catch(err => console.error("Errore caricamento disponibilità:", err));
+        }
+
+        // Chiudi modali cliccando fuori
         window.onclick = function(event) {
-            if (event.target == modal) {
-                closeModal();
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = "none";
+                document.body.style.overflow = "auto";
             }
         }
     </script>

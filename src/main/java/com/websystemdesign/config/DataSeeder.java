@@ -9,8 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
@@ -51,11 +52,22 @@ public class DataSeeder implements CommandLineRunner {
         dipendenteRepository.deleteAll();
         utenteRepository.deleteAll();
         cameraRepository.deleteAll();
+        // Prima di cancellare sedi e servizi, dobbiamo rompere le relazioni ManyToMany se non c'è CascadeType.ALL/REMOVE
+        // Ma deleteAll() dovrebbe gestire se configurato bene, altrimenti potrebbe dare errore di constraint.
+        // Per sicurezza, puliamo le relazioni manualmente se necessario, ma proviamo così.
+        // Nota: Service e Sede hanno una relazione ManyToMany.
+        
+        // Pulizia relazioni Sede-Service
+        List<Sede> allSedi = sedeRepository.findAll();
+        for(Sede s : allSedi) {
+            s.setServices(null);
+            sedeRepository.save(s);
+        }
+        
         sedeRepository.deleteAll();
         serviceRepository.deleteAll();
         multimediaRepository.deleteAll();
 
-        // Eseguiamo il seeding solo se non ci sono sedi (indicatore che il DB è vuoto o parziale)
         if (sedeRepository.count() == 0) {
             System.out.println("Database vuoto. Inizio Data Seeding...");
 
@@ -63,22 +75,37 @@ public class DataSeeder implements CommandLineRunner {
             Sede sedeCortina = createSedeIfNotFound("Alpine Palace Cortina", "Cortina d'Ampezzo", "5.00");
             Sede sedeRoma = createSedeIfNotFound("Urban Luxury Roma", "Roma Centro", "7.50");
 
-            // 2. Creazione Camere (Solo se le sedi sono state appena create o non hanno camere)
-            if (cameraRepository.count() == 0) {
-                createCamereForSede(sedeCortina);
-                createCamereForSede(sedeRoma);
-            }
+            // 2. Creazione Servizi
+            Service spa = createService("Accesso SPA", 50.0f);
+            Service colazione = createService("Colazione in camera", 15.0f);
+            Service navetta = createService("Navetta Aeroportuale", 30.0f);
+            Service tour = createService("Tour Guidato", 40.0f);
+            Service sci = createService("Noleggio Sci", 25.0f);
 
-            // 3. Creazione Servizi
-            createServiceIfNotFound("Accesso SPA", 50.0f);
-            createServiceIfNotFound("Colazione in camera", 15.0f);
-            createServiceIfNotFound("Navetta Aeroportuale", 30.0f);
+            // 3. Associazione Servizi alle Sedi
+            // Cortina: SPA, Colazione, Sci
+            addServiceToSede(sedeCortina, spa);
+            addServiceToSede(sedeCortina, colazione);
+            addServiceToSede(sedeCortina, sci);
 
-            // 4. Creazione Multimedia
+            // Roma: Colazione, Navetta, Tour
+            addServiceToSede(sedeRoma, colazione);
+            addServiceToSede(sedeRoma, navetta);
+            addServiceToSede(sedeRoma, tour);
+            
+            // Salviamo le sedi aggiornate con le relazioni
+            sedeRepository.save(sedeCortina);
+            sedeRepository.save(sedeRoma);
+
+            // 4. Creazione Camere
+            createCamereForSede(sedeCortina);
+            createCamereForSede(sedeRoma);
+
+            // 5. Creazione Multimedia
             createMultimediaIfNotFound("Film Prima Visione", 5.0f);
             createMultimediaIfNotFound("Playlist Relax", 2.0f);
 
-            // 5. Creazione Utenti e Ruoli
+            // 6. Creazione Utenti e Ruoli
             seedUsers(sedeCortina);
 
             System.out.println("Data Seeding completato con successo!");
@@ -92,13 +119,18 @@ public class DataSeeder implements CommandLineRunner {
         return sedeRepository.save(sede);
     }
     
-    private void createServiceIfNotFound(String nome, float costo) {
+    private Service createService(String nome, float costo) {
         Service s = new Service(nome, costo);
-        try {
-            serviceRepository.save(s);
-        } catch (Exception e) {
-            // Ignora se esiste già
+        return serviceRepository.save(s);
+    }
+    
+    private void addServiceToSede(Sede sede, Service service) {
+        if (sede.getServices() == null) {
+            sede.setServices(new HashSet<>());
         }
+        sede.getServices().add(service);
+        // La relazione è bidirezionale, ma spesso basta settare un lato se il mapping è corretto.
+        // Nel model Sede c'è @JoinTable, quindi Sede è l'owner.
     }
 
     private void createMultimediaIfNotFound(String nome, float costo) {

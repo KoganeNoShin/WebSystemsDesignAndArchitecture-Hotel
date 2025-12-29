@@ -42,10 +42,9 @@ header {
     text-transform: uppercase;
     color: var(--text-light);
     text-decoration: none;
-    transition: color 0.3s ease; /* Aggiunta transizione */
+    transition: color 0.3s ease;
 }
 
-/* Effetto hover per rendere ovvio che è un link */
 .logo:hover {
     color: var(--primary-gold);
 }
@@ -88,14 +87,14 @@ header {
     font-weight: 400;
     margin-bottom: 1rem;
     font-style: italic;
-    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7); /* Aggiunto contorno/ombra */
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
 }
 
 .hero-content p {
     font-size: 1.2rem;
     letter-spacing: 1px;
     font-weight: 300;
-    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.7); /* Aggiunto contorno/ombra più leggero */
+    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.7);
 }
 
 /* --- FOOTER & NAV LINKS --- */
@@ -139,7 +138,7 @@ footer {
     background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('../image/background.webp');
     background-size: cover;
     background-position: center;
-    padding: 2rem 0; /* Aggiunto padding per schermi piccoli */
+    padding: 2rem 0;
 }
 
 .form-container {
@@ -147,7 +146,7 @@ footer {
     padding: 3rem;
     width: 100%;
     max-width: 450px;
-    border: 1px solid rgba(197, 160, 89, 0.3); /* Bordo oro sottile */
+    border: 1px solid rgba(197, 160, 89, 0.3);
     text-align: center;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
@@ -163,7 +162,7 @@ footer {
 .form-group {
     margin-bottom: 1.5rem;
     text-align: left;
-    position: relative; /* Per posizionare i suggerimenti */
+    position: relative;
 }
 
 .form-group label {
@@ -192,20 +191,18 @@ footer {
     border-bottom-color: var(--primary-gold);
 }
 
-/* Stile specifico per SELECT e DATE */
 select.form-control {
-    background-color: #1a1a1a; /* Sfondo scuro per il menu chiuso */
+    background-color: #1a1a1a;
     color: var(--text-light);
     cursor: pointer;
 }
 
 select.form-control option {
-    background-color: #1a1a1a; /* Sfondo scuro per le opzioni */
+    background-color: #1a1a1a;
     color: var(--text-light);
     padding: 10px;
 }
 
-/* Icona calendario bianca per input date (funziona su Chrome/Edge) */
 input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(1);
     cursor: pointer;

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I Nostri Servizi - Comitini Residence</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/services.css}">
+    <style>
+        /* Stile per il filtro specifico di questa pagina */
+        .filter-container {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .filter-select {
+            background-color: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--primary-gold);
+            color: var(--primary-gold);
+            padding: 10px 15px;
+            font-family: 'Lato', sans-serif;
+            text-transform: uppercase;
+            cursor: pointer;
+            outline: none;
+            font-size: 1rem;
+        }
+        .filter-select option {
+            background-color: #1a1a1a;
+            color: #fff;
+        }
+
+        /* Stile per l'elenco delle sedi nella card */
+        .sedi-list {
+            list-style-type: none; /* O disc se preferisci i pallini */
+            padding: 0;
+            margin-top: 10px;
+            text-align: left;
+            width: 100%;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 10px;
+        }
+        .sedi-list li {
+            font-size: 0.85rem;
+            color: #ccc;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .sedi-list li::before {
+            content: "•";
+            color: var(--primary-gold);
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+            padding-right: 5px;
+            text-align: right;
+        }
+        /* Per centrare visivamente la lista se le card sono centrate */
+        .sedi-list-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/home" class="logo">Comitini Residence</a>
+        <a th:href="@{/login}" class="btn-login">Login</a>
+    </header>
+
+    <div class="services-page">
+        <div class="services-container">
+            <h1>I Nostri Servizi Esclusivi</h1>
+            <p class="intro-text">Arricchisci il tuo soggiorno con le nostre esperienze premium.</p>
+
+            <!-- Filtro Sede -->
+            <div class="filter-container">
+                <select id="sedeFilter" class="filter-select" onchange="filterServices()">
+                    <option value="all">Tutte le Sedi</option>
+                    <option th:each="sede : ${sedi}" th:value="${sede.id}" th:text="${sede.nome}"></option>
+                </select>
+            </div>
+
+            <div class="services-grid">
+                <div th:each="servizio : ${servizi}"
+                     class="service-card"
+                     th:data-sedi="${#strings.listJoin(servizio.sedi.![id], ',')}"> <!-- Lista ID sedi separati da virgola -->
+
+                    <div class="service-icon">✨</div>
+                    <h3 th:text="${servizio.nome}">Nome Servizio</h3>
+                    <p class="service-price" th:text="'€ ' + ${servizio.costo}">€ 50.00</p>
+
+                    <p class="service-desc" style="margin-bottom: 5px;">Disponibile presso:</p>
+
+                    <!-- Elenco puntato delle sedi -->
+                    <ul class="sedi-list">
+                        <li th:each="s : ${servizio.sedi}" th:text="${s.nome}">Nome Sede</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div th:if="${servizi.empty}" style="text-align: center; color: #ccc; margin-top: 2rem;">
+                <p>Al momento non ci sono servizi aggiuntivi disponibili.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <nav>
+            <ul class="nav-links">
+                <li><a th:href="@{/register}">Registrati</a></li>
+                <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
+                <li><a th:href="@{/home/services}">Servizi</a></li>
+                <li><a th:href="@{/home/contact}">Contatti</a></li>
+            </ul>
+        </nav>
+    </footer>
+
+    <script>
+        function filterServices() {
+            const selectedSedeId = document.getElementById('sedeFilter').value;
+            const cards = document.querySelectorAll('.service-card');
+
+            cards.forEach(card => {
+                const sediIds = card.getAttribute('data-sedi').split(','); // Array di stringhe ID
+
+                if (selectedSedeId === 'all' || sediIds.includes(selectedSedeId)) {
+                    card.style.display = 'flex'; // Ripristina display flex
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>

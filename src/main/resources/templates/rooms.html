@@ -19,20 +19,15 @@
 
         <!-- Filtri -->
         <div class="filters-container">
-            <!-- Filtro Tipologia -->
             <div class="filter-group">
                 <button class="filter-btn active" onclick="setTypeFilter('all')">Tutte</button>
                 <button class="filter-btn" onclick="setTypeFilter('Standard')">Standard</button>
                 <button class="filter-btn" onclick="setTypeFilter('Suite')">Suite</button>
             </div>
-
-            <!-- Filtro Sede -->
             <div class="filter-group">
                 <select id="sedeFilter" class="filter-select" onchange="applyFilters()">
                     <option value="all">Tutte le Sedi</option>
-                    <option th:each="sede : ${sedi}"
-                            th:value="${sede.id}"
-                            th:text="${sede.nome}"></option>
+                    <option th:each="sede : ${sedi}" th:value="${sede.id}" th:text="${sede.nome}"></option>
                 </select>
             </div>
         </div>
@@ -43,13 +38,16 @@
                  th:data-type="${camera.tipologia ?: 'Standard'}"
                  th:data-sede="${camera.sede.id}">
 
-                <!-- Carosello Immagini -->
-                <div class="room-carousel">
+                <!-- Carosello Immagini (Cliccabile per aprire la modale) -->
+                <div class="room-carousel" onclick="openModal(this)" style="cursor: pointer;" title="Clicca per ingrandire">
                     <div th:each="imgUrl, iterStat : ${@cameraService.getImmaginiCamera(camera)}"
                          class="carousel-image"
                          th:classappend="${iterStat.index == 0} ? 'active'"
+                         th:data-src="@{${imgUrl}}"
                          th:style="'background-image: url(' + @{${imgUrl}} + ');'">
                     </div>
+                    <!-- Icona lente d'ingrandimento overlay -->
+                    <div class="zoom-icon">🔍</div>
                 </div>
 
                 <div class="room-details">
@@ -68,27 +66,36 @@
         </div>
     </div>
 
+    <!-- MODALE GALLERIA -->
+    <div id="galleryModal" class="modal">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <div class="modal-content">
+            <img id="modalImage" src="" alt="Room Image">
+            <a class="prev" onclick="changeModalImage(-1)">&#10094;</a>
+            <a class="next" onclick="changeModalImage(1)">&#10095;</a>
+        </div>
+    </div>
+
     <footer>
         <nav>
             <ul class="nav-links">
                 <li><a th:href="@{/register}">Registrati</a></li>
                 <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
+                <li><a th:href="@{/home/services}">Servizi</a></li>
                 <li><a th:href="@{/home/contact}">Contatti</a></li>
             </ul>
         </nav>
     </footer>
 
     <script>
+        // --- FILTRI ---
         let currentType = 'all';
 
         function setTypeFilter(type) {
             currentType = type;
-
-            // Aggiorna stato bottoni
             const buttons = document.querySelectorAll('.filter-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
-
             applyFilters();
         }
 
@@ -99,7 +106,6 @@
             cards.forEach(card => {
                 const cardType = card.getAttribute('data-type');
                 const cardSede = card.getAttribute('data-sede');
-
                 const typeMatch = (currentType === 'all' || cardType === currentType);
                 const sedeMatch = (sedeId === 'all' || cardSede === sedeId);
 
@@ -111,13 +117,12 @@
             });
         }
 
-        // Funzione Carosello Automatico
+        // --- CAROSELLO AUTOMATICO (Card) ---
         document.addEventListener('DOMContentLoaded', function() {
             const carousels = document.querySelectorAll('.room-carousel');
-
             carousels.forEach(carousel => {
                 const images = carousel.querySelectorAll('.carousel-image');
-                if (images.length > 1) { // Avvia solo se c'è più di un'immagine
+                if (images.length > 1) {
                     let currentIndex = 0;
                     setInterval(() => {
                         images[currentIndex].classList.remove('active');
@@ -127,6 +132,54 @@
                 }
             });
         });
+
+        // --- MODALE GALLERIA ---
+        let modalImages = [];
+        let modalIndex = 0;
+        const modal = document.getElementById('galleryModal');
+        const modalImg = document.getElementById('modalImage');
+
+        function openModal(carouselElement) {
+            // Recupera tutte le immagini dalla card cliccata
+            const imageDivs = carouselElement.querySelectorAll('.carousel-image');
+            modalImages = [];
+            imageDivs.forEach(div => {
+                modalImages.push(div.getAttribute('data-src'));
+            });
+
+            if (modalImages.length > 0) {
+                modalIndex = 0;
+                updateModalImage();
+                modal.style.display = "flex";
+                document.body.style.overflow = "hidden"; // Blocca lo scroll della pagina
+            }
+        }
+
+        function closeModal() {
+            modal.style.display = "none";
+            document.body.style.overflow = "auto"; // Riabilita lo scroll
+        }
+
+        function changeModalImage(step) {
+            modalIndex += step;
+            if (modalIndex >= modalImages.length) {
+                modalIndex = 0;
+            } else if (modalIndex < 0) {
+                modalIndex = modalImages.length - 1;
+            }
+            updateModalImage();
+        }
+
+        function updateModalImage() {
+            modalImg.src = modalImages[modalIndex];
+        }
+
+        // Chiudi modale cliccando fuori dall'immagine
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
     </script>
 
 </body>

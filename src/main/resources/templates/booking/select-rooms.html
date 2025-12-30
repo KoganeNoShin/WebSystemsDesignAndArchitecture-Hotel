@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuova Prenotazione - Selezione Camera</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .booking-page {
+            padding: 8rem 2rem 4rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .step-indicator {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: #ccc;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .step-indicator span.active {
+            color: var(--primary-gold);
+            font-weight: bold;
+            border-bottom: 2px solid var(--primary-gold);
+            padding-bottom: 5px;
+        }
+
+        .summary-bar {
+            background-color: rgba(197, 160, 89, 0.1);
+            border: 1px solid var(--primary-gold);
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .summary-item strong {
+            color: var(--primary-gold);
+        }
+
+        /* FILTRI E ORDINAMENTO */
+        .filters-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: 1px solid var(--primary-gold);
+            color: var(--primary-gold);
+            padding: 5px 15px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+        .filter-btn.active {
+            background: var(--primary-gold);
+            color: #000;
+        }
+
+        .sort-select {
+            background: #1a1a1a;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 5px;
+        }
+
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .room-select-card {
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 1px solid #555;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .room-select-card.selected {
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 15px rgba(197, 160, 89, 0.3);
+            transform: scale(1.02);
+        }
+
+        .room-select-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(100%);
+            order: 999; /* Spinge in fondo le disabilitate */
+        }
+
+        .room-image {
+            height: 150px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .room-content {
+            padding: 1.5rem;
+        }
+
+        .room-content h3 {
+            color: var(--primary-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .room-radio {
+            display: none;
+        }
+
+        .selection-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--primary-gold);
+            color: #000;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: none;
+        }
+
+        .room-select-card.selected .selection-indicator {
+            display: block;
+        }
+
+        .services-section {
+            background-color: rgba(0, 0, 0, 0.8); /* Sfondo più scuro */
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 3rem;
+            border: 1px solid #444;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        /* Checkbox Servizi Migliorati */
+        .service-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid #555;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .service-item:hover {
+            border-color: var(--primary-gold);
+        }
+
+        .service-item input[type="checkbox"] {
+            margin-right: 15px;
+            transform: scale(1.5);
+            accent-color: var(--primary-gold);
+        }
+
+        .confirm-section {
+            text-align: center;
+            margin-top: 2rem;
+            background-color: rgba(0, 0, 0, 0.9); /* Sfondo molto scuro per leggibilità */
+            padding: 2rem;
+            border-radius: 10px;
+            border: 1px solid var(--primary-gold);
+            position: sticky;
+            bottom: 20px; /* Sticky in basso se la pagina è lunga */
+            z-index: 100;
+        }
+
+        .total-price {
+            font-size: 2.5rem;
+            color: var(--primary-gold);
+            margin-bottom: 1rem;
+            display: block;
+            font-weight: bold;
+        }
+
+        .capacity-warning {
+            color: #ff4d4d;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: none;
+        }
+        .room-select-card.disabled .capacity-warning {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/home" class="logo">Comitini Residence</a>
+        <a th:href="@{/cliente/dashboard}" class="btn-login">Dashboard</a>
+    </header>
+
+    <div class="booking-page">
+        <div class="step-indicator">
+            <a th:href="@{/booking/new}" style="color: inherit; text-decoration: none;"><span>1. Sede</span></a> &nbsp;>&nbsp;
+            <a href="#" onclick="history.back()" style="color: inherit; text-decoration: none;"><span>2. Date & Ospiti</span></a> &nbsp;>&nbsp;
+            <span class="active">3. Camera & Servizi</span> &nbsp;>&nbsp; <span>4. Conferma</span>
+        </div>
+
+        <div class="summary-bar">
+            <div class="summary-item">Sede: <strong th:text="${sede.nome}">Cortina</strong></div>
+            <div class="summary-item">Check-in: <strong th:text="${checkin}">2023-01-01</strong></div>
+            <div class="summary-item">Check-out: <strong th:text="${checkout}">2023-01-05</strong></div>
+            <div class="summary-item">Ospiti: <strong id="targetGuests" th:text="${numOspiti}">2</strong></div>
+        </div>
+
+        <form th:action="@{/booking/confirm}" method="post" id="bookingForm">
+            <input type="hidden" name="sedeId" th:value="${sede.id}">
+            <input type="hidden" name="checkin" th:value="${checkin}">
+            <input type="hidden" name="checkout" th:value="${checkout}">
+            <input type="hidden" name="numOspiti" th:value="${numOspiti}">
+
+            <div class="filters-bar">
+                <div class="filter-group">
+                    <button type="button" class="filter-btn active" onclick="filterRooms('all')">Tutte</button>
+                    <button type="button" class="filter-btn" onclick="filterRooms('Standard')">Standard</button>
+                    <button type="button" class="filter-btn" onclick="filterRooms('Suite')">Suite</button>
+                </div>
+                <select class="sort-select" onchange="sortRooms(this.value)">
+                    <option value="default">Consigliate</option>
+                    <option value="priceAsc">Prezzo: Basso -> Alto</option>
+                    <option value="priceDesc">Prezzo: Alto -> Basso</option>
+                </select>
+            </div>
+
+            <div class="rooms-grid" id="roomsGrid">
+                <div th:each="camera : ${camereDisponibili}"
+                     class="room-select-card"
+                     th:classappend="${camera.postiLetto < numOspiti} ? 'disabled'"
+                     th:data-type="${camera.tipologia ?: 'Standard'}"
+                     th:data-price="${camera.prezzoBase}"
+                     onclick="selectRoom(this)">
+
+                    <div class="room-image" th:style="'background-image: url(' + @{${@cameraService.getImmaginiCamera(camera)[0]}} + ');'"></div>
+                    <div class="room-content">
+                        <h3 th:text="'Camera ' + ${camera.numero}">101</h3>
+                        <p th:text="${camera.tipologia}">Standard</p>
+                        <p>Posti letto: <strong class="room-capacity" th:text="${camera.postiLetto}">2</strong></p>
+                        <p class="room-price-text">€ <span class="room-price-val" th:text="${camera.prezzoBase}">100</span> / notte</p>
+
+                        <p class="capacity-warning">Capienza insufficiente per <span th:text="${numOspiti}">3</span> ospiti.</p>
+
+                        <div class="selection-indicator">SELEZIONATA</div>
+
+                        <input type="radio" name="selectedRoom" th:value="${camera.id}" class="room-radio"
+                               th:data-price="${camera.prezzoBase}"
+                               th:disabled="${camera.postiLetto < numOspiti}">
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${camereDisponibili.empty}" style="text-align: center; margin-bottom: 3rem;">
+                <p>Nessuna camera disponibile per queste date. <a href="#" onclick="history.back()" style="color: var(--primary-gold);">Prova a cambiare date.</a></p>
+            </div>
+
+            <div class="services-section" th:if="${!serviziDisponibili.empty}">
+                <h2>Servizi Aggiuntivi</h2>
+                <div class="services-grid">
+                    <div th:each="servizio : ${serviziDisponibili}" class="service-item" onclick="this.querySelector('input').click()">
+                        <input type="checkbox" name="selectedServices" th:value="${servizio.id}"
+                               th:data-price="${servizio.costo}" onchange="updateTotals()" onclick="event.stopPropagation()">
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-weight: bold; color: #fff;" th:text="${servizio.nome}">SPA</span>
+                            <span style="color: var(--primary-gold); font-size: 0.9rem;" th:text="'+ € ' + ${servizio.costo}">+ € 50</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="confirm-section">
+                <span class="total-price">Totale: € <span id="totalPrice">0.00</span></span>
+                <button type="submit" id="confirmBtn" class="btn-submit" disabled style="opacity: 0.5; cursor: not-allowed;">Conferma Prenotazione</button>
+                <p id="errorMsg" style="color: #aaa; font-size: 0.9rem; margin-top: 10px;">Seleziona una camera per procedere.</p>
+            </div>
+        </form>
+    </div>
+
+    <footer>
+        <nav>
+            <ul class="nav-links">
+                <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
+                <li><a th:href="@{/home/services}">Servizi</a></li>
+                <li><a th:href="@{/home/contact}">Contatti</a></li>
+            </ul>
+        </nav>
+    </footer>
+
+    <script>
+        const checkinDate = new Date('[[${checkin}]]');
+        const checkoutDate = new Date('[[${checkout}]]');
+        const diffTime = Math.abs(checkoutDate - checkinDate);
+        const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        function selectRoom(card) {
+            if (card.classList.contains('disabled')) return;
+            document.querySelectorAll('.room-select-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            const radio = card.querySelector('.room-radio');
+            radio.checked = true;
+            updateTotals();
+        }
+
+        function updateTotals() {
+            let totalPrice = 0;
+            const selectedRadio = document.querySelector('input[name="selectedRoom"]:checked');
+            if (selectedRadio) {
+                totalPrice += parseFloat(selectedRadio.getAttribute('data-price')) * nights;
+            }
+            const serviceCheckboxes = document.querySelectorAll('input[name="selectedServices"]:checked');
+            serviceCheckboxes.forEach(cb => {
+                totalPrice += parseFloat(cb.getAttribute('data-price'));
+            });
+
+            document.getElementById('totalPrice').innerText = totalPrice.toFixed(2);
+            const confirmBtn = document.getElementById('confirmBtn');
+            const errorMsg = document.getElementById('errorMsg');
+
+            if (selectedRadio) {
+                confirmBtn.disabled = false;
+                confirmBtn.style.opacity = "1";
+                confirmBtn.style.cursor = "pointer";
+                errorMsg.style.display = "none";
+            } else {
+                confirmBtn.disabled = true;
+                confirmBtn.style.opacity = "0.5";
+                confirmBtn.style.cursor = "not-allowed";
+                errorMsg.style.display = "block";
+                errorMsg.innerText = "Seleziona una camera per procedere.";
+            }
+        }
+
+        // Filtri
+        function filterRooms(type) {
+            const cards = document.querySelectorAll('.room-select-card');
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            cards.forEach(card => {
+                const cardType = card.getAttribute('data-type');
+                if (type === 'all' || cardType === type) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Ordinamento
+        function sortRooms(criteria) {
+            const grid = document.getElementById('roomsGrid');
+            const cards = Array.from(grid.children);
+
+            cards.sort((a, b) => {
+                const priceA = parseFloat(a.getAttribute('data-price'));
+                const priceB = parseFloat(b.getAttribute('data-price'));
+                const disabledA = a.classList.contains('disabled');
+                const disabledB = b.classList.contains('disabled');
+
+                // Sempre prima le abilitate
+                if (disabledA && !disabledB) return 1;
+                if (!disabledA && disabledB) return -1;
+
+                if (criteria === 'priceAsc') return priceA - priceB;
+                if (criteria === 'priceDesc') return priceB - priceA;
+                return 0; // Default (già ordinato dal server)
+            });
+
+            cards.forEach(card => grid.appendChild(card));
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuova Prenotazione - Dettagli</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <style>
+        .booking-page {
+            padding: 8rem 2rem 4rem;
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .step-indicator {
+            margin-bottom: 3rem;
+            color: #ccc;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .step-indicator span.active {
+            color: var(--primary-gold);
+            font-weight: bold;
+            border-bottom: 2px solid var(--primary-gold);
+            padding-bottom: 5px;
+        }
+
+        .form-container {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 2rem;
+            border-radius: 10px;
+            border: 1px solid rgba(197, 160, 89, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            color: #ccc;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            background: #1a1a1a;
+            border: 1px solid #555;
+            color: var(--text-light);
+            font-family: 'Lato', sans-serif;
+            font-size: 1rem;
+            border-radius: 3px;
+        }
+
+        .date-picker-wrapper {
+            display: flex;
+            gap: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/home" class="logo">Comitini Residence</a>
+        <a th:href="@{/cliente/dashboard}" class="btn-login">Dashboard</a>
+    </header>
+
+    <div class="booking-page">
+        <div class="step-indicator">
+            <a th:href="@{/booking/new}" style="color: inherit; text-decoration: none;"><span>1. Sede</span></a> &nbsp;>&nbsp; <span class="active">2. Date & Ospiti</span> &nbsp;>&nbsp; <span>3. Camere</span> &nbsp;>&nbsp; <span>4. Conferma</span>
+        </div>
+
+        <h1 th:text="'Prenota a ' + ${sede.nome}">Prenota a...</h1>
+        <p style="color: #ccc;">Inserisci i dettagli del tuo soggiorno.</p>
+
+        <div class="form-container" style="margin-top: 2rem;">
+            <form th:action="@{/booking/select-rooms}" method="get">
+                <input type="hidden" name="sedeId" th:value="${sede.id}">
+
+                <div class="form-group">
+                    <label for="dates">Periodo</label>
+                    <div class="date-picker-wrapper">
+                        <input type="text" id="checkin" name="checkin" class="form-control" placeholder="Data di Arrivo" required>
+                        <input type="text" id="checkout" name="checkout" class="form-control" placeholder="Data di Partenza" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="numOspiti">Numero di Ospiti</label>
+                    <input type="number" id="numOspiti" name="numOspiti" class="form-control" min="1"
+                           th:max="${maxCapacity}"
+                           th:attr="placeholder='Max ' + ${maxCapacity} + ' ospiti'"
+                           value="1" required>
+                    <small style="color: #aaa; display: block; margin-top: 5px;" th:text="'Massimo ' + ${maxCapacity} + ' ospiti per camera in questa sede.'"></small>
+                </div>
+
+                <button type="submit" class="btn-action" style="width: 100%; padding: 15px; font-size: 1rem;">Cerca Disponibilità</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <nav>
+            <ul class="nav-links">
+                <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
+                <li><a th:href="@{/home/services}">Servizi</a></li>
+                <li><a th:href="@{/home/contact}">Contatti</a></li>
+            </ul>
+        </nav>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            flatpickr("#checkin", {
+                locale: "it",
+                minDate: "today",
+                dateFormat: "Y-m-d",
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (selectedDates.length > 0) {
+                        const checkoutPicker = document.querySelector("#checkout")._flatpickr;
+                        checkoutPicker.set("minDate", selectedDates[0].fp_incr(1));
+                    }
+                }
+            });
+
+            flatpickr("#checkout", {
+                locale: "it",
+                minDate: new Date().fp_incr(1),
+                dateFormat: "Y-m-d"
+            });
+        });
+    </script>
+
+</body>
+</html>

@@ -18,13 +18,27 @@
 
     <div class="dashboard-page">
 
+        <!-- Messaggi di Successo/Errore -->
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
         <!-- Header Dashboard: Benvenuto + Azione -->
         <div class="welcome-section">
             <div class="welcome-text">
                 <h1 th:text="'Benvenuto, ' + ${utente.nome}">Benvenuto, Diego</h1>
                 <p>Area Personale</p>
             </div>
-            <a th:href="@{/cliente/profile}" class="btn-action">✏️ I Miei Dati</a>
+            <div style="display: flex; gap: 1rem;">
+                <!-- Pulsante Nuova Prenotazione (condizionale) -->
+                <div th:if="${!hasFutureBooking}">
+                    <a th:href="@{/booking/new}" class="btn-action" style="border-color: #fff; color: #fff;">+ Nuova Prenotazione</a>
+                </div>
+                <div th:if="${hasFutureBooking}">
+                    <a href="#" class="btn-action" style="border-color: #555; color: #777; cursor: not-allowed;" title="Puoi avere solo una prenotazione futura attiva.">Prenotazione Bloccata</a>
+                </div>
+
+                <a th:href="@{/cliente/profile}" class="btn-action">✏️ I Miei Dati</a>
+            </div>
         </div>
 
         <div class="dashboard-layout">
@@ -32,7 +46,6 @@
             <div class="left-column">
                 <h2 class="section-title" style="margin-top: 0;">Storico Soggiorni</h2>
 
-                <!-- Contenitore scrollabile -->
                 <div class="scrollable-content">
                     <div th:if="${!prenotazioniPassate.empty}" class="cards-grid">
                         <div th:each="p : ${prenotazioniPassate}" class="booking-card" style="opacity: 0.7;">
@@ -40,7 +53,7 @@
                             <p class="booking-info"><strong th:text="${p.camera.sede.nome}">Roma</strong></p>
                             <p class="booking-info" th:text="${p.dataInizio} + ' - ' + ${p.dataFine}">Date</p>
                             <p class="booking-info">Totale: <span th:text="'€ ' + ${p.costo}">€ 500</span></p>
-                            <span class="status-badge status-passata">COMPLETATA</span>
+                            <span class="status-badge status-passata" th:text="${p.stato}">COMPLETATA</span>
                         </div>
                     </div>
                     <div th:if="${prenotazioniPassate.empty}" class="empty-msg">
@@ -75,10 +88,18 @@
                         <p class="booking-info">Check-in: <span th:text="${p.dataInizio}">2023-01-01</span></p>
                         <p class="booking-info">Check-out: <span th:text="${p.dataFine}">2023-01-05</span></p>
                         <span class="status-badge status-confermata" th:text="${p.stato}">CONFERMATA</span>
+
+                        <!-- Pulsante Cancella -->
+                        <div style="margin-top: 1rem; text-align: right;">
+                            <form th:action="@{/cliente/booking/cancel}" method="post" onsubmit="return confirm('Sei sicuro di voler cancellare questa prenotazione?');">
+                                <input type="hidden" name="prenotazioneId" th:value="${p.id}">
+                                <button type="submit" class="btn-action" style="border-color: #ff4d4d; color: #ff4d4d;">Cancella</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
                 <div th:if="${prenotazioniFuture.empty}" class="empty-msg">
-                    Non hai prenotazioni future. <a th:href="@{/home/rooms}" style="color: var(--primary-gold);">Prenota ora!</a>
+                    Non hai prenotazioni future. <a th:href="@{/booking/new}" style="color: var(--primary-gold);">Prenota ora!</a>
                 </div>
             </div>
         </div>
@@ -87,7 +108,6 @@
     <footer>
         <nav>
             <ul class="nav-links">
-                <!-- Nascondi Registrati se loggato -->
                 <li sec:authorize="!isAuthenticated()"><a th:href="@{/register}">Registrati</a></li>
                 <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
                 <li><a th:href="@{/home/services}">Servizi</a></li>

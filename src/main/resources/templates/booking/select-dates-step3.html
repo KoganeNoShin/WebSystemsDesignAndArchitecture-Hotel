@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuova Prenotazione - Date e Servizi</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <style>
+        .booking-page {
+            padding: 8rem 2rem 4rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .step-indicator {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: #ccc;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .step-indicator span.active {
+            color: var(--primary-gold);
+            font-weight: bold;
+            border-bottom: 2px solid var(--primary-gold);
+            padding-bottom: 5px;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+        }
+        @media (max-width: 768px) {
+            .layout-grid { grid-template-columns: 1fr; }
+        }
+
+        .room-summary {
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--primary-gold);
+            border-radius: 10px;
+            padding: 2rem;
+            height: fit-content;
+        }
+
+        .room-summary h2 {
+            color: var(--primary-gold);
+            margin-bottom: 1rem;
+        }
+
+        .form-section {
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 2rem;
+            border-radius: 10px;
+            border: 1px solid #444;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            color: #ccc;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            background: #1a1a1a;
+            border: 1px solid #555;
+            color: var(--text-light);
+            font-family: 'Lato', sans-serif;
+            font-size: 1rem;
+            border-radius: 3px;
+        }
+
+        /* Servizi */
+        .services-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .service-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid #555;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .service-item:hover {
+            border-color: var(--primary-gold);
+        }
+        .service-item input {
+            margin-right: 15px;
+            transform: scale(1.3);
+            accent-color: var(--primary-gold);
+        }
+
+        /* Totale Sticky */
+        .total-section {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        .total-price {
+            font-size: 2rem;
+            color: var(--primary-gold);
+            font-weight: bold;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        /* Flatpickr Custom */
+        .flatpickr-day.flatpickr-disabled,
+        .flatpickr-day.flatpickr-disabled:hover {
+            background-color: rgba(255, 77, 77, 0.3) !important;
+            color: #ff4d4d !important;
+            border-color: transparent !important;
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/home" class="logo">Comitini Residence</a>
+        <a th:href="@{/cliente/dashboard}" class="btn-login">Dashboard</a>
+    </header>
+
+    <div class="booking-page">
+        <div class="step-indicator">
+            <a th:href="@{/booking/new}" style="color: inherit; text-decoration: none;"><span>1. Sede</span></a> &nbsp;>&nbsp;
+            <a th:href="@{/booking/rooms(sedeId=${sede.id})}" style="color: inherit; text-decoration: none;"><span>2. Camera</span></a> &nbsp;>&nbsp;
+            <span class="active">3. Date & Servizi</span> &nbsp;>&nbsp; <span>4. Conferma</span>
+        </div>
+
+        <div class="layout-grid">
+            <!-- Colonna Sinistra: Riepilogo Camera -->
+            <div class="room-summary">
+                <h2 th:text="'Camera ' + ${camera.numero}">Camera 101</h2>
+                <p th:text="${camera.tipologia}">Standard</p>
+                <p>Sede: <strong th:text="${sede.nome}">Cortina</strong></p>
+                <p>Capienza: <strong th:text="${camera.postiLetto}">2</strong> ospiti</p>
+                <p>Prezzo base: € <strong id="basePrice" th:text="${camera.prezzoBase}">100</strong> / notte</p>
+
+                <div class="total-section">
+                    <span>Totale Stimato:</span>
+                    <span class="total-price">€ <span id="totalPrice">0.00</span></span>
+                    <button type="submit" form="bookingForm" id="confirmBtn" class="btn-submit" disabled style="opacity: 0.5;">Vai al Riepilogo</button>
+                    <p id="errorMsg" style="color: #aaa; font-size: 0.8rem; margin-top: 5px;">Seleziona le date per procedere.</p>
+                </div>
+            </div>
+
+            <!-- Colonna Destra: Form -->
+            <div class="form-section">
+                <form th:action="@{/booking/review}" method="get" id="bookingForm">
+                    <input type="hidden" name="sedeId" th:value="${sede.id}">
+                    <input type="hidden" name="cameraId" th:value="${camera.id}">
+
+                    <div class="form-group">
+                        <label>Seleziona Date</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="checkin" name="checkin" class="form-control" placeholder="Check-in" required onchange="updateTotal()" th:value="${param.checkin}">
+                            <input type="text" id="checkout" name="checkout" class="form-control" placeholder="Check-out" required onchange="updateTotal()" th:value="${param.checkout}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Numero Ospiti</label>
+                        <input type="number" name="numOspiti" class="form-control" min="1" th:max="${camera.postiLetto}"
+                               th:value="${param.numOspiti != null ? param.numOspiti : 1}" required>
+                        <small style="color: #aaa;">Massimo <span th:text="${camera.postiLetto}">2</span> persone.</small>
+                    </div>
+
+                    <div class="form-group" th:if="${!serviziDisponibili.empty}">
+                        <label>Servizi Aggiuntivi</label>
+                        <div class="services-list">
+                            <div th:each="servizio : ${serviziDisponibili}" class="service-item" onclick="this.querySelector('input').click()">
+                                <input type="checkbox" name="selectedServices" th:value="${servizio.id}"
+                                       th:data-price="${servizio.costo}" onchange="updateTotal()" onclick="event.stopPropagation()">
+                                <div>
+                                    <span th:text="${servizio.nome}">SPA</span>
+                                    <span style="color: var(--primary-gold); font-size: 0.9rem;" th:text="'+ € ' + ${servizio.costo}">+ € 50</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <nav>
+            <ul class="nav-links">
+                <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
+                <li><a th:href="@{/home/services}">Servizi</a></li>
+                <li><a th:href="@{/home/contact}">Contatti</a></li>
+            </ul>
+        </nav>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
+    <script>
+        const cameraId = [[${camera.id}]];
+        let basePrice = parseFloat(document.getElementById('basePrice').innerText);
+
+        // Carica date occupate
+        fetch(`/api/availability/camera/${cameraId}`)
+            .then(response => response.json())
+            .then(data => {
+                const disableDates = data.map(d => { return { from: d.from, to: d.to }; });
+
+                flatpickr("#checkin", {
+                    locale: "it",
+                    minDate: "today",
+                    disable: disableDates,
+                    dateFormat: "Y-m-d",
+                    defaultDate: document.getElementById('checkin').value, // Pre-popola se presente
+                    onChange: function(selectedDates, dateStr, instance) {
+                        if (selectedDates.length > 0) {
+                            const checkoutPicker = document.querySelector("#checkout")._flatpickr;
+                            checkoutPicker.set("minDate", selectedDates[0].fp_incr(1));
+                            // Reset checkout se non valido
+                            if (checkoutPicker.selectedDates.length > 0 && checkoutPicker.selectedDates[0] <= selectedDates[0]) {
+                                checkoutPicker.clear();
+                            }
+                            updateTotal();
+                        }
+                    }
+                });
+
+                flatpickr("#checkout", {
+                    locale: "it",
+                    minDate: new Date().fp_incr(1),
+                    disable: disableDates,
+                    dateFormat: "Y-m-d",
+                    defaultDate: document.getElementById('checkout').value, // Pre-popola se presente
+                    onChange: updateTotal
+                });
+
+                // Aggiorna totale iniziale se date presenti
+                updateTotal();
+            });
+
+        function updateTotal() {
+            const checkinInput = document.getElementById('checkin').value;
+            const checkoutInput = document.getElementById('checkout').value;
+            const confirmBtn = document.getElementById('confirmBtn');
+            const errorMsg = document.getElementById('errorMsg');
+            const totalPriceEl = document.getElementById('totalPrice');
+
+            if (!checkinInput || !checkoutInput) {
+                totalPriceEl.innerText = "0.00";
+                confirmBtn.disabled = true;
+                confirmBtn.style.opacity = "0.5";
+                return;
+            }
+
+            const start = new Date(checkinInput);
+            const end = new Date(checkoutInput);
+            const diffTime = Math.abs(end - start);
+            const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (nights < 1) {
+                totalPriceEl.innerText = "0.00";
+                return;
+            }
+
+            let total = basePrice * nights;
+
+            // Aggiungi servizi
+            document.querySelectorAll('input[name="selectedServices"]:checked').forEach(cb => {
+                total += parseFloat(cb.getAttribute('data-price'));
+            });
+
+            totalPriceEl.innerText = total.toFixed(2);
+            confirmBtn.disabled = false;
+            confirmBtn.style.opacity = "1";
+            confirmBtn.style.cursor = "pointer";
+            errorMsg.style.display = "none";
+        }
+    </script>
+
+</body>
+</html>

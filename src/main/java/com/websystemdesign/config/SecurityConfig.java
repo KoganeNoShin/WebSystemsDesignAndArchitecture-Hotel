@@ -36,7 +36,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(authorize -> authorize
                         // Permetti l'accesso a tutto ciò che è sotto /home, API pubbliche, login, register e risorse statiche
-                        .requestMatchers("/", "/home/**", "/api/availability/**", "/login", "/register", "/css/**", "/image/**", "/js/**", "/json/**").permitAll()
+                        .requestMatchers("/", "/home/**", "/api/**", "/login", "/register", "/css/**", "/image/**", "/js/**", "/json/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("AMMINISTRATORE")
                         .requestMatchers("/staff/**").hasRole("STAFF")
                         .anyRequest().authenticated()

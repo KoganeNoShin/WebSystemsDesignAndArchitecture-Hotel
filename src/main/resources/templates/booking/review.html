@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riepilogo Prenotazione</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .booking-page {
+            padding: 8rem 2rem 4rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .step-indicator {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: #ccc;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .step-indicator span.active {
+            color: var(--primary-gold);
+            font-weight: bold;
+            border-bottom: 2px solid var(--primary-gold);
+            padding-bottom: 5px;
+        }
+
+        .review-card {
+            background-color: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--primary-gold);
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .review-header {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .review-header h2 {
+            color: var(--primary-gold);
+            font-family: 'Playfair Display', serif;
+        }
+
+        .review-section {
+            margin-bottom: 1.5rem;
+        }
+        .review-section h3 {
+            color: #fff;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .review-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            color: #ccc;
+        }
+        .review-item strong { color: #fff; }
+
+        .total-row {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 1rem;
+            margin-top: 1rem;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.5rem;
+            color: var(--primary-gold);
+            font-weight: bold;
+        }
+
+        .btn-confirm {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-gold);
+            color: #000;
+            border: none;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        .btn-confirm:hover {
+            background-color: #e0b86c;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/home" class="logo">Comitini Residence</a>
+        <a th:href="@{/cliente/dashboard}" class="btn-login">Dashboard</a>
+    </header>
+
+    <div class="booking-page">
+        <div class="step-indicator">
+            <a th:href="@{/booking/new}" style="color: inherit; text-decoration: none;"><span>1. Sede</span></a> &nbsp;>&nbsp;
+            <a th:href="@{/booking/rooms(sedeId=${camera.sede.id})}" style="color: inherit; text-decoration: none;"><span>2. Camera</span></a> &nbsp;>&nbsp;
+            <a href="#" onclick="history.back()" style="color: inherit; text-decoration: none;"><span>3. Date & Servizi</span></a> &nbsp;>&nbsp;
+            <span class="active">4. Conferma</span>
+        </div>
+
+        <div class="review-card">
+            <div class="review-header">
+                <h2>Riepilogo Prenotazione</h2>
+                <p>Controlla i dettagli prima di confermare.</p>
+            </div>
+
+            <div class="review-section">
+                <h3>Soggiorno</h3>
+                <div class="review-item">
+                    <span>Sede:</span>
+                    <strong th:text="${camera.sede.nome}">Cortina</strong>
+                </div>
+                <div class="review-item">
+                    <span>Camera:</span>
+                    <strong th:text="'Camera ' + ${camera.numero} + ' (' + ${camera.tipologia} + ')'">101</strong>
+                </div>
+                <div class="review-item">
+                    <span>Periodo:</span>
+                    <strong th:text="${checkin} + ' - ' + ${checkout}">Date</strong>
+                </div>
+                <div class="review-item">
+                    <span>Notti:</span>
+                    <strong th:text="${nights}">3</strong>
+                </div>
+                <div class="review-item">
+                    <span>Ospiti:</span>
+                    <strong th:text="${numOspiti}">2</strong>
+                </div>
+            </div>
+
+            <div class="review-section">
+                <h3>Servizi Aggiuntivi</h3>
+                <div th:if="${serviziSelezionati.empty}" style="color: #777; font-style: italic;">Nessun servizio selezionato.</div>
+                <div th:each="s : ${serviziSelezionati}" class="review-item">
+                    <span th:text="${s.nome}">SPA</span>
+                    <span th:text="'€ ' + ${s.costo}">€ 50.00</span>
+                </div>
+            </div>
+
+            <div class="review-section">
+                <h3>Costi</h3>
+                <div class="review-item">
+                    <span>Camera (x <span th:text="${nights}">3</span> notti):</span>
+                    <span th:text="'€ ' + ${costoCamera}">€ 300.00</span>
+                </div>
+                <div class="review-item">
+                    <span>Servizi:</span>
+                    <span th:text="'€ ' + ${costoServizi}">€ 50.00</span>
+                </div>
+                <div class="total-row">
+                    <span>Totale:</span>
+                    <span th:text="'€ ' + ${costoTotale}">€ 350.00</span>
+                </div>
+            </div>
+
+            <form th:action="@{/booking/confirm}" method="post">
+                <input type="hidden" name="sedeId" th:value="${camera.sede.id}">
+                <input type="hidden" name="cameraId" th:value="${camera.id}">
+                <input type="hidden" name="checkin" th:value="${checkin}">
+                <input type="hidden" name="checkout" th:value="${checkout}">
+                <input type="hidden" name="numOspiti" th:value="${numOspiti}">
+
+                <!-- Passiamo gli ID dei servizi selezionati -->
+                <th:block th:each="s : ${serviziSelezionati}">
+                    <input type="hidden" name="selectedServices" th:value="${s.id}">
+                </th:block>
+
+                <button type="submit" class="btn-confirm">Conferma Prenotazione</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <nav>
+            <ul class="nav-links">
+                <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
+                <li><a th:href="@{/home/services}">Servizi</a></li>
+                <li><a th:href="@{/home/contact}">Contatti</a></li>
+            </ul>
+        </nav>
+    </footer>
+
+</body>
+</html>

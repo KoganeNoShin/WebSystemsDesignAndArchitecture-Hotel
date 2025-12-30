@@ -1,0 +1,118 @@
+/* Stile per la pagina Profilo */
+
+.form-page {
+    padding: 8rem 0 4rem;
+    display: flex;
+    justify-content: center;
+}
+
+.form-container {
+    background-color: rgba(0, 0, 0, 0.85);
+    padding: 3rem;
+    width: 100%;
+    max-width: 500px;
+    border: 1px solid rgba(197, 160, 89, 0.3);
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.form-container h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    color: var(--primary-gold);
+    margin-bottom: 2rem;
+    font-style: italic;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+    position: relative;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+    color: #aaa;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #555;
+    color: var(--text-light);
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-bottom-color: var(--primary-gold);
+}
+
+/* Stile per campi read-only */
+.form-control[readonly] {
+    color: #777;
+    border-bottom-color: #333;
+    cursor: not-allowed;
+}
+
+select.form-control {
+    background-color: #1a1a1a;
+    color: var(--text-light);
+    cursor: pointer;
+}
+
+select.form-control option {
+    background-color: #1a1a1a;
+    color: var(--text-light);
+    padding: 10px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 15px;
+    margin-top: 1rem;
+    background-color: transparent;
+    border: 1px solid var(--primary-gold);
+    color: var(--primary-gold);
+    font-family: 'Lato', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-submit:hover {
+    background-color: var(--primary-gold);
+    color: #000;
+}
+
+.form-footer {
+    margin-top: 2rem;
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+.form-footer a {
+    color: var(--text-light);
+    text-decoration: none;
+    border-bottom: 1px solid var(--primary-gold);
+}
+
+.error-message {
+    color: #ffb3b3;
+    font-size: 0.8rem;
+    margin-top: 5px;
+}

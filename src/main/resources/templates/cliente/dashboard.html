@@ -6,6 +6,79 @@
     <title>Dashboard Cliente - Comitini Residence</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/cliente/dashboard.css}">
+    <style>
+        /* Stile Modale Dettagli */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #1a1a1a;
+            padding: 2rem;
+            border: 1px solid var(--primary-gold);
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-modal:hover { color: var(--primary-gold); }
+
+        .detail-section {
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 1rem;
+        }
+        .detail-section h3 {
+            color: var(--primary-gold);
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            color: #ccc;
+        }
+        .detail-row strong { color: #fff; }
+
+        .guest-list {
+            list-style: none;
+            padding: 0;
+        }
+        .guest-item {
+            background-color: rgba(255,255,255,0.05);
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 3px;
+            font-size: 0.9rem;
+        }
+
+        .clickable-card {
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 
@@ -19,8 +92,8 @@
     <div class="dashboard-page">
 
         <!-- Messaggi di Successo/Errore -->
-        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
-        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+        <div th:if="${successMessage}" style="background-color: rgba(77, 255, 77, 0.2); color: #4dff4d; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; border: 1px solid #4dff4d; text-align: center;" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" style="background-color: rgba(255, 77, 77, 0.2); color: #ff4d4d; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; border: 1px solid #ff4d4d; text-align: center;" th:text="${errorMessage}"></div>
 
         <!-- Header Dashboard: Benvenuto + Azione -->
         <div class="welcome-section">
@@ -48,7 +121,7 @@
 
                 <div class="scrollable-content">
                     <div th:if="${!prenotazioniPassate.empty}" class="cards-grid">
-                        <div th:each="p : ${prenotazioniPassate}" class="booking-card" style="opacity: 0.7;">
+                        <div th:each="p : ${prenotazioniPassate}" class="booking-card clickable-card" style="opacity: 0.7;" th:onclick="'openDetails(' + ${p.id} + ')'">
                             <h3 th:text="'Camera ' + ${p.camera.numero}">101</h3>
                             <p class="booking-info"><strong th:text="${p.camera.sede.nome}">Roma</strong></p>
                             <p class="booking-info" th:text="${p.dataInizio} + ' - ' + ${p.dataFine}">Date</p>
@@ -66,11 +139,11 @@
             <div class="main-column">
                 <!-- Soggiorno in Corso -->
                 <h2 class="section-title" style="margin-top: 0;">Soggiorno in Corso</h2>
-                <div th:if="${prenotazioneAttiva != null}" class="active-stay-card">
+                <div th:if="${prenotazioneAttiva != null}" class="active-stay-card clickable-card" th:onclick="'openDetails(' + ${prenotazioneAttiva.id} + ')'">
                     <h3 th:text="'Camera ' + ${prenotazioneAttiva.camera.numero}">201</h3>
                     <p class="booking-info" th:text="${prenotazioneAttiva.camera.sede.nome}">Alpine Palace Cortina</p>
                     <p class="booking-info" th:text="'Dal ' + ${prenotazioneAttiva.dataInizio} + ' al ' + ${prenotazioneAttiva.dataFine}">Date</p>
-                    <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem;">
+                    <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem;" onclick="event.stopPropagation()">
                         <a href="#" class="btn-action">🏠 Domotica</a>
                         <a href="#" class="btn-action">🍽️ Servizi</a>
                     </div>
@@ -82,18 +155,27 @@
                 <!-- Prenotazioni Future -->
                 <h2 class="section-title">Prenotazioni Future</h2>
                 <div th:if="${!prenotazioniFuture.empty}" class="cards-grid">
-                    <div th:each="p : ${prenotazioniFuture}" class="booking-card">
+                    <div th:each="p : ${prenotazioniFuture}" class="booking-card clickable-card" th:onclick="'openDetails(' + ${p.id} + ')'">
                         <h3 th:text="'Camera ' + ${p.camera.numero}">101</h3>
                         <p class="booking-info"><strong th:text="${p.camera.sede.nome}">Cortina</strong></p>
                         <p class="booking-info">Check-in: <span th:text="${p.dataInizio}">2023-01-01</span></p>
                         <p class="booking-info">Check-out: <span th:text="${p.dataFine}">2023-01-05</span></p>
                         <span class="status-badge status-confermata" th:text="${p.stato}">CONFERMATA</span>
 
-                        <!-- Pulsante Cancella -->
-                        <div style="margin-top: 1rem; text-align: right;">
-                            <form th:action="@{/cliente/booking/cancel}" method="post" onsubmit="return confirm('Sei sicuro di voler cancellare questa prenotazione?');">
+                        <!-- Pulsanti Azione (Stop propagation per non aprire modale) -->
+                        <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;" onclick="event.stopPropagation()">
+                            <!-- Check-in -->
+                            <div th:if="${p.stato.name() == 'CONFERMATA'}">
+                                <a th:href="@{/cliente/checkin/{id}(id=${p.id})}" class="btn-action" style="font-size: 0.8rem; padding: 5px 15px;">Check-in Online</a>
+                            </div>
+                            <div th:if="${p.stato.name() == 'CHECKED_IN'}">
+                                <span style="color: #4dff4d; font-size: 0.9rem;">✓ Check-in Completato</span>
+                            </div>
+
+                            <!-- Cancella -->
+                            <form th:if="${p.stato.name() == 'CONFERMATA'}" th:action="@{/cliente/booking/cancel}" method="post" onsubmit="return confirm('Sei sicuro di voler cancellare questa prenotazione?');">
                                 <input type="hidden" name="prenotazioneId" th:value="${p.id}">
-                                <button type="submit" class="btn-action" style="border-color: #ff4d4d; color: #ff4d4d;">Cancella</button>
+                                <button type="submit" class="btn-action" style="border-color: #ff4d4d; color: #ff4d4d; font-size: 0.8rem; padding: 5px 15px;">Cancella</button>
                             </form>
                         </div>
                     </div>
@@ -101,6 +183,18 @@
                 <div th:if="${prenotazioniFuture.empty}" class="empty-msg">
                     Non hai prenotazioni future. <a th:href="@{/booking/new}" style="color: var(--primary-gold);">Prenota ora!</a>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE DETTAGLI -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeDetails()">&times;</span>
+            <h2 style="color: var(--primary-gold); margin-bottom: 1rem;">Dettagli Prenotazione</h2>
+            <div id="modalBody">
+                <!-- Contenuto caricato via JS -->
+                <p style="text-align: center;">Caricamento...</p>
             </div>
         </div>
     </div>
@@ -115,6 +209,74 @@
             </ul>
         </nav>
     </footer>
+
+    <script>
+        function openDetails(id) {
+            const modal = document.getElementById('detailsModal');
+            const body = document.getElementById('modalBody');
+
+            modal.style.display = "flex";
+            document.body.style.overflow = "hidden";
+            body.innerHTML = '<p style="text-align: center;">Caricamento...</p>';
+
+            fetch(`/api/cliente/booking/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    let html = `
+                        <div class="detail-section">
+                            <h3>Soggiorno</h3>
+                            <div class="detail-row"><span>Sede:</span> <strong>${data.sedeNome}</strong></div>
+                            <div class="detail-row"><span>Camera:</span> <strong>${data.cameraNumero} (${data.cameraTipologia})</strong></div>
+                            <div class="detail-row"><span>Periodo:</span> <strong>${data.checkin} - ${data.checkout}</strong></div>
+                            <div class="detail-row"><span>Stato:</span> <strong>${data.stato}</strong></div>
+                        </div>
+
+                        <div class="detail-section">
+                            <h3>Costi & Servizi</h3>
+                            <div class="detail-row"><span>Totale:</span> <strong style="color: var(--primary-gold);">€ ${data.costoTotale}</strong></div>
+                            <div style="margin-top: 10px;">
+                                ${data.servizi.length > 0 ? '<ul>' + data.servizi.map(s => `<li>${s}</li>`).join('') + '</ul>' : '<p style="color:#777; font-style:italic;">Nessun servizio extra.</p>'}
+                            </div>
+                        </div>
+                    `;
+
+                    if (data.ospiti && data.ospiti.length > 0) {
+                        html += `
+                            <div class="detail-section" style="border-bottom: none;">
+                                <h3>Ospiti Registrati</h3>
+                                <ul class="guest-list">
+                                    ${data.ospiti.map(o => `
+                                        <li class="guest-item">
+                                            <strong>${o.nome} ${o.cognome}</strong><br>
+                                            <span style="font-size: 0.8rem; color: #aaa;">${o.cittadinanza}, nato il ${o.dataNascita}</span>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    } else {
+                        html += `<p style="color: #aaa; font-style: italic;">Check-in non ancora effettuato.</p>`;
+                    }
+
+                    body.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error(err);
+                    body.innerHTML = '<p style="color: #ff4d4d; text-align: center;">Errore nel caricamento dei dettagli.</p>';
+                });
+        }
+
+        function closeDetails() {
+            document.getElementById('detailsModal').style.display = "none";
+            document.body.style.overflow = "auto";
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                closeDetails();
+            }
+        }
+    </script>
 
 </body>
 </html>

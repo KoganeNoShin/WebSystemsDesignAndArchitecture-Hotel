@@ -1,26 +1,36 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const cittadinanzaSelect = document.getElementById('cittadinanza');
-    const luogoNascitaInput = document.getElementById('luogoNascita');
 
-    if (cittadinanzaSelect && luogoNascitaInput) {
-        const suggestions = document.createElement('div');
-        suggestions.setAttribute('id', 'suggestions');
-        luogoNascitaInput.parentNode.appendChild(suggestions);
+    const countryToJSON = {
+        "Italiana": "italia.json",
+        "Francese": "francia.json",
+        "Tedesca": "germania.json",
+        "Spagnola": "spagna.json",
+        "Statunitense": "usa.json"
+    };
+
+    function setupAutocomplete(cittadinanzaElement, luogoElement) {
+        if (!cittadinanzaElement || !luogoElement) return;
 
         let cityList = [];
+        const suggestions = document.createElement('div');
+        suggestions.classList.add('suggestions-box'); // Usa classe invece di ID per stile condiviso
+        suggestions.style.position = 'absolute';
+        suggestions.style.backgroundColor = '#2c2c2c';
+        suggestions.style.border = '1px solid #444';
+        suggestions.style.width = '100%';
+        suggestions.style.maxHeight = '150px';
+        suggestions.style.overflowY = 'auto';
+        suggestions.style.zIndex = '1000';
 
-        const countryToJSON = {
-            "Italiana": "italia.json",
-            "Francese": "francia.json",
-            "Tedesca": "germania.json",
-            "Spagnola": "spagna.json",
-            "Statunitense": "usa.json"
-        };
+        // Assicurati che il parent sia relative per posizionare suggestions
+        luogoElement.parentNode.style.position = 'relative';
+        luogoElement.parentNode.appendChild(suggestions);
 
         function loadCities(country) {
             const jsonFile = countryToJSON[country];
             if (jsonFile) {
-                luogoNascitaInput.disabled = false;
+                luogoElement.disabled = false;
+                luogoElement.placeholder = 'Inizia a digitare...';
                 fetch(`/json/${jsonFile}`)
                     .then(response => response.json())
                     .then(data => {
@@ -29,18 +39,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     .catch(error => console.error(`Errore nel caricamento di ${jsonFile}:`, error));
             } else {
                 cityList = [];
-                luogoNascitaInput.disabled = true;
-                luogoNascitaInput.value = 'N/A per questa cittadinanza';
+                // Se è "Altro" o non mappato, lascia libero l'input ma senza suggerimenti
+                if (country && country !== 'Seleziona...') {
+                    luogoElement.disabled = false;
+                    luogoElement.placeholder = 'Inserisci manualmente';
+                } else {
+                    luogoElement.disabled = true;
+                    luogoElement.value = '';
+                    luogoElement.placeholder = 'Seleziona prima la cittadinanza';
+                }
             }
         }
 
-        cittadinanzaSelect.addEventListener('change', function() {
+        cittadinanzaElement.addEventListener('change', function() {
             const selectedCountry = this.value;
-            luogoNascitaInput.value = ''; // Pulisce l'input al cambio
+            luogoElement.value = '';
             loadCities(selectedCountry);
         });
 
-        luogoNascitaInput.addEventListener('input', function () {
+        luogoElement.addEventListener('input', function () {
             const value = this.value.toLowerCase();
             suggestions.innerHTML = '';
             if (!value || cityList.length === 0) return;
@@ -53,8 +70,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 const suggestionItem = document.createElement('div');
                 suggestionItem.classList.add('suggestion-item');
                 suggestionItem.textContent = city;
+                suggestionItem.style.padding = '10px';
+                suggestionItem.style.cursor = 'pointer';
+                suggestionItem.style.color = '#fff';
+
+                suggestionItem.addEventListener('mouseover', () => {
+                    suggestionItem.style.backgroundColor = '#c5a059';
+                    suggestionItem.style.color = '#000';
+                });
+                suggestionItem.addEventListener('mouseout', () => {
+                    suggestionItem.style.backgroundColor = 'transparent';
+                    suggestionItem.style.color = '#fff';
+                });
+
                 suggestionItem.addEventListener('click', function () {
-                    luogoNascitaInput.value = this.textContent;
+                    luogoElement.value = this.textContent;
                     suggestions.innerHTML = '';
                 });
                 suggestions.appendChild(suggestionItem);
@@ -62,17 +92,36 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         document.addEventListener('click', function (e) {
-            if (e.target !== luogoNascitaInput) {
+            if (e.target !== luogoElement) {
                 suggestions.innerHTML = '';
             }
         });
 
-        // Carica la lista iniziale se una cittadinanza è già selezionata
-        if (cittadinanzaSelect.value) {
-            loadCities(cittadinanzaSelect.value);
+        // Init
+        if (cittadinanzaElement.value) {
+            loadCities(cittadinanzaElement.value);
         } else {
-            luogoNascitaInput.disabled = true;
-            luogoNascitaInput.placeholder = 'Seleziona prima la cittadinanza';
+            luogoElement.disabled = true;
+        }
+    }
+
+    // 1. Gestione ID (Registrazione / Profilo singolo)
+    const singleCit = document.getElementById('cittadinanza');
+    const singleLuogo = document.getElementById('luogoNascita');
+    if (singleCit && singleLuogo) {
+        setupAutocomplete(singleCit, singleLuogo);
+    }
+
+    // 2. Gestione Classi (Check-in multiplo)
+    // Cerchiamo coppie di elementi con classi specifiche
+    const citInputs = document.querySelectorAll('.input-cittadinanza');
+    const luogoInputs = document.querySelectorAll('.input-luogo');
+
+    // Assumiamo che siano nello stesso ordine o raggruppati
+    // Per sicurezza, iteriamo sui container o usiamo l'indice se la struttura è rigida
+    for (let i = 0; i < citInputs.length; i++) {
+        if (luogoInputs[i]) {
+            setupAutocomplete(citInputs[i], luogoInputs[i]);
         }
     }
 });

@@ -21,7 +21,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/booking")
@@ -136,6 +135,7 @@ public class BookingController {
         prenotazione.setCamera(camera);
         prenotazione.setDataInizio(checkin);
         prenotazione.setDataFine(checkout);
+        prenotazione.setNumeroOspiti(numOspiti); // Salviamo il numero effettivo
         prenotazione.setStato(StatoPrenotazione.CONFERMATA);
         
         float costoServizi = (float) servizi.stream().mapToDouble(Service::getCosto).sum();

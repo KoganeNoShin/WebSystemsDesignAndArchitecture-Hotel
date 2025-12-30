@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-in Online - Comitini Residence</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .checkin-page {
+            padding: 8rem 2rem 4rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .checkin-container {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 2rem;
+            border-radius: 10px;
+            border: 1px solid var(--primary-gold);
+        }
+
+        h1 {
+            color: var(--primary-gold);
+            font-family: 'Playfair Display', serif;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            color: #fff;
+            font-size: 1.2rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #555;
+            padding-bottom: 5px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 600px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
+
+        .form-group label {
+            display: block;
+            color: #aaa;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            background: #1a1a1a;
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 3px;
+        }
+
+        .ospite-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 5px;
+            margin-bottom: 1.5rem;
+            border: 1px dashed #555;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-gold);
+            color: #000;
+            border: none;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-top: 2rem;
+        }
+        .btn-submit:hover {
+            background-color: #e0b86c;
+        }
+
+        /* Stile per suggerimenti autocomplete (se non caricato da JS) */
+        .suggestion-item:hover {
+            background-color: var(--primary-gold);
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/home" class="logo">Comitini Residence</a>
+        <a th:href="@{/cliente/dashboard}" class="btn-login">Dashboard</a>
+    </header>
+
+    <div class="checkin-page">
+        <div class="checkin-container">
+            <h1>Check-in Online</h1>
+            <p style="text-align: center; color: #ccc; margin-bottom: 2rem;">
+                Prenotazione #<span th:text="${prenotazione.id}">123</span> -
+                <span th:text="${prenotazione.camera.sede.nome}">Cortina</span>
+            </p>
+
+            <form th:action="@{/cliente/checkin/confirm}" method="post" onsubmit="return validateAges()">
+                <input type="hidden" name="prenotazioneId" th:value="${prenotazione.id}">
+
+                <!-- CAPOGRUPPO -->
+                <h3 class="section-title">Dati Capogruppo (Tu)</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nome</label>
+                        <input type="text" class="form-control" th:value="${cliente.utente.nome}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Cognome</label>
+                        <input type="text" class="form-control" th:value="${cliente.utente.cognome}" readonly>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Cittadinanza</label>
+                        <!-- Aggiunta classe per autocomplete -->
+                        <select name="cittadinanza" class="form-control input-cittadinanza" required>
+                            <option value="">Seleziona...</option>
+                            <option value="Italiana" th:selected="${cliente.cittadinanza == 'Italiana'}">Italiana</option>
+                            <option value="Francese" th:selected="${cliente.cittadinanza == 'Francese'}">Francese</option>
+                            <option value="Tedesca" th:selected="${cliente.cittadinanza == 'Tedesca'}">Tedesca</option>
+                            <option value="Spagnola" th:selected="${cliente.cittadinanza == 'Spagnola'}">Spagnola</option>
+                            <option value="Statunitense" th:selected="${cliente.cittadinanza == 'Statunitense'}">Statunitense</option>
+                            <option value="Altro" th:selected="${cliente.cittadinanza == 'Altro'}">Altro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Luogo di Nascita</label>
+                        <!-- Aggiunta classe per autocomplete -->
+                        <input type="text" name="luogo" class="form-control input-luogo" th:value="${cliente.luogo}" required autocomplete="off">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Data di Nascita</label>
+                        <input type="date" name="dataNascita" class="form-control date-birth" th:value="${cliente.dataNascita}" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tipo Documento</label>
+                        <select name="tipoDocumento" class="form-control" required>
+                            <option value="">Seleziona...</option>
+                            <option th:each="doc : ${T(com.websystemdesign.model.TipoDocumento).values()}"
+                                    th:value="${doc.descrizione}"
+                                    th:text="${doc.descrizione}"
+                                    th:selected="${doc.descrizione == cliente.tipoDocumento}"></option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Numero Documento</label>
+                        <input type="text" name="numDocumento" class="form-control" th:value="${cliente.numDocumento}" required>
+                    </div>
+                </div>
+
+                <!-- ALTRI OSPITI -->
+                <div th:if="${!ospitiList.empty}">
+                    <h3 class="section-title">Altri Ospiti</h3>
+                    <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 1rem;">Inserisci i dati degli altri occupanti della camera.</p>
+
+                    <div th:each="ospite, iter : ${ospitiList}" class="ospite-card">
+                        <h4 style="color: var(--primary-gold); margin-bottom: 1rem;" th:text="'Ospite ' + ${iter.count}">Ospite 1</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nome</label>
+                                <input type="text" name="ospitiNomi" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Cognome</label>
+                                <input type="text" name="ospitiCognomi" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Cittadinanza</label>
+                                <select name="ospitiCittadinanze" class="form-control input-cittadinanza" required>
+                                    <option value="">Seleziona...</option>
+                                    <option value="Italiana">Italiana</option>
+                                    <option value="Francese">Francese</option>
+                                    <option value="Tedesca">Tedesca</option>
+                                    <option value="Spagnola">Spagnola</option>
+                                    <option value="Statunitense">Statunitense</option>
+                                    <option value="Altro">Altro</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Luogo di Nascita</label>
+                                <input type="text" name="ospitiLuoghi" class="form-control input-luogo" required autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Data di Nascita</label>
+                            <input type="date" name="ospitiDate" class="form-control date-birth" required>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Conferma Check-in</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <nav>
+            <ul class="nav-links">
+                <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
+                <li><a th:href="@{/home/services}">Servizi</a></li>
+                <li><a th:href="@{/home/contact}">Contatti</a></li>
+            </ul>
+        </nav>
+    </footer>
+
+    <script th:src="@{/js/autocomplete.js}"></script>
+    <script>
+        function validateAges() {
+            const dateInputs = document.querySelectorAll('.date-birth');
+            const today = new Date();
+            let valid = true;
+
+            dateInputs.forEach(input => {
+                const birthDate = new Date(input.value);
+                if (birthDate >= today) {
+                    alert("La data di nascita non può essere nel futuro o oggi.");
+                    input.style.borderColor = "#ff4d4d";
+                    valid = false;
+                } else {
+                    // Controllo età massima (es. 120 anni)
+                    const age = today.getFullYear() - birthDate.getFullYear();
+                    if (age > 120) {
+                        alert("Data di nascita non valida (età > 120).");
+                        input.style.borderColor = "#ff4d4d";
+                        valid = false;
+                    } else {
+                        input.style.borderColor = "#555";
+                    }
+                }
+            });
+            return valid;
+        }
+    </script>
+
+</body>
+</html>

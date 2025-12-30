@@ -39,6 +39,9 @@ public class Prenotazione {
     @NonNull
     @Column(nullable = false)
     private float costo;
+    
+    @Column(nullable = false)
+    private int numeroOspiti = 1; // Default 1
 
     @OneToMany(mappedBy = "prenotazione", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
@@ -69,5 +72,5 @@ public class Prenotazione {
     @NonNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StatoPrenotazione stato; // Per gestire Check-in/Check-out
+    private StatoPrenotazione stato;
 }

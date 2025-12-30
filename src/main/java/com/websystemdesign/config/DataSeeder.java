@@ -25,6 +25,7 @@ public class DataSeeder implements CommandLineRunner {
     private final DipendenteRepository dipendenteRepository;
     private final ClienteRepository clienteRepository;
     private final PrenotazioneRepository prenotazioneRepository;
+    private final OspiteRepository ospiteRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataSeeder(SedeRepository sedeRepository,
@@ -35,6 +36,7 @@ public class DataSeeder implements CommandLineRunner {
                       DipendenteRepository dipendenteRepository,
                       ClienteRepository clienteRepository,
                       PrenotazioneRepository prenotazioneRepository,
+                      OspiteRepository ospiteRepository,
                       PasswordEncoder passwordEncoder) {
         this.sedeRepository = sedeRepository;
         this.cameraRepository = cameraRepository;
@@ -44,6 +46,7 @@ public class DataSeeder implements CommandLineRunner {
         this.dipendenteRepository = dipendenteRepository;
         this.clienteRepository = clienteRepository;
         this.prenotazioneRepository = prenotazioneRepository;
+        this.ospiteRepository = ospiteRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -53,6 +56,7 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("Inizio Data Seeding...");
         
         // Pulizia relazioni
+        ospiteRepository.deleteAll(); // Importante: cancellare prima gli ospiti
         prenotazioneRepository.deleteAll();
         clienteRepository.deleteAll();
         dipendenteRepository.deleteAll();
@@ -108,41 +112,41 @@ public class DataSeeder implements CommandLineRunner {
             Utente marioUser = utenteRepository.findByUsername("mario").orElseThrow();
             Cliente mario = clienteRepository.findByUtenteId(marioUser.getId()).orElseThrow();
             
-            createPrenotazioneTest(mario, camereCortina.get(0), LocalDate.now().plusDays(2), LocalDate.now().plusDays(5));
-            createPrenotazioneTest(mario, camereCortina.get(1), LocalDate.now().plusDays(10), LocalDate.now().plusDays(15));
+            createPrenotazioneTest(mario, camereCortina.get(0), LocalDate.now().plusDays(2), LocalDate.now().plusDays(5), StatoPrenotazione.CONFERMATA);
+            createPrenotazioneTest(mario, camereCortina.get(1), LocalDate.now().plusDays(10), LocalDate.now().plusDays(15), StatoPrenotazione.CONFERMATA);
 
             // 7. Utente Diego (Richiesto)
             if (utenteRepository.findByUsername("Diego").isEmpty()) {
-                Utente diegoUser = new Utente("Diego", passwordEncoder.encode("password"), "Diego", "Bianchi");
+                Utente diegoUser = new Utente("Diego", passwordEncoder.encode("password"), "Diego", "Corona");
                 utenteRepository.save(diegoUser);
 
                 Cliente diego = new Cliente("Italiana", "Roma", "1995-05-05", "Patente", "RM987654", diegoUser);
                 clienteRepository.save(diego);
                 
-                // 4 Prenotazioni Passate
-                createPrenotazioneTest(diego, camereRoma.get(0), LocalDate.now().minusDays(30), LocalDate.now().minusDays(25));
-                createPrenotazioneTest(diego, camereCortina.get(3), LocalDate.now().minusDays(60), LocalDate.now().minusDays(55));
-                createPrenotazioneTest(diego, camereRoma.get(2), LocalDate.now().minusDays(100), LocalDate.now().minusDays(95));
-                createPrenotazioneTest(diego, camereCortina.get(4), LocalDate.now().minusDays(150), LocalDate.now().minusDays(145));
+                // 4 Prenotazioni Passate (CHECKED_OUT)
+                createPrenotazioneTest(diego, camereRoma.get(0), LocalDate.now().minusDays(30), LocalDate.now().minusDays(25), StatoPrenotazione.CHECKED_OUT);
+                createPrenotazioneTest(diego, camereCortina.get(3), LocalDate.now().minusDays(60), LocalDate.now().minusDays(55), StatoPrenotazione.CHECKED_OUT);
+                createPrenotazioneTest(diego, camereRoma.get(2), LocalDate.now().minusDays(100), LocalDate.now().minusDays(95), StatoPrenotazione.CHECKED_OUT);
+                createPrenotazioneTest(diego, camereCortina.get(4), LocalDate.now().minusDays(150), LocalDate.now().minusDays(145), StatoPrenotazione.CHECKED_OUT);
                 
                 // 1 Prenotazione Futura
-                createPrenotazioneTest(diego, camereCortina.get(2), LocalDate.now().plusDays(20), LocalDate.now().plusDays(25));
+                createPrenotazioneTest(diego, camereCortina.get(2), LocalDate.now().plusDays(20), LocalDate.now().plusDays(25), StatoPrenotazione.CONFERMATA);
             }
 
             // 8. Utente Simone (Richiesto)
             if (utenteRepository.findByUsername("Simone").isEmpty()) {
-                Utente simoneUser = new Utente("Simone", passwordEncoder.encode("password"), "Simone", "Verdi");
+                Utente simoneUser = new Utente("Simone", passwordEncoder.encode("password"), "Simone", "Comitini");
                 utenteRepository.save(simoneUser);
 
                 Cliente simone = new Cliente("Italiana", "Milano", "1992-02-02", "Carta d'Identità", "MI123456", simoneUser);
                 clienteRepository.save(simone);
                 
                 // Stesse prenotazioni di Diego
-                createPrenotazioneTest(simone, camereRoma.get(0), LocalDate.now().minusDays(30), LocalDate.now().minusDays(25));
-                createPrenotazioneTest(simone, camereCortina.get(3), LocalDate.now().minusDays(60), LocalDate.now().minusDays(55));
-                createPrenotazioneTest(simone, camereRoma.get(2), LocalDate.now().minusDays(100), LocalDate.now().minusDays(95));
-                createPrenotazioneTest(simone, camereCortina.get(4), LocalDate.now().minusDays(150), LocalDate.now().minusDays(145));
-                createPrenotazioneTest(simone, camereCortina.get(2), LocalDate.now().plusDays(20), LocalDate.now().plusDays(25));
+                createPrenotazioneTest(simone, camereRoma.get(0), LocalDate.now().minusDays(30), LocalDate.now().minusDays(25), StatoPrenotazione.CHECKED_OUT);
+                createPrenotazioneTest(simone, camereCortina.get(3), LocalDate.now().minusDays(60), LocalDate.now().minusDays(55), StatoPrenotazione.CHECKED_OUT);
+                createPrenotazioneTest(simone, camereRoma.get(2), LocalDate.now().minusDays(100), LocalDate.now().minusDays(95), StatoPrenotazione.CHECKED_OUT);
+                createPrenotazioneTest(simone, camereCortina.get(4), LocalDate.now().minusDays(150), LocalDate.now().minusDays(145), StatoPrenotazione.CHECKED_OUT);
+                createPrenotazioneTest(simone, camereCortina.get(2), LocalDate.now().plusDays(20), LocalDate.now().plusDays(25), StatoPrenotazione.CONFERMATA);
             }
 
             System.out.println("Data Seeding completato con successo!");
@@ -197,15 +201,32 @@ public class DataSeeder implements CommandLineRunner {
         return cameraRepository.saveAll(camere);
     }
     
-    private void createPrenotazioneTest(Cliente cliente, Camera camera, LocalDate start, LocalDate end) {
+    private void createPrenotazioneTest(Cliente cliente, Camera camera, LocalDate start, LocalDate end, StatoPrenotazione stato) {
         Prenotazione p = new Prenotazione();
         p.setCliente(cliente);
         p.setCamera(camera);
         p.setDataInizio(start);
         p.setDataFine(end);
         p.setCosto(camera.getPrezzoBase() * (end.toEpochDay() - start.toEpochDay()));
-        p.setStato(StatoPrenotazione.CONFERMATA);
-        prenotazioneRepository.save(p);
+        p.setStato(stato);
+        p.setNumeroOspiti(1); // Default 1 ospite
+        Prenotazione saved = prenotazioneRepository.save(p);
+        
+        // Se la prenotazione è passata (CHECKED_OUT), creiamo l'ospite capogruppo
+        if (stato == StatoPrenotazione.CHECKED_OUT || stato == StatoPrenotazione.CHECKED_IN) {
+            Ospite ospite = new Ospite();
+            ospite.setPrenotazione(saved);
+            ospite.setNome(cliente.getUtente().getNome());
+            ospite.setCognome(cliente.getUtente().getCognome());
+            ospite.setCittadinanza(cliente.getCittadinanza());
+            ospite.setLuogo(cliente.getLuogo());
+            if (cliente.getDataNascita() != null) {
+                ospite.setDataNascita(LocalDate.parse(cliente.getDataNascita()));
+            } else {
+                ospite.setDataNascita(LocalDate.of(1990, 1, 1)); // Fallback
+            }
+            ospiteRepository.save(ospite);
+        }
     }
 
     private void seedUsers(Sede sedeDiLavoro) {

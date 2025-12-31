@@ -1,18 +1,22 @@
 package com.websystemdesign.config;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.websystemdesign.model.*;
 import com.websystemdesign.repository.*;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
@@ -27,6 +31,7 @@ public class DataSeeder implements CommandLineRunner {
     private final PrenotazioneRepository prenotazioneRepository;
     private final OspiteRepository ospiteRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ObjectMapper objectMapper; // Per leggere il JSON
 
     public DataSeeder(SedeRepository sedeRepository,
                       CameraRepository cameraRepository,
@@ -37,7 +42,8 @@ public class DataSeeder implements CommandLineRunner {
                       ClienteRepository clienteRepository,
                       PrenotazioneRepository prenotazioneRepository,
                       OspiteRepository ospiteRepository,
-                      PasswordEncoder passwordEncoder) {
+                      PasswordEncoder passwordEncoder,
+                      ObjectMapper objectMapper) {
         this.sedeRepository = sedeRepository;
         this.cameraRepository = cameraRepository;
         this.serviceRepository = serviceRepository;
@@ -48,6 +54,7 @@ public class DataSeeder implements CommandLineRunner {
         this.prenotazioneRepository = prenotazioneRepository;
         this.ospiteRepository = ospiteRepository;
         this.passwordEncoder = passwordEncoder;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -56,7 +63,7 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("Inizio Data Seeding...");
         
         // Pulizia relazioni
-        ospiteRepository.deleteAll(); // Importante: cancellare prima gli ospiti
+        ospiteRepository.deleteAll();
         prenotazioneRepository.deleteAll();
         clienteRepository.deleteAll();
         dipendenteRepository.deleteAll();
@@ -101,9 +108,8 @@ public class DataSeeder implements CommandLineRunner {
             List<Camera> camereCortina = createCamereForSede(sedeCortina);
             List<Camera> camereRoma = createCamereForSede(sedeRoma);
 
-            // 4. Multimedia
-            createMultimediaIfNotFound("Film Prima Visione", 5.0f);
-            createMultimediaIfNotFound("Playlist Relax", 2.0f);
+            // 4. Multimedia (Caricamento da JSON)
+            loadMultimediaFromJson();
 
             // 5. Utenti
             seedUsers(sedeCortina);
@@ -129,8 +135,34 @@ public class DataSeeder implements CommandLineRunner {
                 createPrenotazioneTest(diego, camereRoma.get(2), LocalDate.now().minusDays(100), LocalDate.now().minusDays(95), StatoPrenotazione.CHECKED_OUT);
                 createPrenotazioneTest(diego, camereCortina.get(4), LocalDate.now().minusDays(150), LocalDate.now().minusDays(145), StatoPrenotazione.CHECKED_OUT);
                 
-                // 1 Prenotazione Futura
-                createPrenotazioneTest(diego, camereCortina.get(2), LocalDate.now().plusDays(20), LocalDate.now().plusDays(25), StatoPrenotazione.CONFERMATA);
+                // 1 Prenotazione ATTIVA (CHECKED_IN) - Soggiorno in corso
+                Camera cameraAttivaDiego = camereCortina.get(2);
+                cameraAttivaDiego.setStatus(StatoCamera.OCCUPATA);
+                cameraRepository.save(cameraAttivaDiego);
+                
+                Prenotazione pAttiva = createPrenotazioneTest(diego, cameraAttivaDiego, LocalDate.now().minusDays(2), LocalDate.now().plusDays(5), StatoPrenotazione.CHECKED_IN);
+                
+                // Aggiungiamo Giulia Greco
+                Ospite giulia = new Ospite();
+                giulia.setPrenotazione(pAttiva);
+                giulia.setNome("Giulia");
+                giulia.setCognome("Greco");
+                giulia.setCittadinanza("Italiana");
+                giulia.setLuogo("Napoli");
+                giulia.setDataNascita(LocalDate.of(1996, 6, 6));
+                ospiteRepository.save(giulia);
+                
+                pAttiva.setNumeroOspiti(2);
+                
+                // Aggiungiamo un film acquistato a Diego per test
+                List<Multimedia> films = multimediaRepository.findAll();
+                if (!films.isEmpty()) {
+                    pAttiva.setMultimedia(new HashSet<>());
+                    pAttiva.getMultimedia().add(films.get(0)); // Aggiunge il primo film
+                    pAttiva.setCosto(pAttiva.getCosto() + films.get(0).getCosto()); // Aggiorna costo
+                }
+                
+                prenotazioneRepository.save(pAttiva);
             }
 
             // 8. Utente Simone (Richiesto)
@@ -141,7 +173,6 @@ public class DataSeeder implements CommandLineRunner {
                 Cliente simone = new Cliente("Italiana", "Milano", "1992-02-02", "Carta d'Identità", "MI123456", simoneUser);
                 clienteRepository.save(simone);
                 
-                // Stesse prenotazioni di Diego
                 createPrenotazioneTest(simone, camereRoma.get(0), LocalDate.now().minusDays(30), LocalDate.now().minusDays(25), StatoPrenotazione.CHECKED_OUT);
                 createPrenotazioneTest(simone, camereCortina.get(3), LocalDate.now().minusDays(60), LocalDate.now().minusDays(55), StatoPrenotazione.CHECKED_OUT);
                 createPrenotazioneTest(simone, camereRoma.get(2), LocalDate.now().minusDays(100), LocalDate.now().minusDays(95), StatoPrenotazione.CHECKED_OUT);
@@ -152,6 +183,42 @@ public class DataSeeder implements CommandLineRunner {
             System.out.println("Data Seeding completato con successo!");
         } else {
             System.out.println("Database già popolato. Seeding saltato.");
+        }
+    }
+
+    private void loadMultimediaFromJson() {
+        try {
+            File jsonFile = new ClassPathResource("static/json/catalogo_film.json").getFile();
+            List<Map<String, Object>> films = objectMapper.readValue(jsonFile, new TypeReference<>() {});
+            
+            for (Map<String, Object> filmData : films) {
+                String titolo = (String) filmData.get("titolo");
+                Object prezzoObj = filmData.get("prezzo");
+                float prezzo = 0.0f;
+                if (prezzoObj instanceof Double) {
+                    prezzo = ((Double) prezzoObj).floatValue();
+                } else if (prezzoObj instanceof Integer) {
+                    prezzo = ((Integer) prezzoObj).floatValue();
+                }
+                
+                Multimedia m = new Multimedia(titolo, prezzo);
+                m.setImmagine((String) filmData.get("poster_url"));
+                m.setDescrizione((String) filmData.get("descrizione"));
+                
+                Object votoObj = filmData.get("voto");
+                if (votoObj instanceof Double) {
+                    m.setVoto((Double) votoObj);
+                } else if (votoObj instanceof Integer) {
+                    m.setVoto(((Integer) votoObj).doubleValue());
+                }
+
+                multimediaRepository.save(m);
+            }
+            System.out.println("Caricati " + films.size() + " film dal JSON.");
+        } catch (IOException e) {
+            System.err.println("Errore nel caricamento del catalogo film: " + e.getMessage());
+            createMultimediaIfNotFound("Film Prima Visione", 5.0f);
+            createMultimediaIfNotFound("Playlist Relax", 2.0f);
         }
     }
 
@@ -201,7 +268,7 @@ public class DataSeeder implements CommandLineRunner {
         return cameraRepository.saveAll(camere);
     }
     
-    private void createPrenotazioneTest(Cliente cliente, Camera camera, LocalDate start, LocalDate end, StatoPrenotazione stato) {
+    private Prenotazione createPrenotazioneTest(Cliente cliente, Camera camera, LocalDate start, LocalDate end, StatoPrenotazione stato) {
         Prenotazione p = new Prenotazione();
         p.setCliente(cliente);
         p.setCamera(camera);
@@ -209,10 +276,9 @@ public class DataSeeder implements CommandLineRunner {
         p.setDataFine(end);
         p.setCosto(camera.getPrezzoBase() * (end.toEpochDay() - start.toEpochDay()));
         p.setStato(stato);
-        p.setNumeroOspiti(1); // Default 1 ospite
+        p.setNumeroOspiti(1);
         Prenotazione saved = prenotazioneRepository.save(p);
         
-        // Se la prenotazione è passata (CHECKED_OUT), creiamo l'ospite capogruppo
         if (stato == StatoPrenotazione.CHECKED_OUT || stato == StatoPrenotazione.CHECKED_IN) {
             Ospite ospite = new Ospite();
             ospite.setPrenotazione(saved);
@@ -223,10 +289,11 @@ public class DataSeeder implements CommandLineRunner {
             if (cliente.getDataNascita() != null) {
                 ospite.setDataNascita(LocalDate.parse(cliente.getDataNascita()));
             } else {
-                ospite.setDataNascita(LocalDate.of(1990, 1, 1)); // Fallback
+                ospite.setDataNascita(LocalDate.of(1990, 1, 1));
             }
             ospiteRepository.save(ospite);
         }
+        return saved;
     }
 
     private void seedUsers(Sede sedeDiLavoro) {

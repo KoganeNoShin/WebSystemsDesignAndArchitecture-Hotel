@@ -1,14 +1,7 @@
 package com.websystemdesign.controller.web;
 
-import com.websystemdesign.model.Cliente;
-import com.websystemdesign.model.Ospite;
-import com.websystemdesign.model.Prenotazione;
-import com.websystemdesign.model.StatoPrenotazione;
-import com.websystemdesign.model.Utente;
-import com.websystemdesign.repository.ClienteRepository;
-import com.websystemdesign.repository.OspiteRepository;
-import com.websystemdesign.repository.PrenotazioneRepository;
-import com.websystemdesign.repository.UtenteRepository;
+import com.websystemdesign.model.*;
+import com.websystemdesign.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,13 +23,15 @@ public class CheckInController {
     private final UtenteRepository utenteRepository;
     private final ClienteRepository clienteRepository;
     private final OspiteRepository ospiteRepository;
+    private final CameraRepository cameraRepository;
 
     @Autowired
-    public CheckInController(PrenotazioneRepository prenotazioneRepository, UtenteRepository utenteRepository, ClienteRepository clienteRepository, OspiteRepository ospiteRepository) {
+    public CheckInController(PrenotazioneRepository prenotazioneRepository, UtenteRepository utenteRepository, ClienteRepository clienteRepository, OspiteRepository ospiteRepository, CameraRepository cameraRepository) {
         this.prenotazioneRepository = prenotazioneRepository;
         this.utenteRepository = utenteRepository;
         this.clienteRepository = clienteRepository;
         this.ospiteRepository = ospiteRepository;
+        this.cameraRepository = cameraRepository;
     }
 
     @GetMapping("/{id}")
@@ -62,7 +57,6 @@ public class CheckInController {
              return "redirect:/cliente/dashboard";
         }
 
-        // Calcolo ospiti extra basato sul numero di ospiti della prenotazione
         int numOspitiExtra = prenotazione.getNumeroOspiti() - 1;
         if (numOspitiExtra < 0) numOspitiExtra = 0;
 
@@ -80,7 +74,7 @@ public class CheckInController {
 
     @PostMapping("/confirm")
     public String processCheckIn(@RequestParam Long prenotazioneId,
-                                 @ModelAttribute("cliente") Cliente clienteForm, // Dati aggiornati del capogruppo
+                                 @ModelAttribute("cliente") Cliente clienteForm,
                                  @RequestParam(value = "ospitiNomi", required = false) List<String> nomi,
                                  @RequestParam(value = "ospitiCognomi", required = false) List<String> cognomi,
                                  @RequestParam(value = "ospitiCittadinanze", required = false) List<String> cittadinanze,
@@ -100,7 +94,7 @@ public class CheckInController {
         clienteDb.setNumDocumento(clienteForm.getNumDocumento());
         clienteRepository.save(clienteDb);
 
-        // 2. Salva Capogruppo come Ospite (per storicizzazione)
+        // 2. Salva Capogruppo come Ospite
         Ospite capogruppoOspite = new Ospite();
         capogruppoOspite.setPrenotazione(prenotazione);
         capogruppoOspite.setNome(clienteDb.getUtente().getNome());
@@ -131,6 +125,11 @@ public class CheckInController {
         // 4. Aggiorna stato Prenotazione
         prenotazione.setStato(StatoPrenotazione.CHECKED_IN);
         prenotazioneRepository.save(prenotazione);
+        
+        // 5. Aggiorna stato Camera
+        Camera camera = prenotazione.getCamera();
+        camera.setStatus(StatoCamera.OCCUPATA);
+        cameraRepository.save(camera);
 
         redirectAttributes.addFlashAttribute("successMessage", "Check-in online completato con successo! Benvenuto.");
         return "redirect:/cliente/dashboard";

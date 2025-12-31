@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multimedia - Comitini Residence</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/cliente/multimedia.css}">
+</head>
+<body>
+
+    <header>
+        <a href="/home" class="logo">Comitini Residence</a>
+        <a th:href="@{/cliente/dashboard}" class="btn-login">Dashboard</a>
+    </header>
+
+    <div class="multimedia-page">
+        <h1>Intrattenimento in Camera</h1>
+
+        <!-- Messaggi -->
+        <div th:if="${successMessage}" style="background-color: rgba(77, 255, 77, 0.2); color: #4dff4d; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; text-align: center;" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" style="background-color: rgba(255, 77, 77, 0.2); color: #ff4d4d; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; text-align: center;" th:text="${errorMessage}"></div>
+
+        <!-- I Miei Contenuti -->
+        <h2 class="section-title">I Miei Contenuti</h2>
+        <div class="media-grid" th:if="${!acquistati.empty}">
+            <div th:each="m : ${acquistati}" class="media-card">
+                <div class="media-poster" th:style="'background-image: url(' + @{${m.immagine}} + ');'"></div>
+                <div class="media-info">
+                    <h3 class="media-title" th:text="${m.nome}">Titolo</h3>
+                    <button class="btn-watch">Guarda Ora</button>
+                </div>
+            </div>
+        </div>
+        <div th:if="${acquistati.empty}" class="empty-msg">
+            Non hai ancora acquistato contenuti. Scegli dal catalogo qui sotto.
+        </div>
+
+        <!-- Catalogo -->
+        <h2 class="section-title">Catalogo Film</h2>
+        <div class="media-grid">
+            <div th:each="m : ${catalogo}" class="media-card">
+                <div class="media-poster" th:style="'background-image: url(' + @{${m.immagine}} + ');'"></div>
+                <div class="media-info">
+                    <h3 class="media-title" th:text="${m.nome}">Titolo</h3>
+                    <span class="media-price" th:text="'€ ' + ${m.costo}">€ 5.00</span>
+
+                    <form th:action="@{/cliente/multimedia/buy}" method="post">
+                        <input type="hidden" name="multimediaId" th:value="${m.id}">
+                        <input type="hidden" name="prenotazioneId" th:value="${prenotazione.id}">
+                        <button type="submit" class="btn-buy">Acquista</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <nav>
+            <ul class="nav-links">
+                <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
+                <li><a th:href="@{/home/services}">Servizi</a></li>
+                <li><a th:href="@{/home/contact}">Contatti</a></li>
+            </ul>
+        </nav>
+    </footer>
+
+</body>
+</html>

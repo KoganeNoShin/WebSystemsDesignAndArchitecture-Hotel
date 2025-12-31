@@ -143,9 +143,10 @@
                     <h3 th:text="'Camera ' + ${prenotazioneAttiva.camera.numero}">201</h3>
                     <p class="booking-info" th:text="${prenotazioneAttiva.camera.sede.nome}">Alpine Palace Cortina</p>
                     <p class="booking-info" th:text="'Dal ' + ${prenotazioneAttiva.dataInizio} + ' al ' + ${prenotazioneAttiva.dataFine}">Date</p>
-                    <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem;" onclick="event.stopPropagation()">
+                    <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;" onclick="event.stopPropagation()">
                         <a href="#" class="btn-action">🏠 Domotica</a>
-                        <a href="#" class="btn-action">🍽️ Servizi</a>
+                        <a th:href="@{/cliente/multimedia}" class="btn-action">🎬 Multimedia</a>
+                        <a href="#" class="btn-action">📝 Note</a>
                     </div>
                 </div>
                 <div th:if="${prenotazioneAttiva == null}" class="empty-msg">

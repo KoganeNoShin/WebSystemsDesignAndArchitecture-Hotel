@@ -21,12 +21,18 @@ public class Multimedia {
     @Column(nullable = false)
     private String nome;
 
-    @Lob
-    private byte[] immagine;
-
     @NonNull
     @Column(nullable = false)
     private float costo;
+    
+    @Column
+    private String immagine; // URL del poster
+
+    @Column(length = 1000) // Descrizione più lunga
+    private String descrizione;
+    
+    @Column
+    private double voto;
 
     @ManyToMany(mappedBy = "multimedia")
     @ToString.Exclude

@@ -143,16 +143,18 @@ body {
 
 /* Card Attiva (Evidenziata) */
 .active-stay-card {
-    background-color: rgba(197, 160, 89, 0.15);
-    border: 2px solid var(--primary-gold);
+    background-color: rgba(0, 0, 0, 0.8); /* Sfondo scuro */
+    border: 2px solid var(--primary-gold); /* Bordo oro più spesso */
     padding: 2rem;
     border-radius: 10px;
     text-align: center;
+    box-shadow: 0 0 20px rgba(197, 160, 89, 0.2); /* Glow dorato */
 }
 
 .active-stay-card h3 {
     font-size: 2rem;
     margin-bottom: 1rem;
+    color: var(--primary-gold);
 }
 
 .status-badge {

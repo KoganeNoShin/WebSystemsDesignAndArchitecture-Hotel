@@ -25,10 +25,12 @@
         <h2 class="section-title">I Miei Contenuti</h2>
         <div class="media-grid" th:if="${!acquistati.empty}">
             <div th:each="m : ${acquistati}" class="media-card">
-                <div class="media-poster" th:style="'background-image: url(' + @{${m.immagine}} + ');'"></div>
+                <div class="media-poster" th:style="'background-image: url(' + @{${m.immagine}} + ');'">
+                    <span class="media-rating">★ <span th:text="${m.voto}">8.5</span></span>
+                </div>
                 <div class="media-info">
                     <h3 class="media-title" th:text="${m.nome}">Titolo</h3>
-                    <button class="btn-watch">Guarda Ora</button>
+                    <button class="btn-owned" disabled>Già Acquistato</button>
                 </div>
             </div>
         </div>
@@ -37,13 +39,34 @@
         </div>
 
         <!-- Catalogo -->
-        <h2 class="section-title">Catalogo Film</h2>
-        <div class="media-grid">
-            <div th:each="m : ${catalogo}" class="media-card">
-                <div class="media-poster" th:style="'background-image: url(' + @{${m.immagine}} + ');'"></div>
+        <div class="catalog-header">
+            <h2 class="section-title" style="margin: 0; border: none;">Catalogo Film</h2>
+
+            <div class="filters-bar">
+                <input type="text" id="searchMedia" placeholder="Cerca film..." onkeyup="filterMedia()">
+                <select id="sortMedia" onchange="sortMedia()">
+                    <option value="default">Ordina per...</option>
+                    <option value="priceAsc">Prezzo: Basso -> Alto</option>
+                    <option value="priceDesc">Prezzo: Alto -> Basso</option>
+                    <option value="voteDesc">Voto: Alto -> Basso</option>
+                    <option value="titleAsc">Titolo: A -> Z</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="media-grid" id="catalogGrid">
+            <div th:each="m : ${catalogo}" class="media-card"
+                 th:data-title="${m.nome.toLowerCase()}"
+                 th:data-price="${m.costo}"
+                 th:data-vote="${m.voto}">
+
+                <div class="media-poster" th:style="'background-image: url(' + @{${m.immagine}} + ');'">
+                    <span class="media-rating">★ <span th:text="${m.voto}">8.5</span></span>
+                </div>
                 <div class="media-info">
                     <h3 class="media-title" th:text="${m.nome}">Titolo</h3>
-                    <span class="media-price" th:text="'€ ' + ${m.costo}">€ 5.00</span>
+                    <!-- Formattazione Prezzo -->
+                    <span class="media-price" th:text="'€ ' + ${#numbers.formatDecimal(m.costo, 1, 2)}">€ 5.00</span>
 
                     <form th:action="@{/cliente/multimedia/buy}" method="post">
                         <input type="hidden" name="multimediaId" th:value="${m.id}">
@@ -64,6 +87,45 @@
             </ul>
         </nav>
     </footer>
+
+    <script>
+        function filterMedia() {
+            const search = document.getElementById('searchMedia').value.toLowerCase();
+            const cards = document.querySelectorAll('#catalogGrid .media-card');
+
+            cards.forEach(card => {
+                const title = card.getAttribute('data-title');
+                if (title.includes(search)) {
+                    card.style.display = 'flex'; // Flex per mantenere il layout della card
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function sortMedia() {
+            const criteria = document.getElementById('sortMedia').value;
+            const grid = document.getElementById('catalogGrid');
+            const cards = Array.from(grid.children);
+
+            cards.sort((a, b) => {
+                const priceA = parseFloat(a.getAttribute('data-price'));
+                const priceB = parseFloat(b.getAttribute('data-price'));
+                const voteA = parseFloat(a.getAttribute('data-vote'));
+                const voteB = parseFloat(b.getAttribute('data-vote'));
+                const titleA = a.getAttribute('data-title');
+                const titleB = b.getAttribute('data-title');
+
+                if (criteria === 'priceAsc') return priceA - priceB;
+                if (criteria === 'priceDesc') return priceB - priceA;
+                if (criteria === 'voteDesc') return voteB - voteA;
+                if (criteria === 'titleAsc') return titleA.localeCompare(titleB);
+                return 0;
+            });
+
+            cards.forEach(card => grid.appendChild(card));
+        }
+    </script>
 
 </body>
 </html>

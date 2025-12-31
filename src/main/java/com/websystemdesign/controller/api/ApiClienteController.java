@@ -2,7 +2,9 @@ package com.websystemdesign.controller.api;
 
 import com.websystemdesign.dto.BookingDetailDto;
 import com.websystemdesign.model.Cliente;
+import com.websystemdesign.model.Multimedia;
 import com.websystemdesign.model.Prenotazione;
+import com.websystemdesign.model.Service;
 import com.websystemdesign.model.Utente;
 import com.websystemdesign.repository.ClienteRepository;
 import com.websystemdesign.repository.PrenotazioneRepository;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.temporal.ChronoUnit;
 import java.util.stream.Collectors;
 
 @RestController
@@ -41,7 +44,6 @@ public class ApiClienteController {
         Prenotazione p = prenotazioneRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Prenotazione non trovata"));
 
-        // Sicurezza: verifica che la prenotazione appartenga al cliente loggato
         if (!p.getCliente().getId().equals(cliente.getId())) {
             throw new SecurityException("Accesso negato alla prenotazione");
         }
@@ -57,7 +59,33 @@ public class ApiClienteController {
         
         dto.setCheckin(p.getDataInizio());
         dto.setCheckout(p.getDataFine());
-        dto.setCostoTotale(p.getCosto());
+        
+        // Calcolo Costi
+        float costoServizi = 0.0f;
+        if (p.getServices() != null) {
+            costoServizi = (float) p.getServices().stream().mapToDouble(Service::getCosto).sum();
+        }
+        
+        float costoMultimedia = 0.0f;
+        if (p.getMultimedia() != null) {
+            costoMultimedia = (float) p.getMultimedia().stream().mapToDouble(Multimedia::getCosto).sum();
+        }
+        
+        // Ricalcoliamo il costo base della camera per sicurezza (o sottraiamo dal totale se ci fidiamo del totale)
+        // Meglio ricalcolare: PrezzoBase * Notti
+        long nights = ChronoUnit.DAYS.between(p.getDataInizio(), p.getDataFine());
+        if (nights < 1) nights = 1;
+        float costoCamera = p.getCamera().getPrezzoBase() * nights;
+        
+        // Il totale salvato nel DB dovrebbe essere la somma di tutto.
+        // Se il DB è disallineato, usiamo la somma calcolata ora o quella del DB?
+        // Usiamo quella del DB come "Totale Dovuto", ma mostriamo i dettagli calcolati.
+        // Se c'è discrepanza, potrebbe essere un problema, ma per ora mostriamo i dettagli.
+        
+        dto.setCostoCamera(costoCamera);
+        dto.setCostoServizi(costoServizi);
+        dto.setCostoMultimedia(costoMultimedia);
+        dto.setCostoTotale(p.getCosto()); // Totale dal DB
         
         dto.setServizi(p.getServices().stream()
                 .map(s -> s.getNome() + " (€ " + s.getCosto() + ")")

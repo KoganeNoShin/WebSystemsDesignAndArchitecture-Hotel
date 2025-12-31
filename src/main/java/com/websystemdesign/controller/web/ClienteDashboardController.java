@@ -1,9 +1,6 @@
 package com.websystemdesign.controller.web;
 
-import com.websystemdesign.model.Cliente;
-import com.websystemdesign.model.Prenotazione;
-import com.websystemdesign.model.StatoPrenotazione;
-import com.websystemdesign.model.Utente;
+import com.websystemdesign.model.*;
 import com.websystemdesign.repository.ClienteRepository;
 import com.websystemdesign.repository.PrenotazioneRepository;
 import com.websystemdesign.repository.UtenteRepository;
@@ -57,16 +54,27 @@ public class ClienteDashboardController {
         List<Prenotazione> tutteLePrenotazioni = prenotazioneRepository.findByClienteId(cliente.getId());
         LocalDate oggi = LocalDate.now();
 
-        // Filtra prenotazioni non cancellate
         List<Prenotazione> prenotazioniValide = tutteLePrenotazioni.stream()
                 .filter(p -> p.getStato() != StatoPrenotazione.CANCELLATA)
                 .collect(Collectors.toList());
 
-        // Prenotazione Attiva (una sola)
+        // Prenotazione Attiva
         Optional<Prenotazione> attivaOpt = prenotazioniValide.stream()
                 .filter(p -> !p.getDataInizio().isAfter(oggi) && !p.getDataFine().isBefore(oggi))
                 .findFirst();
-        attivaOpt.ifPresent(p -> model.addAttribute("prenotazioneAttiva", p));
+        
+        if (attivaOpt.isPresent()) {
+            Prenotazione attiva = attivaOpt.get();
+            model.addAttribute("prenotazioneAttiva", attiva);
+            
+            // Calcolo costi extra (Multimedia)
+            double costoMultimedia = 0.0;
+            if (attiva.getMultimedia() != null) {
+                costoMultimedia = attiva.getMultimedia().stream().mapToDouble(Multimedia::getCosto).sum();
+            }
+            model.addAttribute("costoMultimedia", costoMultimedia);
+            model.addAttribute("costoTotaleAttuale", attiva.getCosto()); // Include già multimedia se aggiornato
+        }
 
         // Prenotazioni Future
         List<Prenotazione> future = prenotazioniValide.stream()
@@ -74,14 +82,12 @@ public class ClienteDashboardController {
                 .collect(Collectors.toList());
         model.addAttribute("prenotazioniFuture", future);
 
-        // Prenotazioni Passate (includiamo anche le cancellate nello storico se vogliamo, o solo quelle completate)
-        // Per ora mostriamo quelle finite (data fine < oggi)
+        // Prenotazioni Passate
         List<Prenotazione> passate = tutteLePrenotazioni.stream()
                 .filter(p -> p.getDataFine().isBefore(oggi))
                 .collect(Collectors.toList());
         model.addAttribute("prenotazioniPassate", passate);
         
-        // Flag per limitare nuove prenotazioni
         boolean hasFutureBooking = !future.isEmpty();
         model.addAttribute("hasFutureBooking", hasFutureBooking);
 
@@ -97,12 +103,10 @@ public class ClienteDashboardController {
         Prenotazione prenotazione = prenotazioneRepository.findById(prenotazioneId)
                 .orElseThrow(() -> new IllegalArgumentException("Prenotazione non trovata"));
 
-        // Verifica che la prenotazione appartenga al cliente
         if (!prenotazione.getCliente().getId().equals(cliente.getId())) {
             throw new SecurityException("Non puoi cancellare una prenotazione non tua.");
         }
 
-        // Verifica che lo stato permetta la cancellazione (es. non già iniziata o passata)
         if (prenotazione.getDataInizio().isBefore(LocalDate.now()) || prenotazione.getDataInizio().isEqual(LocalDate.now())) {
             redirectAttributes.addFlashAttribute("errorMessage", "Non puoi cancellare una prenotazione già iniziata o passata.");
             return "redirect:/cliente/dashboard";

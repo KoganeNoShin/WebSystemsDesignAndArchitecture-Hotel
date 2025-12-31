@@ -2,8 +2,9 @@
 
 .multimedia-page {
     padding: 8rem 2rem 4rem;
-    max-width: 1400px;
-    margin: 0 auto;
+    max-width: 1600px;
+    margin: 0 0; /* Correzione richiesta */
+    width: 100%; /* Assicura larghezza piena */
 }
 
 h1 {
@@ -23,10 +24,63 @@ h1 {
     margin-top: 3rem;
 }
 
+/* Header Catalogo con Filtri */
+.catalog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-top: 3rem;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    border: 1px solid #444;
+}
+
+.filters-bar {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+#searchMedia {
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid #555;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 20px;
+    width: 250px;
+    transition: all 0.3s;
+}
+#searchMedia:focus {
+    border-color: var(--primary-gold);
+    outline: none;
+    width: 300px;
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+#sortMedia {
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid #555;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+#sortMedia:focus {
+    border-color: var(--primary-gold);
+    outline: none;
+}
+
+/* Griglia Media */
 .media-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 2rem;
+    margin: 2rem 0 0 0;
+    padding: 0;
+    width: 100%;
 }
 
 .media-card {
@@ -36,30 +90,52 @@ h1 {
     overflow: hidden;
     transition: transform 0.3s ease;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
 }
 
 .media-card:hover {
     transform: scale(1.05);
     border-color: var(--primary-gold);
     z-index: 10;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
 }
 
 .media-poster {
     width: 100%;
-    height: 300px;
+    aspect-ratio: 2/3;
     background-size: cover;
     background-position: center;
     background-color: #222;
+    position: relative;
+}
+
+.media-rating {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #ffcc00;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    border: 1px solid #ffcc00;
 }
 
 .media-info {
     padding: 1rem;
     text-align: center;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .media-title {
     color: #fff;
-    font-size: 1rem;
+    font-size: 0.95rem;
     margin-bottom: 0.5rem;
     white-space: nowrap;
     overflow: hidden;
@@ -69,7 +145,7 @@ h1 {
 .media-price {
     color: var(--primary-gold);
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: 1rem;
     margin-bottom: 1rem;
     display: block;
 }
@@ -78,12 +154,13 @@ h1 {
     background-color: transparent;
     border: 1px solid var(--primary-gold);
     color: var(--primary-gold);
-    padding: 5px 15px;
+    padding: 8px 15px;
     text-transform: uppercase;
     font-size: 0.8rem;
     cursor: pointer;
     transition: all 0.3s;
     width: 100%;
+    border-radius: 3px;
 }
 
 .btn-buy:hover {
@@ -91,16 +168,16 @@ h1 {
     color: #000;
 }
 
-.btn-watch {
-    background-color: #4dff4d;
-    border: none;
-    color: #000;
-    padding: 5px 15px;
+.btn-owned {
+    background-color: #333;
+    border: 1px solid #444;
+    color: #888;
+    padding: 8px 15px;
     text-transform: uppercase;
     font-size: 0.8rem;
-    cursor: pointer;
+    cursor: default;
     width: 100%;
-    font-weight: bold;
+    border-radius: 3px;
 }
 
 .empty-msg {

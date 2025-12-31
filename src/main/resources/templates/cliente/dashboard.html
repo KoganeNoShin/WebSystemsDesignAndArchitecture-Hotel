@@ -125,7 +125,7 @@
                             <h3 th:text="'Camera ' + ${p.camera.numero}">101</h3>
                             <p class="booking-info"><strong th:text="${p.camera.sede.nome}">Roma</strong></p>
                             <p class="booking-info" th:text="${p.dataInizio} + ' - ' + ${p.dataFine}">Date</p>
-                            <p class="booking-info">Totale: <span th:text="'€ ' + ${p.costo}">€ 500</span></p>
+                            <p class="booking-info">Totale: <span th:text="'€ ' + ${#numbers.formatDecimal(p.costo, 1, 2)}">€ 500.00</span></p>
                             <span class="status-badge status-passata" th:text="${p.stato}">COMPLETATA</span>
                         </div>
                     </div>
@@ -143,6 +143,12 @@
                     <h3 th:text="'Camera ' + ${prenotazioneAttiva.camera.numero}">201</h3>
                     <p class="booking-info" th:text="${prenotazioneAttiva.camera.sede.nome}">Alpine Palace Cortina</p>
                     <p class="booking-info" th:text="'Dal ' + ${prenotazioneAttiva.dataInizio} + ' al ' + ${prenotazioneAttiva.dataFine}">Date</p>
+
+                    <div style="margin: 1rem 0; border-top: 1px solid rgba(197, 160, 89, 0.3); padding-top: 1rem;">
+                        <p class="booking-info">Extra Multimedia: <span style="color: var(--primary-gold);" th:text="'€ ' + ${#numbers.formatDecimal(costoMultimedia, 1, 2)}">€ 0.00</span></p>
+                        <p class="booking-info" style="font-size: 1.1rem;">Totale Attuale: <strong style="color: var(--primary-gold);" th:text="'€ ' + ${#numbers.formatDecimal(costoTotaleAttuale, 1, 2)}">€ 500.00</strong></p>
+                    </div>
+
                     <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;" onclick="event.stopPropagation()">
                         <a href="#" class="btn-action">🏠 Domotica</a>
                         <a th:href="@{/cliente/multimedia}" class="btn-action">🎬 Multimedia</a>
@@ -234,7 +240,17 @@
 
                         <div class="detail-section">
                             <h3>Costi & Servizi</h3>
-                            <div class="detail-row"><span>Totale:</span> <strong style="color: var(--primary-gold);">€ ${data.costoTotale}</strong></div>
+                            <div class="detail-row"><span>Camera:</span> <strong>€ ${data.costoCamera.toFixed(2)}</strong></div>
+                            <div class="detail-row"><span>Servizi Extra:</span> <strong>€ ${data.costoServizi.toFixed(2)}</strong></div>
+                            <div class="detail-row"><span>Multimedia:</span> <strong>€ ${data.costoMultimedia.toFixed(2)}</strong></div>
+                            <div class="detail-row" style="margin-top: 10px; border-top: 1px solid #555; padding-top: 5px;">
+                                <span style="font-size: 1.1rem;">Totale:</span>
+                                <strong style="color: var(--primary-gold); font-size: 1.2rem;">€ ${data.costoTotale.toFixed(2)}</strong>
+                            </div>
+                        </div>
+
+                        <div class="detail-section">
+                            <h3>Servizi Inclusi</h3>
                             <div style="margin-top: 10px;">
                                 ${data.servizi.length > 0 ? '<ul>' + data.servizi.map(s => `<li>${s}</li>`).join('') + '</ul>' : '<p style="color:#777; font-style:italic;">Nessun servizio extra.</p>'}
                             </div>

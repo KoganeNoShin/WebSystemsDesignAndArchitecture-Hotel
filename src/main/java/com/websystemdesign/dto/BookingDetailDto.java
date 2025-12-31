@@ -19,7 +19,10 @@ public class BookingDetailDto {
     private LocalDate checkin;
     private LocalDate checkout;
     
-    // Costi
+    // Costi Dettagliati
+    private float costoCamera;
+    private float costoServizi;
+    private float costoMultimedia;
     private float costoTotale;
     
     // Servizi

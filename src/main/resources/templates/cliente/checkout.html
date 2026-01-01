@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-out - Comitini Residence</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/cliente/checkout.css}">
+</head>
+<body>
+
+    <header>
+        <a href="/home" class="logo">Comitini Residence</a>
+        <a th:href="@{/cliente/dashboard}" class="btn-login">Dashboard</a>
+    </header>
+
+    <div class="checkout-page">
+        <div class="checkout-container">
+            <h1>Check-out e Pagamento</h1>
+            <p style="text-align: center; color: #ccc; margin-bottom: 2rem;">
+                Riepilogo finale del soggiorno presso <span th:text="${prenotazione.camera.sede.nome}">Cortina</span>
+            </p>
+
+            <!-- Avviso Check-out Anticipato -->
+            <div th:if="${isAnticipato}" class="alert-warning">
+                <h3>⚠️ Partenza Anticipata</h3>
+                <p>Stai effettuando il check-out prima della data prevista (<span th:text="${prenotazione.dataFine}">Data</span>).</p>
+                <p>Hai diritto a uno <strong>sconto del 50%</strong> sulle <span th:text="${nottiRimanenti}">2</span> notti non usufruite.</p>
+            </div>
+
+            <!-- Riepilogo Costi -->
+            <h3 class="section-title">Dettaglio Costi</h3>
+
+            <div class="summary-item">
+                <span>Camera (<span th:text="${nottiUsufruite}">3</span> notti usufruite):</span>
+                <strong th:text="'€ ' + ${#numbers.formatDecimal(costoCameraFinale + sconto, 1, 2)}">€ 300.00</strong>
+            </div>
+
+            <div th:if="${isAnticipato}" class="summary-item" style="color: #ffcc00;">
+                <span>Sconto Partenza Anticipata:</span>
+                <strong th:text="'- € ' + ${#numbers.formatDecimal(sconto, 1, 2)}">- € 50.00</strong>
+            </div>
+
+            <div class="summary-item">
+                <span>Servizi Extra:</span>
+                <strong th:text="'€ ' + ${#numbers.formatDecimal(costoServizi, 1, 2)}">€ 50.00</strong>
+            </div>
+
+            <div class="summary-item">
+                <span>Multimedia:</span>
+                <strong th:text="'€ ' + ${#numbers.formatDecimal(costoMultimedia, 1, 2)}">€ 15.00</strong>
+            </div>
+
+            <div class="total-row">
+                <span>Totale da Pagare:</span>
+                <span th:text="'€ ' + ${#numbers.formatDecimal(totaleDaPagare, 1, 2)}">€ 315.00</span>
+            </div>
+
+            <!-- Form Pagamento -->
+            <form th:action="@{/cliente/checkout/confirm}" method="post" class="payment-form" onsubmit="return validatePayment()">
+                <input type="hidden" name="prenotazioneId" th:value="${prenotazione.id}">
+                <input type="hidden" name="totalePagato" th:value="${totaleDaPagare}">
+
+                <h3 class="section-title">Metodo di Pagamento</h3>
+                <div class="form-group">
+                    <label>Intestatario Carta</label>
+                    <input type="text" class="form-control" placeholder="Mario Rossi" required minlength="3">
+                </div>
+                <div class="form-group">
+                    <label>Numero Carta</label>
+                    <input type="text" class="form-control" placeholder="0000 0000 0000 0000" required pattern="\d{16}" title="Inserisci 16 cifre senza spazi">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Scadenza</label>
+                        <input type="text" id="expiryDate" class="form-control" placeholder="MM/YY" required pattern="(0[1-9]|1[0-2])\/\d{2}" title="Formato MM/YY">
+                        <small id="expiryError" style="color: #ff4d4d; display: none;">Carta scaduta.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>CVV</label>
+                        <input type="text" class="form-control" placeholder="123" required pattern="\d{3}" title="3 cifre">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-pay">Paga e Concludi Soggiorno</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <nav>
+            <ul class="nav-links">
+                <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
+                <li><a th:href="@{/home/services}">Servizi</a></li>
+                <li><a th:href="@{/home/contact}">Contatti</a></li>
+            </ul>
+        </nav>
+    </footer>
+
+    <script>
+        function validatePayment() {
+            const expiryInput = document.getElementById('expiryDate');
+            const errorMsg = document.getElementById('expiryError');
+            const [month, year] = expiryInput.value.split('/');
+
+            const now = new Date();
+            const currentYear = now.getFullYear() % 100; // Ultime 2 cifre
+            const currentMonth = now.getMonth() + 1; // 1-12
+
+            const expMonth = parseInt(month, 10);
+            const expYear = parseInt(year, 10);
+
+            if (expYear < currentYear || (expYear === currentYear && expMonth < currentMonth)) {
+                errorMsg.style.display = 'block';
+                expiryInput.style.borderColor = '#ff4d4d';
+                return false;
+            }
+
+            errorMsg.style.display = 'none';
+            expiryInput.style.borderColor = '#555';
+            return true;
+        }
+    </script>
+
+</body>
+</html>

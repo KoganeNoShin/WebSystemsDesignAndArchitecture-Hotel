@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domotica - Comitini Residence</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/cliente/domotica.css}">
+</head>
+<body>
+
+    <header>
+        <a href="/home" class="logo">Comitini Residence</a>
+        <a th:href="@{/cliente/dashboard}" class="btn-login">Dashboard</a>
+    </header>
+
+    <div class="domotica-page">
+        <div class="page-header">
+            <h1>Controllo Camera <span th:text="${camera.numero}">101</span></h1>
+        </div>
+
+        <div class="control-panel">
+
+            <!-- LUCI -->
+            <div class="smart-card" id="lightCard" th:classappend="${camera.luce} ? 'active'" onclick="toggleLight()">
+                <div class="card-icon">💡</div>
+                <div class="card-label">Illuminazione</div>
+                <div class="status-text" id="lightStatus" th:text="${camera.luce} ? 'ACCESA' : 'SPENTA'">SPENTA</div>
+            </div>
+
+            <!-- TAPPARELLE -->
+            <div class="smart-card shutter" id="shutterCard" th:classappend="${camera.tapparelle} ? 'active'" onclick="toggleShutter()">
+                <div class="card-icon" id="shutterIcon" th:text="${camera.tapparelle} ? '🪟' : '🔒'">🔒</div>
+                <div class="card-label">Tapparelle</div>
+                <div class="status-text" id="shutterStatus" th:text="${camera.tapparelle} ? 'APERTE' : 'CHIUSE'">CHIUSE</div>
+            </div>
+
+            <!-- TERMOSTATO -->
+            <div class="smart-card thermostat-card">
+                <div class="card-label" style="margin-bottom: 1rem;">Climatizzazione</div>
+
+                <div class="thermostat-container" onclick="manualTempInput()">
+                    <span class="temp-value" id="tempDisplay" th:text="${camera.temperatura}">22.0</span>
+                    <span class="temp-unit">°C</span>
+                </div>
+
+                <div class="temp-controls">
+                    <button class="btn-temp" onclick="changeTemp(-0.5)">-</button>
+                    <button class="btn-temp" onclick="changeTemp(0.5)">+</button>
+                </div>
+                <p style="margin-top: 10px; font-size: 0.8rem; color: #777;">Clicca sul valore per digitare (16°C - 24°C)</p>
+            </div>
+
+        </div>
+    </div>
+
+    <footer>
+        <nav>
+            <ul class="nav-links">
+                <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
+                <li><a th:href="@{/home/services}">Servizi</a></li>
+                <li><a th:href="@{/home/contact}">Contatti</a></li>
+            </ul>
+        </nav>
+    </footer>
+
+    <script>
+        let currentTemp = parseFloat(document.getElementById('tempDisplay').innerText);
+        let lightState = document.getElementById('lightCard').classList.contains('active');
+        let shutterState = document.getElementById('shutterCard').classList.contains('active');
+
+        function toggleLight() {
+            lightState = !lightState;
+            const card = document.getElementById('lightCard');
+            const status = document.getElementById('lightStatus');
+
+            if (lightState) {
+                card.classList.add('active');
+                status.innerText = 'ACCESA';
+            } else {
+                card.classList.remove('active');
+                status.innerText = 'SPENTA';
+            }
+
+            updateServer('luce', lightState);
+        }
+
+        function toggleShutter() {
+            shutterState = !shutterState;
+            const card = document.getElementById('shutterCard');
+            const icon = document.getElementById('shutterIcon');
+            const status = document.getElementById('shutterStatus');
+
+            if (shutterState) {
+                card.classList.add('active');
+                icon.innerText = '🪟';
+                status.innerText = 'APERTE';
+            } else {
+                card.classList.remove('active');
+                icon.innerText = '🔒';
+                status.innerText = 'CHIUSE';
+            }
+
+            updateServer('tapparelle', shutterState);
+        }
+
+        function changeTemp(delta) {
+            updateTemp(currentTemp + delta);
+        }
+
+        function manualTempInput() {
+            const input = prompt("Inserisci la temperatura desiderata (16 - 24):", currentTemp);
+            if (input !== null) {
+                const val = parseFloat(input.replace(',', '.'));
+                if (!isNaN(val)) {
+                    updateTemp(val);
+                } else {
+                    alert("Valore non valido.");
+                }
+            }
+        }
+
+        function updateTemp(newVal) {
+            // Limiti Normativi
+            if (newVal < 16) newVal = 16;
+            if (newVal > 24) newVal = 24;
+
+            currentTemp = newVal;
+            document.getElementById('tempDisplay').innerText = currentTemp.toFixed(1);
+
+            clearTimeout(window.tempTimeout);
+            window.tempTimeout = setTimeout(() => {
+                updateServer('temperatura', currentTemp);
+            }, 500);
+        }
+
+        function updateServer(key, value) {
+            const payload = {};
+            payload[key] = value;
+
+            fetch('/cliente/domotica/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.error("Errore aggiornamento domotica");
+                }
+            })
+            .catch(err => console.error(err));
+        }
+    </script>
+
+</body>
+</html>

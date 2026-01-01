@@ -6,79 +6,6 @@
     <title>Dashboard Cliente - Comitini Residence</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/cliente/dashboard.css}">
-    <style>
-        /* Stile Modale Dettagli */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.9);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: #1a1a1a;
-            padding: 2rem;
-            border: 1px solid var(--primary-gold);
-            border-radius: 10px;
-            width: 90%;
-            max-width: 600px;
-            position: relative;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .close-modal:hover { color: var(--primary-gold); }
-
-        .detail-section {
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 1rem;
-        }
-        .detail-section h3 {
-            color: var(--primary-gold);
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
-        }
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            color: #ccc;
-        }
-        .detail-row strong { color: #fff; }
-
-        .guest-list {
-            list-style: none;
-            padding: 0;
-        }
-        .guest-item {
-            background-color: rgba(255,255,255,0.05);
-            padding: 10px;
-            margin-bottom: 5px;
-            border-radius: 3px;
-            font-size: 0.9rem;
-        }
-
-        .clickable-card {
-            cursor: pointer;
-        }
-    </style>
 </head>
 <body>
 
@@ -150,9 +77,11 @@
                     </div>
 
                     <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;" onclick="event.stopPropagation()">
-                        <a href="#" class="btn-action">🏠 Domotica</a>
+                        <a th:href="@{/cliente/domotica}" class="btn-action">🏠 Domotica</a>
                         <a th:href="@{/cliente/multimedia}" class="btn-action">🎬 Multimedia</a>
-                        <a href="#" class="btn-action">📝 Note</a>
+                        <a href="#" class="btn-action" th:onclick="'openNotes(' + ${prenotazioneAttiva.id} + '); event.preventDefault();'">📝 Note</a>
+                        <!-- Tasto Check-out -->
+                        <a th:href="@{/cliente/checkout/{id}(id=${prenotazioneAttiva.id})}" class="btn-action" style="border-color: #ffcc00; color: #ffcc00;">🚪 Check-out</a>
                     </div>
                 </div>
                 <div th:if="${prenotazioneAttiva == null}" class="empty-msg">
@@ -199,10 +128,33 @@
         <div class="modal-content">
             <span class="close-modal" onclick="closeDetails()">&times;</span>
             <h2 style="color: var(--primary-gold); margin-bottom: 1rem;">Dettagli Prenotazione</h2>
-            <div id="modalBody">
-                <!-- Contenuto caricato via JS -->
-                <p style="text-align: center;">Caricamento...</p>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- MODALE NOTE -->
+    <div id="notesModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeNotes()">&times;</span>
+            <h2 style="color: var(--primary-gold); margin-bottom: 1rem;">Note e Richieste</h2>
+
+            <!-- Filtri -->
+            <div class="notes-filters">
+                <input type="datetime-local" id="filterFrom" placeholder="Da">
+                <input type="datetime-local" id="filterTo" placeholder="A">
+                <select id="filterLimit">
+                    <option value="10">Ultime 10</option>
+                    <option value="1">Ultima</option>
+                    <option value="all">Tutte</option>
+                </select>
+                <button onclick="filterNotes()">Filtra</button>
             </div>
+
+            <div id="notes-history"></div>
+            <form id="noteForm" onsubmit="sendNote(event)">
+                <textarea id="newNoteText" placeholder="Scrivi qui la tua richiesta..." required></textarea>
+                <button type="submit" class="btn-submit" style="margin-top: 1rem;">Invia Nota</button>
+            </form>
         </div>
     </div>
 
@@ -217,83 +169,7 @@
         </nav>
     </footer>
 
-    <script>
-        function openDetails(id) {
-            const modal = document.getElementById('detailsModal');
-            const body = document.getElementById('modalBody');
-
-            modal.style.display = "flex";
-            document.body.style.overflow = "hidden";
-            body.innerHTML = '<p style="text-align: center;">Caricamento...</p>';
-
-            fetch(`/api/cliente/booking/${id}`)
-                .then(response => response.json())
-                .then(data => {
-                    let html = `
-                        <div class="detail-section">
-                            <h3>Soggiorno</h3>
-                            <div class="detail-row"><span>Sede:</span> <strong>${data.sedeNome}</strong></div>
-                            <div class="detail-row"><span>Camera:</span> <strong>${data.cameraNumero} (${data.cameraTipologia})</strong></div>
-                            <div class="detail-row"><span>Periodo:</span> <strong>${data.checkin} - ${data.checkout}</strong></div>
-                            <div class="detail-row"><span>Stato:</span> <strong>${data.stato}</strong></div>
-                        </div>
-
-                        <div class="detail-section">
-                            <h3>Costi & Servizi</h3>
-                            <div class="detail-row"><span>Camera:</span> <strong>€ ${data.costoCamera.toFixed(2)}</strong></div>
-                            <div class="detail-row"><span>Servizi Extra:</span> <strong>€ ${data.costoServizi.toFixed(2)}</strong></div>
-                            <div class="detail-row"><span>Multimedia:</span> <strong>€ ${data.costoMultimedia.toFixed(2)}</strong></div>
-                            <div class="detail-row" style="margin-top: 10px; border-top: 1px solid #555; padding-top: 5px;">
-                                <span style="font-size: 1.1rem;">Totale:</span>
-                                <strong style="color: var(--primary-gold); font-size: 1.2rem;">€ ${data.costoTotale.toFixed(2)}</strong>
-                            </div>
-                        </div>
-
-                        <div class="detail-section">
-                            <h3>Servizi Inclusi</h3>
-                            <div style="margin-top: 10px;">
-                                ${data.servizi.length > 0 ? '<ul>' + data.servizi.map(s => `<li>${s}</li>`).join('') + '</ul>' : '<p style="color:#777; font-style:italic;">Nessun servizio extra.</p>'}
-                            </div>
-                        </div>
-                    `;
-
-                    if (data.ospiti && data.ospiti.length > 0) {
-                        html += `
-                            <div class="detail-section" style="border-bottom: none;">
-                                <h3>Ospiti Registrati</h3>
-                                <ul class="guest-list">
-                                    ${data.ospiti.map(o => `
-                                        <li class="guest-item">
-                                            <strong>${o.nome} ${o.cognome}</strong><br>
-                                            <span style="font-size: 0.8rem; color: #aaa;">${o.cittadinanza}, nato il ${o.dataNascita}</span>
-                                        </li>
-                                    `).join('')}
-                                </ul>
-                            </div>
-                        `;
-                    } else {
-                        html += `<p style="color: #aaa; font-style: italic;">Check-in non ancora effettuato.</p>`;
-                    }
-
-                    body.innerHTML = html;
-                })
-                .catch(err => {
-                    console.error(err);
-                    body.innerHTML = '<p style="color: #ff4d4d; text-align: center;">Errore nel caricamento dei dettagli.</p>';
-                });
-        }
-
-        function closeDetails() {
-            document.getElementById('detailsModal').style.display = "none";
-            document.body.style.overflow = "auto";
-        }
-
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                closeDetails();
-            }
-        }
-    </script>
+    <script th:src="@{/js/cliente/dashboard.js}"></script>
 
 </body>
 </html>

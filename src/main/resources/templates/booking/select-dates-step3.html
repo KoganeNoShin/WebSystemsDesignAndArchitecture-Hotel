@@ -229,7 +229,7 @@
 
                 flatpickr("#checkin", {
                     locale: "it",
-                    minDate: "today",
+                    minDate: new Date().fp_incr(1), // Minimo domani
                     disable: disableDates,
                     dateFormat: "Y-m-d",
                     defaultDate: document.getElementById('checkin').value, // Pre-popola se presente
@@ -248,7 +248,7 @@
 
                 flatpickr("#checkout", {
                     locale: "it",
-                    minDate: new Date().fp_incr(1),
+                    minDate: new Date().fp_incr(2), // Minimo dopodomani
                     disable: disableDates,
                     dateFormat: "Y-m-d",
                     defaultDate: document.getElementById('checkout').value, // Pre-popola se presente

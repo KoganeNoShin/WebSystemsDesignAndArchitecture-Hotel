@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -34,11 +35,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(AbstractHttpConfigurer::disable) // Disabilita CSRF per semplificare le chiamate AJAX
                 .authorizeHttpRequests(authorize -> authorize
-                        // Permetti l'accesso a tutto ciò che è sotto /home, API pubbliche, login, register e risorse statiche
-                        .requestMatchers("/", "/home/**", "/api/**", "/login", "/register", "/css/**", "/image/**", "/js/**", "/json/**").permitAll()
+                        // Risorse pubbliche
+                        .requestMatchers("/", "/home/**", "/api/booking/**", "/api/availability/**", "/login", "/register", "/css/**", "/image/**", "/js/**", "/json/**").permitAll()
+                        
+                        // Risorse protette
+                        .requestMatchers("/api/cliente/**").hasRole("CLIENTE")
+                        .requestMatchers("/cliente/**").hasRole("CLIENTE")
                         .requestMatchers("/admin/**").hasRole("AMMINISTRATORE")
                         .requestMatchers("/staff/**").hasRole("STAFF")
+
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

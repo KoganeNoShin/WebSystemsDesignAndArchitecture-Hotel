@@ -54,12 +54,14 @@ public class ClienteDashboardController {
         List<Prenotazione> tutteLePrenotazioni = prenotazioneRepository.findByClienteId(cliente.getId());
         LocalDate oggi = LocalDate.now();
 
+        // Escludi cancellate per le sezioni attive/future
         List<Prenotazione> prenotazioniValide = tutteLePrenotazioni.stream()
                 .filter(p -> p.getStato() != StatoPrenotazione.CANCELLATA)
                 .collect(Collectors.toList());
 
-        // Prenotazione Attiva
+        // Prenotazione Attiva (CHECKED_IN e nel range di date)
         Optional<Prenotazione> attivaOpt = prenotazioniValide.stream()
+                .filter(p -> p.getStato() == StatoPrenotazione.CHECKED_IN)
                 .filter(p -> !p.getDataInizio().isAfter(oggi) && !p.getDataFine().isBefore(oggi))
                 .findFirst();
         
@@ -67,24 +69,24 @@ public class ClienteDashboardController {
             Prenotazione attiva = attivaOpt.get();
             model.addAttribute("prenotazioneAttiva", attiva);
             
-            // Calcolo costi extra (Multimedia)
             double costoMultimedia = 0.0;
             if (attiva.getMultimedia() != null) {
                 costoMultimedia = attiva.getMultimedia().stream().mapToDouble(Multimedia::getCosto).sum();
             }
             model.addAttribute("costoMultimedia", costoMultimedia);
-            model.addAttribute("costoTotaleAttuale", attiva.getCosto()); // Include già multimedia se aggiornato
+            model.addAttribute("costoTotaleAttuale", attiva.getCosto());
         }
 
-        // Prenotazioni Future
+        // Prenotazioni Future (Solo CONFERMATA)
         List<Prenotazione> future = prenotazioniValide.stream()
+                .filter(p -> p.getStato() == StatoPrenotazione.CONFERMATA)
                 .filter(p -> p.getDataInizio().isAfter(oggi))
                 .collect(Collectors.toList());
         model.addAttribute("prenotazioniFuture", future);
 
-        // Prenotazioni Passate
+        // Prenotazioni Passate (CHECKED_OUT o data passata)
         List<Prenotazione> passate = tutteLePrenotazioni.stream()
-                .filter(p -> p.getDataFine().isBefore(oggi))
+                .filter(p -> p.getStato() == StatoPrenotazione.CHECKED_OUT || p.getDataFine().isBefore(oggi))
                 .collect(Collectors.toList());
         model.addAttribute("prenotazioniPassate", passate);
         

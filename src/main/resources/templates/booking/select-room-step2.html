@@ -294,7 +294,7 @@
             // Inizializza i date picker
             flatpickr("#checkin", {
                 locale: "it",
-                minDate: "today",
+                minDate: new Date().fp_incr(1), // Minimo domani
                 dateFormat: "Y-m-d",
                 onChange: function(selectedDates) {
                     if (selectedDates.length > 0) {
@@ -303,7 +303,7 @@
                     }
                 }
             });
-            flatpickr("#checkout", { locale: "it", minDate: new Date().fp_incr(1), dateFormat: "Y-m-d" });
+            flatpickr("#checkout", { locale: "it", minDate: new Date().fp_incr(2), dateFormat: "Y-m-d" }); // Minimo dopodomani
 
             // Salva i dati iniziali delle camere
             document.querySelectorAll('.room-card').forEach(card => {

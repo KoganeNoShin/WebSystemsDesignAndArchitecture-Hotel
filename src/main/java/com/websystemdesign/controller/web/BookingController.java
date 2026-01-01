@@ -50,24 +50,27 @@ public class BookingController {
         return "booking/select-sede";
     }
 
-    // Step 2: Scelta della Camera
+    // Step 2: Scelta della Camera (Mostra tutte le camere della sede)
     @GetMapping("/rooms")
     public String selectRoom(@RequestParam Long sedeId, Model model) {
         Sede sede = sedeService.getSedeById(sedeId).orElseThrow();
         List<Camera> camere = cameraService.getCamereBySede(sedeId);
+        
         model.addAttribute("sede", sede);
         model.addAttribute("camere", camere);
         return "booking/select-room-step2";
     }
 
-    // Step 3: Date, Ospiti e Servizi
+    // Step 3: Date, Ospiti e Servizi (per una camera specifica)
     @GetMapping("/dates")
     public String selectDates(@RequestParam Long cameraId, Model model) {
         Camera camera = cameraService.getRoomById(cameraId).orElseThrow();
         Sede sede = camera.getSede();
+
         model.addAttribute("camera", camera);
         model.addAttribute("sede", sede);
         model.addAttribute("serviziDisponibili", sede.getServices());
+        
         return "booking/select-dates-step3";
     }
 
@@ -78,8 +81,19 @@ public class BookingController {
                                 @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkout,
                                 @RequestParam int numOspiti,
                                 @RequestParam(required = false) List<Long> selectedServices,
-                                Model model) {
+                                Model model,
+                                RedirectAttributes redirectAttributes) {
         
+        // Validazione Date
+        if (checkin.isBefore(LocalDate.now().plusDays(1))) {
+            redirectAttributes.addFlashAttribute("errorMessage", "La prenotazione deve iniziare almeno da domani.");
+            return "redirect:/booking/dates?cameraId=" + cameraId;
+        }
+        if (checkout.isBefore(checkin.plusDays(1))) {
+            redirectAttributes.addFlashAttribute("errorMessage", "La data di check-out deve essere successiva al check-in.");
+            return "redirect:/booking/dates?cameraId=" + cameraId;
+        }
+
         Camera camera = cameraService.getRoomById(cameraId).orElseThrow();
         long nights = ChronoUnit.DAYS.between(checkin, checkout);
         if (nights < 1) nights = 1;
@@ -116,6 +130,12 @@ public class BookingController {
                                  Authentication authentication,
                                  RedirectAttributes redirectAttributes) {
 
+        // Validazione Date (anche qui per sicurezza)
+        if (checkin.isBefore(LocalDate.now().plusDays(1))) {
+            redirectAttributes.addFlashAttribute("errorMessage", "La prenotazione deve iniziare almeno da domani.");
+            return "redirect:/booking/dates?cameraId=" + cameraId;
+        }
+
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         Utente utente = utenteRepository.findByUsername(userDetails.getUsername()).orElseThrow();
         Cliente cliente = clienteRepository.findByUtenteId(utente.getId()).orElseThrow();
@@ -135,7 +155,7 @@ public class BookingController {
         prenotazione.setCamera(camera);
         prenotazione.setDataInizio(checkin);
         prenotazione.setDataFine(checkout);
-        prenotazione.setNumeroOspiti(numOspiti); // Salviamo il numero effettivo
+        prenotazione.setNumeroOspiti(numOspiti);
         prenotazione.setStato(StatoPrenotazione.CONFERMATA);
         
         float costoServizi = (float) servizi.stream().mapToDouble(Service::getCosto).sum();

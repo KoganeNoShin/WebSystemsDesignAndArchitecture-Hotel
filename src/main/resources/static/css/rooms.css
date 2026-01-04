@@ -4,6 +4,7 @@
     padding: 8rem 2rem 4rem;
     max-width: 1400px;
     margin: 0 auto;
+    width: 100%;
 }
 
 @media (max-width: 768px) {
@@ -30,6 +31,7 @@
     .filters-container {
         flex-direction: column;
         align-items: stretch;
+        padding: 1rem;
     }
 }
 
@@ -83,13 +85,14 @@
 /* Griglia Camere */
 .rooms-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Ridotto a 280px */
     gap: 2rem;
+    width: 100%;
 }
 
-@media (max-width: 400px) {
+@media (max-width: 480px) {
     .rooms-grid {
-        grid-template-columns: 1fr; /* Colonna singola su schermi molto piccoli */
+        grid-template-columns: 1fr;
     }
 }
 
@@ -199,7 +202,7 @@
     background-color: #e0b86c;
 }
 
-/* Modale */
+/* Modale Galleria */
 .modal {
     display: none;
     position: fixed;
@@ -218,21 +221,32 @@
     margin: auto;
     display: block;
     max-width: 90%;
-    max-height: 90%;
+    max-height: 90vh; /* Altezza massima viewport */
     border-radius: 5px;
     box-shadow: 0 0 20px rgba(255,255,255,0.2);
+    position: relative;
+}
+
+/* Immagine dentro la modale */
+#modalImage {
+    width: 100%;
+    height: auto;
+    max-height: 80vh; /* Limita altezza immagine */
+    object-fit: contain;
+    display: block;
 }
 
 .close-modal {
     position: absolute;
-    top: 20px;
-    right: 35px;
+    top: 15px;
+    right: 25px;
     color: #f1f1f1;
     font-size: 40px;
     font-weight: bold;
     transition: 0.3s;
     cursor: pointer;
     z-index: 1001;
+    text-shadow: 0 0 5px #000;
 }
 
 .close-modal:hover,
@@ -248,7 +262,7 @@
     top: 50%;
     width: auto;
     padding: 16px;
-    margin-top: -50px;
+    margin-top: -25px; /* Centrato verticalmente */
     color: white;
     font-weight: bold;
     font-size: 20px;
@@ -256,6 +270,7 @@
     border-radius: 0 3px 3px 0;
     user-select: none;
     background-color: rgba(0,0,0,0.5);
+    z-index: 1001;
 }
 
 .next {
@@ -263,7 +278,24 @@
     border-radius: 3px 0 0 3px;
 }
 
+.prev {
+    left: 0;
+    border-radius: 0 3px 3px 0;
+}
+
 .prev:hover, .next:hover {
     background-color: var(--primary-gold);
     color: #000;
+}
+
+@media (max-width: 600px) {
+    .prev, .next {
+        padding: 10px;
+        font-size: 16px;
+    }
+    .close-modal {
+        top: 10px;
+        right: 15px;
+        font-size: 30px;
+    }
 }

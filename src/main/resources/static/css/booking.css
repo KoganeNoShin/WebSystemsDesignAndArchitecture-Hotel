@@ -5,6 +5,8 @@
     max-width: 1200px;
     margin: 0 auto;
     text-align: center;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 @media (max-width: 768px) {
@@ -24,18 +26,22 @@
     padding: 1rem;
     border-radius: 5px;
     display: inline-block;
+    width: 100%;
+    max-width: 900px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     .step-indicator {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         letter-spacing: 1px;
         display: flex;
-        flex-direction: column;
-        gap: 5px;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        padding: 1rem;
     }
-    .step-indicator span {
-        display: block;
+    .step-indicator span, .step-indicator a {
+        white-space: nowrap;
     }
 }
 
@@ -49,10 +55,17 @@
 /* Sedi Grid (Step 1) */
 .sedi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Ridotto minmax per mobile */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 2rem;
     margin-top: 2rem;
     width: 100%;
+}
+
+@media (max-width: 480px) {
+    .sedi-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
 }
 
 .sede-card {
@@ -89,6 +102,12 @@
     display: flex;
     flex-direction: column;
     text-align: left;
+}
+
+@media (max-width: 480px) {
+    .sede-content {
+        padding: 1.5rem;
+    }
 }
 
 .sede-content h3 {
@@ -140,48 +159,44 @@
     font-weight: bold;
 }
 
-/* Form Container (Step 2) */
-.form-container {
-    background-color: rgba(0, 0, 0, 0.7);
-    padding: 2rem;
+/* Step 2: Barra Ricerca, Filtri, Griglia Camere */
+.search-bar {
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 1.5rem;
     border-radius: 10px;
-    border: 1px solid rgba(197, 160, 89, 0.3);
-    max-width: 800px;
-    margin: 2rem auto 0;
+    border: 1px solid var(--primary-gold);
+    margin-bottom: 3rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: flex-end;
+    justify-content: center;
 }
 
-.form-group {
-    margin-bottom: 1.5rem;
+@media (max-width: 768px) {
+    .search-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        padding: 1rem;
+    }
+}
+
+.search-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
     text-align: left;
 }
 
-.form-group label {
-    display: block;
-    font-size: 0.9rem;
-    color: #ccc;
-    margin-bottom: 0.5rem;
-}
-
-.form-control {
-    width: 100%;
-    padding: 10px;
+.search-control {
     background: #1a1a1a;
     border: 1px solid #555;
-    color: var(--text-light);
-    font-family: 'Lato', sans-serif;
-    font-size: 1rem;
+    color: #fff;
+    padding: 10px;
     border-radius: 3px;
-}
-
-.date-picker-wrapper {
-    display: flex;
-    gap: 1rem;
-}
-
-@media (max-width: 600px) {
-    .date-picker-wrapper {
-        flex-direction: column;
-    }
+    font-family: 'Lato', sans-serif;
+    min-width: 150px;
 }
 
 .btn-search {
@@ -194,178 +209,11 @@
     text-transform: uppercase;
     transition: all 0.3s;
     height: 42px;
-    width: 100%;
-    font-size: 1rem;
 }
 .btn-search:hover {
     background-color: #e0b86c;
 }
 
-/* Step 3: Selezione Camere */
-.summary-bar {
-    background-color: rgba(197, 160, 89, 0.1);
-    border: 1px solid var(--primary-gold);
-    padding: 1rem;
-    border-radius: 5px;
-    margin-bottom: 2rem;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.summary-item strong {
-    color: var(--primary-gold);
-}
-
-.status-bar {
-    background-color: #333;
-    padding: 1rem;
-    border-radius: 5px;
-    margin-bottom: 2rem;
-    text-align: center;
-    font-size: 1.1rem;
-}
-
-.status-ok { color: #4dff4d; }
-.status-warning { color: #ffcc00; }
-
-.rooms-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin-bottom: 3rem;
-}
-
-.room-select-card {
-    background-color: rgba(0, 0, 0, 0.7);
-    border: 1px solid #555;
-    border-radius: 5px;
-    overflow: hidden;
-    position: relative;
-    transition: all 0.3s;
-    cursor: pointer;
-}
-
-.room-select-card.selected {
-    border-color: var(--primary-gold);
-    box-shadow: 0 0 15px rgba(197, 160, 89, 0.3);
-    transform: scale(1.02);
-}
-
-.room-select-card.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    filter: grayscale(100%);
-    order: 999;
-}
-
-.room-image {
-    height: 150px;
-    background-size: cover;
-    background-position: center;
-}
-
-.room-content {
-    padding: 1.5rem;
-    text-align: left;
-}
-
-.room-content h3 {
-    color: var(--primary-gold);
-    margin-bottom: 0.5rem;
-}
-
-.room-radio {
-    display: none;
-}
-
-.selection-indicator {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: var(--primary-gold);
-    color: #000;
-    padding: 5px 10px;
-    border-radius: 3px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    display: none;
-}
-
-.room-select-card.selected .selection-indicator {
-    display: block;
-}
-
-.services-section {
-    background-color: rgba(0, 0, 0, 0.8);
-    padding: 2rem;
-    border-radius: 10px;
-    margin-bottom: 3rem;
-    border: 1px solid #444;
-    text-align: left;
-}
-
-.services-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.service-item {
-    display: flex;
-    align-items: center;
-    padding: 15px;
-    background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid #555;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.service-item:hover {
-    border-color: var(--primary-gold);
-}
-
-.service-item input[type="checkbox"] {
-    margin-right: 15px;
-    transform: scale(1.5);
-    accent-color: var(--primary-gold);
-}
-
-.confirm-section {
-    text-align: center;
-    margin-top: 2rem;
-    background-color: rgba(0, 0, 0, 0.9);
-    padding: 2rem;
-    border-radius: 10px;
-    border: 1px solid var(--primary-gold);
-    position: sticky;
-    bottom: 20px;
-    z-index: 100;
-}
-
-.total-price {
-    font-size: 2.5rem;
-    color: var(--primary-gold);
-    margin-bottom: 1rem;
-    display: block;
-    font-weight: bold;
-}
-
-.capacity-warning {
-    color: #ff4d4d;
-    font-size: 0.8rem;
-    margin-top: 5px;
-    display: none;
-}
-.room-select-card.disabled .capacity-warning {
-    display: block;
-}
-
-/* Filtri Bar */
 .filters-bar {
     display: flex;
     justify-content: space-between;
@@ -414,7 +262,211 @@
     border: 1px solid #777;
     padding: 5px 10px;
     border-radius: 3px;
+}
+
+.rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.room-card {
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 1px solid #555;
+    border-radius: 5px;
+    overflow: hidden;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+}
+
+.room-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-gold);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+
+.room-image {
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+}
+
+.room-content {
+    padding: 1.5rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.room-content h3 {
+    color: var(--primary-gold);
+    margin-bottom: 0.5rem;
+    font-size: 1.4rem;
+}
+
+.room-info {
+    color: #ccc;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.room-price {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+    margin-top: auto;
+    margin-bottom: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.btn-select {
+    display: block;
     width: 100%;
+    padding: 12px;
+    background-color: transparent;
+    border: 1px solid var(--primary-gold);
+    color: var(--primary-gold);
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.btn-select:hover {
+    background-color: var(--primary-gold);
+    color: #000;
+}
+
+/* Step 3: Layout Grid (Date & Servizi) */
+.layout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    text-align: left;
+}
+
+@media (max-width: 900px) {
+    .layout-grid {
+        grid-template-columns: 1fr;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-section {
+        order: 1;
+    }
+    .room-summary {
+        order: 2;
+        margin-top: 2rem;
+    }
+}
+
+.room-summary {
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 1px solid var(--primary-gold);
+    border-radius: 10px;
+    padding: 2rem;
+    height: fit-content;
+}
+
+.room-summary h2 {
+    color: var(--primary-gold);
+    margin-bottom: 1rem;
+}
+
+.form-section {
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 2rem;
+    border-radius: 10px;
+    border: 1px solid #444;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.9rem;
+    color: #ccc;
+    margin-bottom: 0.5rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    background: #1a1a1a;
+    border: 1px solid #555;
+    color: var(--text-light);
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+    border-radius: 3px;
+}
+
+.date-picker-wrapper {
+    display: flex;
+    gap: 1rem;
+}
+
+@media (max-width: 600px) {
+    .date-picker-wrapper {
+        flex-direction: column;
+    }
+}
+
+/* Servizi */
+.services-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.service-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid #555;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.service-item:hover {
+    border-color: var(--primary-gold);
+}
+.service-item input {
+    margin-right: 15px;
+    transform: scale(1.3);
+    accent-color: var(--primary-gold);
+}
+
+/* Totale Sticky */
+.total-section {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+}
+.total-price {
+    font-size: 2rem;
+    color: var(--primary-gold);
+    font-weight: bold;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+/* Flatpickr Custom */
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.flatpickr-disabled:hover {
+    background-color: rgba(255, 77, 77, 0.3) !important;
+    color: #ff4d4d !important;
+    border-color: transparent !important;
+    text-decoration: line-through;
 }
 
 /* Step 4: Review */
@@ -425,6 +477,12 @@
     padding: 2rem;
     margin-bottom: 2rem;
     text-align: left;
+}
+
+@media (max-width: 600px) {
+    .review-card {
+        padding: 1.5rem;
+    }
 }
 
 .review-header {

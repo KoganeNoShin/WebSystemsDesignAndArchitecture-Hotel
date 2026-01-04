@@ -20,8 +20,10 @@ json_filename = "catalogo_film.json"
 movies_list = []
 
 def sanitize_filename(title):
-    # Rimuove caratteri non validi per i nomi dei file
-    return re.sub(r'[\\/*?:"<>|]', "", title).replace(" ", "_")
+    # Rimuove tutto ciò che non è alfanumerico, spazio, trattino o underscore
+    # Poi sostituisce spazi con underscore
+    clean_title = re.sub(r'[^\w\s-]', '', title)
+    return clean_title.replace(" ", "_")
 
 print("Inizio download catalogo e immagini (200 film)...")
 
@@ -49,13 +51,13 @@ try:
                     img_data = requests.get(img_url).content
                     with open(local_image_path, 'wb') as handler:
                         handler.write(img_data)
-                    # print(f"Scaricato: {filename}") # Decommenta per log dettagliato
+                    # print(f"Scaricato: {filename}")
 
                 movies_list.append({
                     "tmdb_id": movie['id'],
                     "titolo": title,
                     "prezzo": round(random.uniform(2.99, 5.99), 2),
-                    "poster_url": web_image_path, # Percorso locale per il sito
+                    "poster_url": web_image_path,
                     "descrizione": movie.get('overview', ''),
                     "voto": movie.get('vote_average', 0)
                 })

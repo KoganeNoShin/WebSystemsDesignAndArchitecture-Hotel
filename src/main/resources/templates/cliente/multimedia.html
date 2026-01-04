@@ -24,7 +24,15 @@
         <!-- I Miei Contenuti -->
         <h2 class="section-title">I Miei Contenuti</h2>
         <div class="media-grid" th:if="${!acquistati.empty}">
-            <div th:each="m : ${acquistati}" class="media-card">
+            <div th:each="m : ${acquistati}" class="media-card"
+                 th:data-id="${m.id}"
+                 th:data-title="${m.nome}"
+                 th:data-image="${m.immagine}"
+                 th:data-desc="${m.descrizione}"
+                 th:data-vote="${m.voto}"
+                 th:data-price="${m.costo}"
+                 data-owned="true"
+                 onclick="openModalFromData(this)">
                 <div class="media-poster" th:style="'background-image: url(' + @{${m.immagine}} + ');'">
                     <span class="media-rating">★ <span th:text="${m.voto}">8.5</span></span>
                 </div>
@@ -58,21 +66,51 @@
             <div th:each="m : ${catalogo}" class="media-card"
                  th:data-title="${m.nome.toLowerCase()}"
                  th:data-price="${m.costo}"
-                 th:data-vote="${m.voto}">
+                 th:data-vote="${m.voto}"
+                 th:data-id="${m.id}"
+                 th:data-image="${m.immagine}"
+                 th:data-desc="${m.descrizione}"
+                 data-owned="false"
+                 onclick="openModalFromData(this)">
 
                 <div class="media-poster" th:style="'background-image: url(' + @{${m.immagine}} + ');'">
                     <span class="media-rating">★ <span th:text="${m.voto}">8.5</span></span>
                 </div>
                 <div class="media-info">
                     <h3 class="media-title" th:text="${m.nome}">Titolo</h3>
-                    <!-- Formattazione Prezzo -->
                     <span class="media-price" th:text="'€ ' + ${#numbers.formatDecimal(m.costo, 1, 2)}">€ 5.00</span>
+                    <button class="btn-buy">Dettagli</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    <form th:action="@{/cliente/multimedia/buy}" method="post">
-                        <input type="hidden" name="multimediaId" th:value="${m.id}">
-                        <input type="hidden" name="prenotazioneId" th:value="${prenotazione.id}">
-                        <button type="submit" class="btn-buy">Acquista</button>
-                    </form>
+    <!-- MODALE DETTAGLI FILM -->
+    <div id="movieModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <div class="modal-poster" id="modalPoster"></div>
+            <div class="modal-details">
+                <h2 class="modal-title" id="modalTitle">Titolo Film</h2>
+                <div class="modal-meta">
+                    <span class="modal-rating">★ <span id="modalVote">8.5</span></span>
+                    <!-- Altri meta se disponibili -->
+                </div>
+                <p class="modal-desc" id="modalDesc">Descrizione del film...</p>
+
+                <div class="modal-actions">
+                    <div id="buySection">
+                        <div class="modal-price" id="modalPrice">€ 5.00</div>
+                        <form th:action="@{/cliente/multimedia/buy}" method="post">
+                            <input type="hidden" name="multimediaId" id="modalMediaId">
+                            <input type="hidden" name="prenotazioneId" th:value="${prenotazione.id}">
+                            <button type="submit" class="btn-buy" style="padding: 15px; font-size: 1rem;">Acquista Ora</button>
+                        </form>
+                    </div>
+                    <div id="ownedSection" style="display: none;">
+                        <p style="color: #4dff4d; font-weight: bold; margin-bottom: 1rem;">✓ Contenuto Acquistato</p>
+                        <p style="color: #aaa; font-size: 0.9rem;">Il DVD verrà consegnato in camera a breve.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -96,7 +134,7 @@
             cards.forEach(card => {
                 const title = card.getAttribute('data-title');
                 if (title.includes(search)) {
-                    card.style.display = 'flex'; // Flex per mantenere il layout della card
+                    card.style.display = 'flex';
                 } else {
                     card.style.display = 'none';
                 }
@@ -124,6 +162,46 @@
             });
 
             cards.forEach(card => grid.appendChild(card));
+        }
+
+        // --- MODALE ---
+        function openModalFromData(element) {
+            const id = element.getAttribute('data-id');
+            const title = element.getAttribute('data-title');
+            const image = element.getAttribute('data-image');
+            const desc = element.getAttribute('data-desc');
+            const vote = element.getAttribute('data-vote');
+            const price = parseFloat(element.getAttribute('data-price'));
+            const owned = element.getAttribute('data-owned') === 'true';
+
+            document.getElementById('modalMediaId').value = id;
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalPoster').style.backgroundImage = `url('${image}')`;
+            document.getElementById('modalDesc').innerText = desc || "Nessuna descrizione disponibile.";
+            document.getElementById('modalVote').innerText = vote;
+            document.getElementById('modalPrice').innerText = '€ ' + price.toFixed(2);
+
+            if (owned) {
+                document.getElementById('buySection').style.display = 'none';
+                document.getElementById('ownedSection').style.display = 'block';
+            } else {
+                document.getElementById('buySection').style.display = 'block';
+                document.getElementById('ownedSection').style.display = 'none';
+            }
+
+            document.getElementById('movieModal').style.display = "flex";
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeModal() {
+            document.getElementById('movieModal').style.display = "none";
+            document.body.style.overflow = "auto";
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                closeModal();
+            }
         }
     </script>
 

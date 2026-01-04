@@ -1,98 +1,119 @@
-/* --- ROOMS PAGE --- */
-
-/* Rimuoviamo stili body che vanno in conflitto con style.css */
-/* Il body eredita flex e min-height da style.css */
+/* Stile specifico per la pagina Camere */
 
 .rooms-container {
-    flex: 1; /* Occupa lo spazio disponibile spingendo il footer */
-    padding: 8rem 2rem 4rem; /* Spazio sotto per non attaccarsi al footer */
-    max-width: 1200px;
+    padding: 8rem 2rem 4rem;
+    max-width: 1400px;
     margin: 0 auto;
-    width: 100%;
 }
 
-/* --- FILTRI --- */
+@media (max-width: 768px) {
+    .rooms-container {
+        padding: 8rem 1rem 4rem;
+    }
+}
+
+/* Filtri */
 .filters-container {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 2rem;
     margin-bottom: 3rem;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 1.5rem;
+    border-radius: 10px;
+    border: 1px solid #444;
+}
+
+@media (max-width: 600px) {
+    .filters-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
 }
 
 .filter-group {
     display: flex;
-    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .filter-btn {
-    background-color: transparent;
-    border: 1px solid var(--primary-gold);
-    color: var(--primary-gold);
-    padding: 10px 25px;
-    margin: 0 5px;
-    font-family: 'Lato', sans-serif;
-    text-transform: uppercase;
+    background: transparent;
+    border: 1px solid #777;
+    color: #ccc;
+    padding: 8px 20px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    border-radius: 3px;
+    flex: 1; /* Su mobile si espandono */
 }
 
-.filter-btn:hover, .filter-btn.active {
-    background-color: var(--primary-gold);
+.filter-btn:hover {
+    border-color: var(--primary-gold);
+    color: var(--primary-gold);
+}
+
+.filter-btn.active {
+    background: var(--primary-gold);
     color: #000;
+    border-color: var(--primary-gold);
+    font-weight: bold;
 }
 
 .filter-select {
-    background-color: rgba(0, 0, 0, 0.8);
-    border: 1px solid var(--primary-gold);
-    color: var(--primary-gold);
-    padding: 10px 15px;
-    font-family: 'Lato', sans-serif;
-    text-transform: uppercase;
+    background: #1a1a1a;
+    color: #fff;
+    border: 1px solid #777;
+    padding: 8px 15px;
+    border-radius: 3px;
     cursor: pointer;
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+.filter-select:focus {
+    border-color: var(--primary-gold);
     outline: none;
 }
 
-.filter-select option {
-    background-color: #1a1a1a;
-    color: var(--text-light);
-    padding: 10px;
-}
-
-/* --- GRIGLIA --- */
+/* Griglia Camere */
 .rooms-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
 }
 
-.room-card {
-    background-color: rgba(0, 0, 0, 0.8);
-    border: 1px solid rgba(197, 160, 89, 0.3);
-    border-radius: 5px;
-    overflow: hidden;
-    transition: transform 0.3s ease;
-    animation: fadeIn 0.5s ease;
+@media (max-width: 400px) {
+    .rooms-grid {
+        grid-template-columns: 1fr; /* Colonna singola su schermi molto piccoli */
+    }
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+.room-card {
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 1px solid #555;
+    border-radius: 5px;
+    overflow: hidden;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
 }
 
 .room-card:hover {
     transform: translateY(-5px);
+    border-color: var(--primary-gold);
     box-shadow: 0 10px 20px rgba(0,0,0,0.5);
 }
 
-/* --- CAROSELLO CARD --- */
 .room-carousel {
-    width: 100%;
-    height: 200px;
+    height: 250px;
     position: relative;
     overflow: hidden;
-    background-color: #333;
+    background-color: #000;
 }
 
 .carousel-image {
@@ -111,67 +132,74 @@
     opacity: 1;
 }
 
-/* Icona Zoom Overlay */
 .zoom-icon {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 2rem;
-    color: rgba(255, 255, 255, 0.7);
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(0,0,0,0.6);
+    color: #fff;
+    padding: 5px;
+    border-radius: 50%;
+    font-size: 1.2rem;
     opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
+    transition: opacity 0.3s;
 }
 
 .room-carousel:hover .zoom-icon {
     opacity: 1;
 }
 
-/* --- DETTAGLI --- */
 .room-details {
     padding: 1.5rem;
-    text-align: center;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
 }
 
 .room-details h3 {
     color: var(--primary-gold);
-    font-family: 'Playfair Display', serif;
     margin-bottom: 0.5rem;
+    font-size: 1.4rem;
 }
 
 .room-details p {
-    font-size: 0.9rem;
     color: #ccc;
-    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
 }
 
 .room-price {
     font-size: 1.2rem;
     font-weight: bold;
-    color: var(--text-light);
+    color: #fff;
+    margin-top: auto;
     margin-bottom: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
 }
 
 .btn-book {
     display: inline-block;
     padding: 10px 20px;
-    border: 1px solid var(--primary-gold);
-    color: var(--primary-gold);
+    background-color: var(--primary-gold);
+    color: #000;
     text-decoration: none;
     text-transform: uppercase;
-    font-size: 0.8rem;
+    font-weight: bold;
+    font-size: 0.9rem;
     transition: all 0.3s;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+    flex: 1;
 }
 
 .btn-book:hover {
-    background-color: var(--primary-gold);
-    color: #000;
+    background-color: #e0b86c;
 }
 
-/* Footer gestito globalmente in style.css */
-
-/* --- MODALE (Lightbox) --- */
+/* Modale */
 .modal {
     display: none;
     position: fixed;
@@ -181,22 +209,18 @@
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.9);
+    background-color: rgba(0,0,0,0.9);
     justify-content: center;
     align-items: center;
 }
 
 .modal-content {
-    position: relative;
+    margin: auto;
+    display: block;
     max-width: 90%;
     max-height: 90%;
-}
-
-#modalImage {
-    max-width: 100%;
-    max-height: 80vh;
-    border: 2px solid var(--primary-gold);
-    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    border-radius: 5px;
+    box-shadow: 0 0 20px rgba(255,255,255,0.2);
 }
 
 .close-modal {
@@ -206,8 +230,9 @@
     color: #f1f1f1;
     font-size: 40px;
     font-weight: bold;
-    cursor: pointer;
     transition: 0.3s;
+    cursor: pointer;
+    z-index: 1001;
 }
 
 .close-modal:hover,
@@ -226,7 +251,7 @@
     margin-top: -50px;
     color: white;
     font-weight: bold;
-    font-size: 30px;
+    font-size: 20px;
     transition: 0.6s ease;
     border-radius: 0 3px 3px 0;
     user-select: none;
@@ -238,12 +263,7 @@
     border-radius: 3px 0 0 3px;
 }
 
-.prev {
-    left: 0;
-    border-radius: 3px 0 0 3px;
-}
-
 .prev:hover, .next:hover {
     background-color: var(--primary-gold);
-    color: black;
+    color: #000;
 }

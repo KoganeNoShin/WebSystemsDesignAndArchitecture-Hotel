@@ -3,8 +3,14 @@
 .multimedia-page {
     padding: 8rem 2rem 4rem;
     max-width: 1600px;
-    margin: 0 0; /* Correzione richiesta */
-    width: 100%; /* Assicura larghezza piena */
+    margin: 0 0;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .multimedia-page {
+        padding: 8rem 1rem 4rem;
+    }
 }
 
 h1 {
@@ -13,6 +19,13 @@ h1 {
     text-align: center;
     margin-bottom: 3rem;
     font-size: 3rem;
+}
+
+@media (max-width: 600px) {
+    h1 {
+        font-size: 2rem;
+        margin-bottom: 2rem;
+    }
 }
 
 .section-title {
@@ -38,6 +51,14 @@ h1 {
     border: 1px solid #444;
 }
 
+@media (max-width: 600px) {
+    .catalog-header {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 1rem;
+    }
+}
+
 .filters-bar {
     display: flex;
     gap: 1rem;
@@ -58,6 +79,15 @@ h1 {
     outline: none;
     width: 300px;
     background-color: rgba(0, 0, 0, 0.8);
+}
+
+@media (max-width: 600px) {
+    #searchMedia {
+        width: 100%;
+    }
+    #searchMedia:focus {
+        width: 100%;
+    }
 }
 
 #sortMedia {
@@ -83,6 +113,13 @@ h1 {
     width: 100%;
 }
 
+@media (max-width: 480px) {
+    .media-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1rem;
+    }
+}
+
 .media-card {
     background-color: rgba(0, 0, 0, 0.8);
     border: 1px solid #333;
@@ -93,6 +130,7 @@ h1 {
     display: flex;
     flex-direction: column;
     margin: 0;
+    cursor: pointer;
 }
 
 .media-card:hover {
@@ -187,4 +225,148 @@ h1 {
     padding: 2rem;
     border: 1px dashed #444;
     border-radius: 5px;
+}
+
+/* --- MODALE FILM --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Scroll su tutto il contenitore modale se necessario */
+    background-color: rgba(0, 0, 0, 0.9);
+    justify-content: center;
+    align-items: center;
+    padding: 20px; /* Spazio dai bordi */
+}
+
+.modal-content {
+    background-color: #1a1a1a;
+    padding: 0;
+    border: 1px solid var(--primary-gold);
+    border-radius: 10px;
+    width: 100%;
+    max-width: 800px;
+    position: relative;
+    max-height: 90vh; /* Altezza massima viewport */
+    overflow-y: auto; /* Scroll interno */
+    display: flex;
+    flex-direction: row;
+    /* Fix per scroll mobile */
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+    .modal-content {
+        flex-direction: column;
+        width: 100%;
+        max-height: 85vh; /* Un po' meno su mobile per lasciare spazio */
+    }
+}
+
+.close-modal {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #fff;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 20; /* Sopra tutto */
+    text-shadow: 0 0 5px #000;
+    background-color: rgba(0,0,0,0.6);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.close-modal:hover {
+    color: var(--primary-gold);
+    background-color: rgba(0,0,0,0.8);
+}
+
+.modal-poster {
+    width: 40%;
+    background-size: cover;
+    background-position: center;
+    min-height: 400px;
+    flex-shrink: 0; /* Non schiacciare il poster */
+}
+
+@media (max-width: 768px) {
+    .modal-poster {
+        width: 100%;
+        height: 250px; /* Altezza fissa ragionevole */
+        min-height: auto;
+    }
+}
+
+.modal-details {
+    width: 60%;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 768px) {
+    .modal-details {
+        width: 100%;
+        padding: 1.5rem;
+    }
+}
+
+.modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--primary-gold);
+    margin-bottom: 0.5rem;
+    padding-right: 30px; /* Spazio per il tasto chiudi se sovrapposto */
+}
+
+@media (max-width: 600px) {
+    .modal-title {
+        font-size: 1.5rem;
+    }
+}
+
+.modal-meta {
+    color: #aaa;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.modal-rating {
+    color: #ffcc00;
+    font-weight: bold;
+    border: 1px solid #ffcc00;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.modal-desc {
+    color: #ccc;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    flex-grow: 1;
+    font-size: 0.95rem;
+}
+
+.modal-price {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 1rem;
+}
+
+.modal-actions {
+    margin-top: auto;
 }

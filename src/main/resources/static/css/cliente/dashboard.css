@@ -13,6 +13,12 @@ body {
     width: 100%;
 }
 
+@media (max-width: 768px) {
+    .dashboard-page {
+        padding: 8rem 1rem 4rem;
+    }
+}
+
 /* Header Dashboard */
 .welcome-section {
     display: flex;
@@ -21,6 +27,23 @@ body {
     margin-bottom: 3rem;
     border-bottom: 1px solid rgba(197, 160, 89, 0.3);
     padding-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .welcome-section {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    /* Contenitore pulsanti header */
+    .welcome-section > div:last-child {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
 }
 
 .welcome-text h1 {
@@ -28,6 +51,12 @@ body {
     font-family: 'Playfair Display', serif;
     font-size: 3rem;
     margin-bottom: 0.5rem;
+}
+
+@media (max-width: 600px) {
+    .welcome-text h1 {
+        font-size: 2rem;
+    }
 }
 
 .welcome-text p {
@@ -46,6 +75,16 @@ body {
     transition: all 0.3s;
     letter-spacing: 1px;
     white-space: nowrap;
+    display: inline-block;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    .btn-action {
+        padding: 8px 15px;
+        font-size: 0.8rem;
+        flex: 1; /* I pulsanti si espandono su mobile */
+    }
 }
 
 .btn-action:hover {
@@ -74,6 +113,14 @@ body {
 @media (max-width: 992px) {
     .dashboard-layout {
         grid-template-columns: 1fr; /* Colonna singola su schermi piccoli */
+    }
+
+    /* Inversione ordine su mobile: Main (Attive) prima di Left (Storico) */
+    .main-column {
+        order: 1;
+    }
+    .left-column {
+        order: 2;
     }
 }
 
@@ -321,6 +368,7 @@ body {
     font-size: 0.9rem;
     font-family: 'Lato', sans-serif;
     color-scheme: dark; /* Forza tema scuro nativo per il calendario */
+    flex: 1;
 }
 
 .notes-filters input[type="datetime-local"]:focus,

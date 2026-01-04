@@ -12,6 +12,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,10 +65,16 @@ public class CheckInController {
         for (int i = 0; i < numOspitiExtra; i++) {
             ospitiList.add(new Ospite());
         }
+        
+        // Verifica se i dati anagrafici sono già completi (per bloccarli)
+        boolean isProfileLocked = cliente.getCittadinanza() != null && !cliente.getCittadinanza().isEmpty() &&
+                                  cliente.getLuogo() != null && !cliente.getLuogo().isEmpty() &&
+                                  cliente.getDataNascita() != null && !cliente.getDataNascita().isEmpty();
 
         model.addAttribute("prenotazione", prenotazione);
         model.addAttribute("cliente", cliente);
         model.addAttribute("ospitiList", ospitiList);
+        model.addAttribute("isProfileLocked", isProfileLocked);
         
         return "cliente/checkin";
     }
@@ -84,14 +91,32 @@ public class CheckInController {
                                  RedirectAttributes redirectAttributes) {
 
         Prenotazione prenotazione = prenotazioneRepository.findById(prenotazioneId).orElseThrow();
-        
-        // 1. Aggiorna anagrafica Cliente (Capogruppo)
         Cliente clienteDb = prenotazione.getCliente();
-        clienteDb.setCittadinanza(clienteForm.getCittadinanza());
-        clienteDb.setLuogo(clienteForm.getLuogo());
-        clienteDb.setDataNascita(clienteForm.getDataNascita());
+
+        // Se il profilo non era bloccato, aggiorna i dati anagrafici
+        // Se era bloccato, ignoriamo i dati anagrafici inviati dal form (che dovrebbero essere readonly)
+        // Ma aggiorniamo SEMPRE il documento
+        
+        boolean wasProfileLocked = clienteDb.getCittadinanza() != null && !clienteDb.getCittadinanza().isEmpty();
+        
+        if (!wasProfileLocked) {
+            clienteDb.setCittadinanza(clienteForm.getCittadinanza());
+            clienteDb.setLuogo(clienteForm.getLuogo());
+            clienteDb.setDataNascita(clienteForm.getDataNascita());
+            
+            // Validazione Età Capogruppo (solo se stiamo aggiornando la data)
+            if (clienteForm.getDataNascita() != null && !clienteForm.getDataNascita().isEmpty()) {
+                if (Period.between(LocalDate.parse(clienteForm.getDataNascita()), LocalDate.now()).getYears() < 18) {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Il capogruppo deve essere maggiorenne.");
+                    return "redirect:/cliente/checkin/" + prenotazioneId;
+                }
+            }
+        }
+        
+        // Aggiorna SEMPRE il documento
         clienteDb.setTipoDocumento(clienteForm.getTipoDocumento());
         clienteDb.setNumDocumento(clienteForm.getNumDocumento());
+
         clienteRepository.save(clienteDb);
 
         // 2. Salva Capogruppo come Ospite

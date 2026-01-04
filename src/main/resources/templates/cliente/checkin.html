@@ -37,11 +37,13 @@
                         <input type="text" class="form-control" th:value="${cliente.utente.cognome}" readonly>
                     </div>
                 </div>
+
+                <!-- Dati Anagrafici (Bloccati se già presenti) -->
                 <div class="form-row">
                     <div class="form-group">
                         <label>Cittadinanza</label>
-                        <!-- Aggiunta classe per autocomplete -->
-                        <select name="cittadinanza" class="form-control input-cittadinanza" required>
+                        <input th:if="${isProfileLocked}" type="text" name="cittadinanza" class="form-control" th:value="${cliente.cittadinanza}" readonly>
+                        <select th:if="${!isProfileLocked}" name="cittadinanza" class="form-control input-cittadinanza" required>
                             <option value="">Seleziona...</option>
                             <option value="Italiana" th:selected="${cliente.cittadinanza == 'Italiana'}">Italiana</option>
                             <option value="Francese" th:selected="${cliente.cittadinanza == 'Francese'}">Francese</option>
@@ -53,16 +55,17 @@
                     </div>
                     <div class="form-group">
                         <label>Luogo di Nascita</label>
-                        <!-- Aggiunta classe per autocomplete -->
-                        <input type="text" name="luogo" class="form-control input-luogo" th:value="${cliente.luogo}" required autocomplete="off">
+                        <input type="text" name="luogo" class="form-control input-luogo" th:value="${cliente.luogo}" required autocomplete="off" th:readonly="${isProfileLocked}">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label>Data di Nascita</label>
-                        <input type="date" name="dataNascita" class="form-control date-birth" th:value="${cliente.dataNascita}" required>
+                        <input type="date" name="dataNascita" class="form-control date-birth" th:value="${cliente.dataNascita}" required th:readonly="${isProfileLocked}">
                     </div>
                 </div>
+
+                <!-- Documento (Sempre Modificabile) -->
                 <div class="form-row">
                     <div class="form-group">
                         <label>Tipo Documento</label>

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.format.DateTimeParseException;
 
 @Controller
@@ -40,26 +41,22 @@ public class ClienteProfileController {
                 .orElseThrow(() -> new IllegalArgumentException("Cliente non trovato"));
 
         ClienteProfileDto dto = new ClienteProfileDto();
-        // Dati Utente (Read-only)
         dto.setNome(cliente.getUtente().getNome());
         dto.setCognome(cliente.getUtente().getCognome());
         dto.setUsername(cliente.getUtente().getUsername());
 
-        // Dati Cliente (Editable) - Gestione Null Safety
         dto.setCittadinanza(cliente.getCittadinanza());
         dto.setLuogoNascita(cliente.getLuogo());
         dto.setNumDocumento(cliente.getNumDocumento());
         
-        // Conversione Data Nascita (String -> LocalDate)
         if (cliente.getDataNascita() != null && !cliente.getDataNascita().isEmpty()) {
             try {
                 dto.setDataNascita(LocalDate.parse(cliente.getDataNascita()));
             } catch (DateTimeParseException e) {
-                // Ignora se il formato è errato
+                // Ignora
             }
         }
 
-        // Conversione Tipo Documento (String -> Enum)
         if (cliente.getTipoDocumento() != null && !cliente.getTipoDocumento().isEmpty()) {
             for (TipoDocumento tipo : TipoDocumento.values()) {
                 if (tipo.getDescrizione().equals(cliente.getTipoDocumento())) {
@@ -68,8 +65,16 @@ public class ClienteProfileController {
                 }
             }
         }
+        
+        // Verifica se il profilo è completo (tutti i campi obbligatori presenti)
+        boolean isProfileComplete = cliente.getCittadinanza() != null && !cliente.getCittadinanza().isEmpty() &&
+                                    cliente.getLuogo() != null && !cliente.getLuogo().isEmpty() &&
+                                    cliente.getDataNascita() != null && !cliente.getDataNascita().isEmpty();
+                                    // Non controlliamo il documento qui per il lock, perché il documento è sempre editabile
 
         model.addAttribute("profileDto", dto);
+        model.addAttribute("isProfileComplete", isProfileComplete);
+        
         return "cliente/profile";
     }
 
@@ -77,14 +82,41 @@ public class ClienteProfileController {
     public String updateProfile(@Valid @ModelAttribute("profileDto") ClienteProfileDto dto,
                                 BindingResult bindingResult,
                                 Authentication authentication,
-                                RedirectAttributes redirectAttributes) {
+                                RedirectAttributes redirectAttributes,
+                                Model model) {
         
         if (bindingResult.hasErrors()) {
             return "cliente/profile";
         }
+        
+        // Validazione Età (18+) solo se stiamo modificando la data
+        if (dto.getDataNascita() != null) {
+            if (Period.between(dto.getDataNascita(), LocalDate.now()).getYears() < 18) {
+                bindingResult.rejectValue("dataNascita", "error.dataNascita", "Devi essere maggiorenne.");
+                return "cliente/profile";
+            }
+        }
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        clienteService.updateClienteProfile(userDetails.getUsername(), dto);
+        String username = userDetails.getUsername();
+        
+        Cliente cliente = clienteService.getClienteByUsername(username).orElseThrow();
+        
+        // Se i dati anagrafici erano già presenti, non li sovrascriviamo (immutabilità)
+        // Ma permettiamo sempre l'aggiornamento del documento
+        boolean wasProfileComplete = cliente.getCittadinanza() != null && !cliente.getCittadinanza().isEmpty();
+        
+        if (wasProfileComplete) {
+            // Manteniamo i vecchi dati anagrafici nel DTO per il salvataggio (o modifichiamo il service per aggiornare selettivamente)
+            // Modifichiamo il service per essere più intelligente o reimpostiamo i valori nel DTO dai vecchi dati
+            dto.setCittadinanza(cliente.getCittadinanza());
+            dto.setLuogoNascita(cliente.getLuogo());
+            if (cliente.getDataNascita() != null) {
+                dto.setDataNascita(LocalDate.parse(cliente.getDataNascita()));
+            }
+        }
+
+        clienteService.updateClienteProfile(username, dto);
 
         redirectAttributes.addFlashAttribute("successMessage", "Dati aggiornati con successo!");
         return "redirect:/cliente/dashboard";

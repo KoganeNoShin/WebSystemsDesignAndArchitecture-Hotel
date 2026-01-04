@@ -17,6 +17,10 @@
     <div class="checkin-page">
         <div class="checkin-container">
             <h1>Check-in Online</h1>
+
+            <!-- Messaggi di errore dal server -->
+            <div th:if="${errorMessage}" style="background-color: rgba(255, 77, 77, 0.2); color: #ff4d4d; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; border: 1px solid #ff4d4d; text-align: center;" th:text="${errorMessage}"></div>
+
             <p style="text-align: center; color: #ccc; margin-bottom: 2rem;">
                 Prenotazione #<span th:text="${prenotazione.id}">123</span> -
                 <span th:text="${prenotazione.camera.sede.nome}">Cortina</span>
@@ -61,7 +65,8 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Data di Nascita</label>
-                        <input type="date" name="dataNascita" class="form-control date-birth" th:value="${cliente.dataNascita}" required th:readonly="${isProfileLocked}">
+                        <!-- Aggiungo classe specifica per il capogruppo per validazione 18+ -->
+                        <input type="date" name="dataNascita" class="form-control date-birth capogruppo-date" th:value="${cliente.dataNascita}" required th:readonly="${isProfileLocked}">
                     </div>
                 </div>
 
@@ -147,24 +152,47 @@
             const today = new Date();
             let valid = true;
 
-            dateInputs.forEach(input => {
+            // Rimuovi bordi rossi precedenti
+            dateInputs.forEach(input => input.style.borderColor = "#555");
+
+            for (let i = 0; i < dateInputs.length; i++) {
+                const input = dateInputs[i];
+                if (!input.value) continue; // Salta se vuoto (ma è required)
+
                 const birthDate = new Date(input.value);
+
+                // Controllo data futura
                 if (birthDate >= today) {
                     alert("La data di nascita non può essere nel futuro o oggi.");
                     input.style.borderColor = "#ff4d4d";
                     valid = false;
-                } else {
-                    // Controllo età massima (es. 120 anni)
-                    const age = today.getFullYear() - birthDate.getFullYear();
-                    if (age > 120) {
-                        alert("Data di nascita non valida (età > 120).");
+                    break; // Interrompi al primo errore
+                }
+
+                // Controllo età massima
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+
+                if (age > 120) {
+                    alert("Data di nascita non valida (età > 120).");
+                    input.style.borderColor = "#ff4d4d";
+                    valid = false;
+                    break;
+                }
+
+                // Controllo Maggiorenne per Capogruppo
+                if (input.classList.contains('capogruppo-date')) {
+                    if (age < 18) {
+                        alert("Il capogruppo deve essere maggiorenne.");
                         input.style.borderColor = "#ff4d4d";
                         valid = false;
-                    } else {
-                        input.style.borderColor = "#555";
+                        break;
                     }
                 }
-            });
+            }
             return valid;
         }
     </script>

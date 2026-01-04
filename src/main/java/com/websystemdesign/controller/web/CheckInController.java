@@ -48,8 +48,10 @@ public class CheckInController {
             return "redirect:/cliente/dashboard";
         }
 
-        if (LocalDate.now().isAfter(prenotazione.getDataInizio().minusDays(1))) {
-             redirectAttributes.addFlashAttribute("errorMessage", "Tempo scaduto per il Check-in online. Contatta la struttura.");
+        // Nuova Regola: Check-in possibile fino alle 11:00 del giorno di arrivo
+        LocalDateTime deadline = prenotazione.getDataInizio().atTime(11, 0);
+        if (LocalDateTime.now().isAfter(deadline)) {
+             redirectAttributes.addFlashAttribute("errorMessage", "Tempo scaduto per il Check-in online (limite ore 11:00 del giorno di arrivo).");
              return "redirect:/cliente/dashboard";
         }
         
@@ -66,7 +68,6 @@ public class CheckInController {
             ospitiList.add(new Ospite());
         }
         
-        // Verifica se i dati anagrafici sono già completi (per bloccarli)
         boolean isProfileLocked = cliente.getCittadinanza() != null && !cliente.getCittadinanza().isEmpty() &&
                                   cliente.getLuogo() != null && !cliente.getLuogo().isEmpty() &&
                                   cliente.getDataNascita() != null && !cliente.getDataNascita().isEmpty();
@@ -93,10 +94,6 @@ public class CheckInController {
         Prenotazione prenotazione = prenotazioneRepository.findById(prenotazioneId).orElseThrow();
         Cliente clienteDb = prenotazione.getCliente();
 
-        // Se il profilo non era bloccato, aggiorna i dati anagrafici
-        // Se era bloccato, ignoriamo i dati anagrafici inviati dal form (che dovrebbero essere readonly)
-        // Ma aggiorniamo SEMPRE il documento
-        
         boolean wasProfileLocked = clienteDb.getCittadinanza() != null && !clienteDb.getCittadinanza().isEmpty();
         
         if (!wasProfileLocked) {
@@ -104,7 +101,6 @@ public class CheckInController {
             clienteDb.setLuogo(clienteForm.getLuogo());
             clienteDb.setDataNascita(clienteForm.getDataNascita());
             
-            // Validazione Età Capogruppo (solo se stiamo aggiornando la data)
             if (clienteForm.getDataNascita() != null && !clienteForm.getDataNascita().isEmpty()) {
                 if (Period.between(LocalDate.parse(clienteForm.getDataNascita()), LocalDate.now()).getYears() < 18) {
                     redirectAttributes.addFlashAttribute("errorMessage", "Il capogruppo deve essere maggiorenne.");
@@ -113,13 +109,10 @@ public class CheckInController {
             }
         }
         
-        // Aggiorna SEMPRE il documento
         clienteDb.setTipoDocumento(clienteForm.getTipoDocumento());
         clienteDb.setNumDocumento(clienteForm.getNumDocumento());
-
         clienteRepository.save(clienteDb);
 
-        // 2. Salva Capogruppo come Ospite
         Ospite capogruppoOspite = new Ospite();
         capogruppoOspite.setPrenotazione(prenotazione);
         capogruppoOspite.setNome(clienteDb.getUtente().getNome());
@@ -131,7 +124,6 @@ public class CheckInController {
         }
         ospiteRepository.save(capogruppoOspite);
 
-        // 3. Salva gli altri Ospiti
         if (nomi != null) {
             for (int i = 0; i < nomi.size(); i++) {
                 if (!nomi.get(i).isEmpty()) {
@@ -147,14 +139,11 @@ public class CheckInController {
             }
         }
 
-        // 4. Aggiorna stato Prenotazione
+        // Aggiorna stato Prenotazione a CHECKED_IN
         prenotazione.setStato(StatoPrenotazione.CHECKED_IN);
         prenotazioneRepository.save(prenotazione);
         
-        // 5. Aggiorna stato Camera
-        Camera camera = prenotazione.getCamera();
-        camera.setStatus(StatoCamera.OCCUPATA);
-        cameraRepository.save(camera);
+        // NESSUN aggiornamento stato camera (gestito dal collega)
 
         redirectAttributes.addFlashAttribute("successMessage", "Check-in online completato con successo! Benvenuto.");
         return "redirect:/cliente/dashboard";

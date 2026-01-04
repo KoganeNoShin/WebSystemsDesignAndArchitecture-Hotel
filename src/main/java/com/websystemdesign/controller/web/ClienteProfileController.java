@@ -66,11 +66,7 @@ public class ClienteProfileController {
             }
         }
         
-        // Verifica se il profilo è completo (tutti i campi obbligatori presenti)
-        boolean isProfileComplete = cliente.getCittadinanza() != null && !cliente.getCittadinanza().isEmpty() &&
-                                    cliente.getLuogo() != null && !cliente.getLuogo().isEmpty() &&
-                                    cliente.getDataNascita() != null && !cliente.getDataNascita().isEmpty();
-                                    // Non controlliamo il documento qui per il lock, perché il documento è sempre editabile
+        boolean isProfileComplete = checkProfileComplete(cliente);
 
         model.addAttribute("profileDto", dto);
         model.addAttribute("isProfileComplete", isProfileComplete);
@@ -85,7 +81,15 @@ public class ClienteProfileController {
                                 RedirectAttributes redirectAttributes,
                                 Model model) {
         
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String username = userDetails.getUsername();
+        Cliente cliente = clienteService.getClienteByUsername(username).orElseThrow();
+        
+        // Ricalcola isProfileComplete per la vista in caso di errore
+        boolean isProfileComplete = checkProfileComplete(cliente);
+        
         if (bindingResult.hasErrors()) {
+            model.addAttribute("isProfileComplete", isProfileComplete);
             return "cliente/profile";
         }
         
@@ -93,22 +97,14 @@ public class ClienteProfileController {
         if (dto.getDataNascita() != null) {
             if (Period.between(dto.getDataNascita(), LocalDate.now()).getYears() < 18) {
                 bindingResult.rejectValue("dataNascita", "error.dataNascita", "Devi essere maggiorenne.");
+                model.addAttribute("isProfileComplete", isProfileComplete);
                 return "cliente/profile";
             }
         }
-
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String username = userDetails.getUsername();
-        
-        Cliente cliente = clienteService.getClienteByUsername(username).orElseThrow();
         
         // Se i dati anagrafici erano già presenti, non li sovrascriviamo (immutabilità)
         // Ma permettiamo sempre l'aggiornamento del documento
-        boolean wasProfileComplete = cliente.getCittadinanza() != null && !cliente.getCittadinanza().isEmpty();
-        
-        if (wasProfileComplete) {
-            // Manteniamo i vecchi dati anagrafici nel DTO per il salvataggio (o modifichiamo il service per aggiornare selettivamente)
-            // Modifichiamo il service per essere più intelligente o reimpostiamo i valori nel DTO dai vecchi dati
+        if (isProfileComplete) {
             dto.setCittadinanza(cliente.getCittadinanza());
             dto.setLuogoNascita(cliente.getLuogo());
             if (cliente.getDataNascita() != null) {
@@ -120,5 +116,12 @@ public class ClienteProfileController {
 
         redirectAttributes.addFlashAttribute("successMessage", "Dati aggiornati con successo!");
         return "redirect:/cliente/dashboard";
+    }
+    
+    private boolean checkProfileComplete(Cliente cliente) {
+        return cliente.getCittadinanza() != null && !cliente.getCittadinanza().isEmpty() &&
+               cliente.getLuogo() != null && !cliente.getLuogo().isEmpty() &&
+               cliente.getDataNascita() != null && !cliente.getDataNascita().isEmpty();
+               // Non controlliamo il documento qui per il lock, perché il documento è sempre editabile
     }
 }

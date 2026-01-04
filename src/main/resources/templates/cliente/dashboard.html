@@ -76,11 +76,30 @@
                         <p class="booking-info" style="font-size: 1.1rem;">Totale Attuale: <strong style="color: var(--primary-gold);" th:text="'€ ' + ${#numbers.formatDecimal(costoTotaleAttuale, 1, 2)}">€ 500.00</strong></p>
                     </div>
 
+                    <!-- Avviso Scadenza -->
+                    <div th:if="${isExpired}" style="background-color: rgba(255, 77, 77, 0.2); color: #ff4d4d; padding: 10px; border-radius: 5px; margin-bottom: 1rem; border: 1px solid #ff4d4d;">
+                        <strong>⚠️ TEMPO SCADUTO</strong><br>
+                        Il soggiorno è terminato. Effettua il check-out per lasciare la camera.
+                    </div>
+
+                    <!-- Avviso Camera Non Pronta -->
+                    <div th:if="${!isRoomReady && !isExpired}" style="background-color: rgba(255, 204, 0, 0.1); color: #ffcc00; padding: 10px; border-radius: 5px; margin-bottom: 1rem; border: 1px solid #ffcc00;">
+                        <strong>⏳ IN ATTESA</strong><br>
+                        La camera non è ancora pronta o non è l'orario di check-in (12:00).
+                    </div>
+
                     <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;" onclick="event.stopPropagation()">
-                        <a th:href="@{/cliente/domotica}" class="btn-action">🏠 Domotica</a>
-                        <a th:href="@{/cliente/multimedia}" class="btn-action">🎬 Multimedia</a>
-                        <a href="#" class="btn-action" th:onclick="'openNotes(' + ${prenotazioneAttiva.id} + '); event.preventDefault();'">📝 Note</a>
-                        <!-- Tasto Check-out -->
+                        <!-- Controlli attivi solo se RoomReady e !Expired -->
+                        <a th:if="${isRoomReady && !isExpired}" th:href="@{/cliente/domotica}" class="btn-action">🏠 Domotica</a>
+                        <a th:if="${isRoomReady && !isExpired}" th:href="@{/cliente/multimedia}" class="btn-action">🎬 Multimedia</a>
+                        <a th:if="${isRoomReady && !isExpired}" href="#" class="btn-action" th:onclick="'openNotes(' + ${prenotazioneAttiva.id} + '); event.preventDefault();'">📝 Note</a>
+
+                        <!-- Controlli disabilitati -->
+                        <span th:if="${!isRoomReady || isExpired}" class="btn-action" style="opacity: 0.5; cursor: not-allowed; border-color: #555; color: #777;">🏠 Domotica</span>
+                        <span th:if="${!isRoomReady || isExpired}" class="btn-action" style="opacity: 0.5; cursor: not-allowed; border-color: #555; color: #777;">🎬 Multimedia</span>
+                        <span th:if="${!isRoomReady || isExpired}" class="btn-action" style="opacity: 0.5; cursor: not-allowed; border-color: #555; color: #777;">📝 Note</span>
+
+                        <!-- Tasto Check-out sempre attivo -->
                         <a th:href="@{/cliente/checkout/{id}(id=${prenotazioneAttiva.id})}" class="btn-action" style="border-color: #ffcc00; color: #ffcc00;">🚪 Check-out</a>
                     </div>
                 </div>

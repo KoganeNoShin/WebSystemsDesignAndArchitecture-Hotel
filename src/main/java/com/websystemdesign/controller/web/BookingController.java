@@ -3,6 +3,7 @@ package com.websystemdesign.controller.web;
 import com.websystemdesign.model.*;
 import com.websystemdesign.repository.*;
 import com.websystemdesign.service.CameraService;
+import com.websystemdesign.service.ClienteService;
 import com.websystemdesign.service.SedeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -32,27 +33,49 @@ public class BookingController {
     private final UtenteRepository utenteRepository;
     private final ClienteRepository clienteRepository;
     private final ServiceRepository serviceRepository;
+    private final ClienteService clienteService;
 
     @Autowired
-    public BookingController(SedeService sedeService, CameraService cameraService, PrenotazioneRepository prenotazioneRepository, UtenteRepository utenteRepository, ClienteRepository clienteRepository, ServiceRepository serviceRepository) {
+    public BookingController(SedeService sedeService, CameraService cameraService, PrenotazioneRepository prenotazioneRepository, UtenteRepository utenteRepository, ClienteRepository clienteRepository, ServiceRepository serviceRepository, ClienteService clienteService) {
         this.sedeService = sedeService;
         this.cameraService = cameraService;
         this.prenotazioneRepository = prenotazioneRepository;
         this.utenteRepository = utenteRepository;
         this.clienteRepository = clienteRepository;
         this.serviceRepository = serviceRepository;
+        this.clienteService = clienteService;
+    }
+
+    private boolean checkCanBook(Authentication authentication, RedirectAttributes redirectAttributes) {
+        if (authentication == null) return true; // Non loggato, lascia passare (verrà bloccato dopo login o gestito diversamente)
+        
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Utente utente = utenteRepository.findByUsername(userDetails.getUsername()).orElseThrow();
+        // Se non è un cliente (es. admin), può prenotare? Assumiamo di sì o no. Qui controlliamo solo i clienti.
+        if (clienteRepository.findByUtenteId(utente.getId()).isPresent()) {
+            Cliente cliente = clienteRepository.findByUtenteId(utente.getId()).get();
+            if (!clienteService.canBook(cliente.getId())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Hai già una prenotazione attiva o futura. Completala prima di farne un'altra.");
+                return false;
+            }
+        }
+        return true;
     }
 
     // Step 1: Scelta della Sede
     @GetMapping("/new")
-    public String selectSede(Model model) {
+    public String selectSede(Model model, Authentication authentication, RedirectAttributes redirectAttributes) {
+        if (!checkCanBook(authentication, redirectAttributes)) return "redirect:/cliente/dashboard";
+        
         model.addAttribute("sedi", sedeService.getAllSedi());
         return "booking/select-sede";
     }
 
-    // Step 2: Scelta della Camera (Mostra tutte le camere della sede)
+    // Step 2: Scelta della Camera
     @GetMapping("/rooms")
-    public String selectRoom(@RequestParam Long sedeId, Model model) {
+    public String selectRoom(@RequestParam Long sedeId, Model model, Authentication authentication, RedirectAttributes redirectAttributes) {
+        if (!checkCanBook(authentication, redirectAttributes)) return "redirect:/cliente/dashboard";
+
         Sede sede = sedeService.getSedeById(sedeId).orElseThrow();
         List<Camera> camere = cameraService.getCamereBySede(sedeId);
         
@@ -61,9 +84,11 @@ public class BookingController {
         return "booking/select-room-step2";
     }
 
-    // Step 3: Date, Ospiti e Servizi (per una camera specifica)
+    // Step 3: Date, Ospiti e Servizi
     @GetMapping("/dates")
-    public String selectDates(@RequestParam Long cameraId, Model model) {
+    public String selectDates(@RequestParam Long cameraId, Model model, Authentication authentication, RedirectAttributes redirectAttributes) {
+        if (!checkCanBook(authentication, redirectAttributes)) return "redirect:/cliente/dashboard";
+
         Camera camera = cameraService.getRoomById(cameraId).orElseThrow();
         Sede sede = camera.getSede();
 
@@ -82,8 +107,11 @@ public class BookingController {
                                 @RequestParam int numOspiti,
                                 @RequestParam(required = false) List<Long> selectedServices,
                                 Model model,
-                                RedirectAttributes redirectAttributes) {
+                                RedirectAttributes redirectAttributes,
+                                Authentication authentication) {
         
+        if (!checkCanBook(authentication, redirectAttributes)) return "redirect:/cliente/dashboard";
+
         // Validazione Date
         if (checkin.isBefore(LocalDate.now().plusDays(1))) {
             redirectAttributes.addFlashAttribute("errorMessage", "La prenotazione deve iniziare almeno da domani.");
@@ -129,6 +157,8 @@ public class BookingController {
                                  @RequestParam(required = false) List<Long> selectedServices,
                                  Authentication authentication,
                                  RedirectAttributes redirectAttributes) {
+
+        if (!checkCanBook(authentication, redirectAttributes)) return "redirect:/cliente/dashboard";
 
         // Validazione Date (anche qui per sicurezza)
         if (checkin.isBefore(LocalDate.now().plusDays(1))) {

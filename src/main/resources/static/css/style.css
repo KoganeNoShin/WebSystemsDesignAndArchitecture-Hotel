@@ -213,6 +213,25 @@ footer {
     border-bottom-color: var(--primary-gold);
 }
 
+/* Password Toggle */
+.password-wrapper {
+    position: relative;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #aaa;
+    font-size: 1.2rem;
+    user-select: none;
+}
+.toggle-password:hover {
+    color: var(--primary-gold);
+}
+
 select.form-control {
     background-color: #1a1a1a;
     color: var(--text-light);

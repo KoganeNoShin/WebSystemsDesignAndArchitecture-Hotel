@@ -4,6 +4,7 @@ import com.websystemdesign.model.*;
 import com.websystemdesign.repository.ClienteRepository;
 import com.websystemdesign.repository.PrenotazioneRepository;
 import com.websystemdesign.repository.UtenteRepository;
+import com.websystemdesign.service.ClienteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,12 +29,14 @@ public class ClienteDashboardController {
     private final UtenteRepository utenteRepository;
     private final ClienteRepository clienteRepository;
     private final PrenotazioneRepository prenotazioneRepository;
+    private final ClienteService clienteService;
 
     @Autowired
-    public ClienteDashboardController(UtenteRepository utenteRepository, ClienteRepository clienteRepository, PrenotazioneRepository prenotazioneRepository) {
+    public ClienteDashboardController(UtenteRepository utenteRepository, ClienteRepository clienteRepository, PrenotazioneRepository prenotazioneRepository, ClienteService clienteService) {
         this.utenteRepository = utenteRepository;
         this.clienteRepository = clienteRepository;
         this.prenotazioneRepository = prenotazioneRepository;
+        this.clienteService = clienteService;
     }
 
     @GetMapping("/dashboard")
@@ -52,17 +56,18 @@ public class ClienteDashboardController {
         model.addAttribute("utente", utente);
 
         List<Prenotazione> tutteLePrenotazioni = prenotazioneRepository.findByClienteId(cliente.getId());
-        LocalDate oggi = LocalDate.now();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = LocalDate.now();
 
-        // Escludi cancellate per le sezioni attive/future
         List<Prenotazione> prenotazioniValide = tutteLePrenotazioni.stream()
                 .filter(p -> p.getStato() != StatoPrenotazione.CANCELLATA)
                 .collect(Collectors.toList());
 
-        // Prenotazione Attiva (CHECKED_IN e nel range di date)
+        // Prenotazione Attiva (Soggiorno in Corso)
         Optional<Prenotazione> attivaOpt = prenotazioniValide.stream()
                 .filter(p -> p.getStato() == StatoPrenotazione.CHECKED_IN)
-                .filter(p -> !p.getDataInizio().isAfter(oggi) && !p.getDataFine().isBefore(oggi))
+                .filter(p -> p.getCamera().getStatus() == StatoCamera.OCCUPATA)
+                .filter(p -> now.isAfter(p.getDataInizio().atTime(12, 0)) || now.isEqual(p.getDataInizio().atTime(12, 0)))
                 .findFirst();
         
         if (attivaOpt.isPresent()) {
@@ -75,22 +80,37 @@ public class ClienteDashboardController {
             }
             model.addAttribute("costoMultimedia", costoMultimedia);
             model.addAttribute("costoTotaleAttuale", attiva.getCosto());
+            
+            boolean isExpired = now.isAfter(attiva.getDataFine().atTime(11, 0));
+            model.addAttribute("isExpired", isExpired);
+            model.addAttribute("isRoomReady", true); 
         }
 
-        // Prenotazioni Future (Solo CONFERMATA)
+        // Prenotazioni Future
         List<Prenotazione> future = prenotazioniValide.stream()
-                .filter(p -> p.getStato() == StatoPrenotazione.CONFERMATA)
-                .filter(p -> p.getDataInizio().isAfter(oggi))
+                .filter(p -> {
+                    boolean isConfermata = p.getStato() == StatoPrenotazione.CONFERMATA;
+                    boolean isCheckedInNotActive = false;
+                    if (p.getStato() == StatoPrenotazione.CHECKED_IN) {
+                        if (attivaOpt.isPresent() && p.getId().equals(attivaOpt.get().getId())) {
+                            return false;
+                        }
+                        isCheckedInNotActive = true;
+                    }
+                    boolean isFutureDate = p.getDataInizio().isAfter(today) || p.getDataInizio().isEqual(today);
+                    return (isConfermata || isCheckedInNotActive) && isFutureDate;
+                })
                 .collect(Collectors.toList());
         model.addAttribute("prenotazioniFuture", future);
 
-        // Prenotazioni Passate (CHECKED_OUT o data passata)
+        // Prenotazioni Passate
         List<Prenotazione> passate = tutteLePrenotazioni.stream()
-                .filter(p -> p.getStato() == StatoPrenotazione.CHECKED_OUT || p.getDataFine().isBefore(oggi))
+                .filter(p -> p.getStato() == StatoPrenotazione.CHECKED_OUT)
                 .collect(Collectors.toList());
         model.addAttribute("prenotazioniPassate", passate);
         
-        boolean hasFutureBooking = !future.isEmpty();
+        // Flag per limitare nuove prenotazioni: True se NON può prenotare
+        boolean hasFutureBooking = !clienteService.canBook(cliente.getId());
         model.addAttribute("hasFutureBooking", hasFutureBooking);
 
         return "cliente/dashboard";

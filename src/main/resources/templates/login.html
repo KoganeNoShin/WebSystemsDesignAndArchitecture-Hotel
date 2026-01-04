@@ -12,25 +12,37 @@
         <div class="form-container">
             <h2>Accedi</h2>
 
-            <!-- Il form punterà a /login, gestito da Spring Security -->
+            <div th:if="${param.error}" class="error-message" style="margin-bottom: 1rem;">
+                Username o password non validi.
+            </div>
+            <div th:if="${param.logout}" style="color: #4dff4d; margin-bottom: 1rem;">
+                Logout effettuato con successo.
+            </div>
+
             <form th:action="@{/login}" method="post">
                 <div class="form-group">
                     <label for="username">Username</label>
-                    <input type="text" id="username" name="username" class="form-control" required>
+                    <input type="text" id="username" name="username" class="form-control" required autofocus>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" class="form-control" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" name="password" class="form-control" required>
+                        <span class="toggle-password" onclick="togglePassword('password', this)">👁️‍🗨️</span>
+                    </div>
                 </div>
+
                 <button type="submit" class="btn-submit">Login</button>
             </form>
 
             <div class="form-footer">
-                <p>Non hai un account? <a th:href="@{/register}">Registrati ora</a>.</p>
+                <p>Non hai un account? <a th:href="@{/register}">Registrati</a>.</p>
                 <p><a th:href="@{/home}">Torna alla Home</a>.</p>
             </div>
         </div>
     </div>
+
+    <script th:src="@{/js/toggle-password.js}"></script>
 
 </body>
 </html>

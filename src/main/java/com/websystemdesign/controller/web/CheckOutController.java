@@ -110,9 +110,9 @@ public class CheckOutController {
         }
         prenotazioneRepository.save(prenotazione);
         
-        // Aggiorna stato camera
+        // Aggiorna stato camera a DA_PULIRE
         Camera camera = prenotazione.getCamera();
-        camera.setStatus(StatoCamera.DA_PULIRE); // Corretto da IN_PULIZIA a DA_PULIRE
+        camera.setStatus(StatoCamera.DA_PULIRE);
         cameraRepository.save(camera);
 
         redirectAttributes.addFlashAttribute("successMessage", "Check-out completato. Grazie per aver soggiornato da noi!");

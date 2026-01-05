@@ -107,31 +107,35 @@ public class AdminSedeController {
             return "admin/camere";
         }
 
-        // Recuperiamo la sede
         Sede sede = sedeService.getSedeById(sedeId)
                 .orElseThrow(() -> new IllegalArgumentException("Sede non valida"));
 
         Camera camera;
 
-        // LOGICA DI AGGIORNAMENTO O CREAZIONE
         if (cameraDto.getId() != null) {
-            // UPDATE: Cerchiamo la camera esistente per non perdere dati non nel form (se ce ne fossero)
+            // UPDATE: Recuperiamo l'esistente
             camera = cameraService.getRoomById(cameraDto.getId())
                     .orElseThrow(() -> new IllegalArgumentException("Camera non trovata"));
 
-            // Aggiorniamo i campi modificabili
+            // Aggiorniamo i campi (INCLUSA LA NUOVA TIPOLOGIA)
             camera.setNumero(cameraDto.getNumero());
             camera.setPostiLetto(cameraDto.getPostiLetto());
             camera.setPrezzoBase(cameraDto.getPrezzoBase());
+            camera.setTipologia(cameraDto.getTipologia()); // <--- NUOVO!
             camera.setLuce(cameraDto.isLuce());
             camera.setTapparelle(cameraDto.isTapparelle());
             camera.setTemperatura(cameraDto.getTemperatura());
-            // Nota: Non cambiamo lo status qui, solitamente lo status cambia col check-in/out
+
+            // Nota: Non aggiorniamo lo status qui per non sovrascrivere check-in
         } else {
-            // CREATE: Usiamo il mapper o il costruttore
+            // CREATE: Usiamo il mapper
             camera = cameraMapper.toEntity(cameraDto);
-            camera.setSede(sede); // Assicuriamo il collegamento
-            camera.setStatus(StatoCamera.LIBERA); // Default per nuove camere
+            camera.setSede(sede);
+            // Se la tipologia è null, mettiamo default
+            if (camera.getTipologia() == null || camera.getTipologia().isEmpty()) {
+                camera.setTipologia("Standard");
+            }
+            camera.setStatus(StatoCamera.LIBERA);
         }
 
         cameraService.saveRoom(camera);

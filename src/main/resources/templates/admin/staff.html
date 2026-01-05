@@ -2,123 +2,101 @@
 <html lang="it" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestione Staff - Comitini Residence</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Gestione Staff - Comitini Admin</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
 </head>
 <body>
 
-    <header>
-        <div style="display: flex; flex-direction: column; align-items: flex-start;">
-            <a th:href="@{/admin/dashboard}" class="logo">Comitini Admin</a>
-            <a th:href="@{/admin/dashboard}"
-               style="color: var(--primary-gold); text-decoration: none; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; border: 1px solid var(--primary-gold); padding: 5px 10px; border-radius: 3px; transition: all 0.3s ease;">
-               &larr; Dashboard
-            </a>
-        </div>
+<header>
+    <div style="display: flex; flex-direction: column; align-items: flex-start;">
+        <a th:href="@{/admin/dashboard}" class="logo">Comitini Admin</a>
+        <a th:href="@{/admin/dashboard}"
+           style="color: var(--primary-gold); text-decoration: none; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; border: 1px solid var(--primary-gold); padding: 5px 10px; border-radius: 3px; transition: all 0.3s ease;">
+            &larr; Dashboard
+        </a>
+    </div>
+    <form th:action="@{/logout}" method="post" style="display: inline;">
+        <button type="submit" class="btn-login" style="background: none; border: none; cursor: pointer;">Logout</button>
+    </form>
+</header>
 
-        <form th:action="@{/logout}" method="post" style="display: inline;">
-            <button type="submit" class="btn-login" style="background: none; border: none; cursor: pointer;">Logout</button>
+<div class="form-page" style="flex-direction: column; justify-content: flex-start; padding-top: 100px;">
+    <h1 style="font-family: 'Playfair Display', serif; font-size: 3rem; margin-bottom: 1rem;">Gestione Staff</h1>
+    <p style="margin-bottom: 2rem;">Visualizza e gestisci i membri del personale.</p>
+
+    <div th:if="${successMessage}" class="alert-box success" th:text="${successMessage}"></div>
+
+    <div style="width: 100%; max-width: 1200px; text-align: right; margin-bottom: 1rem;">
+        <button id="openModalBtn" class="btn-submit" style="width: auto; padding: 10px 20px;">Aggiungi Dipendente</button>
+    </div>
+
+    <table class="admin-table" style="width: 100%; max-width: 1200px;">
+        <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Cognome</th>
+            <th>Username</th>
+            <th>Ruolo</th>
+            <th>Sede</th>
+            <th>Azioni</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="dipendente : ${dipendenti}">
+            <td data-label="Nome" th:text="${dipendente.nome}">Nome</td>
+            <td data-label="Cognome" th:text="${dipendente.cognome}">Cognome</td>
+            <td data-label="Username" th:text="${dipendente.username}">Username</td>
+            <td data-label="Ruolo" th:text="${dipendente.ruolo}">Ruolo</td>
+            <td data-label="Sede" th:text="${dipendente.nomeSede}">Sede</td>
+            <td data-label="Azioni">
+                <form th:action="@{/admin/staff/delete/{id}(id=${dipendente.id})}" method="post" style="display:inline;">
+                    <button type="submit" class="action-btn btn-delete"
+                            onclick="return confirm('Sei sicuro di voler licenziare questo dipendente? L\'azione è irreversibile.')">
+                        Licenzia
+                    </button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div id="addStaffModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 style="font-family: 'Playfair Display', serif; color: var(--primary-gold); margin-bottom: 1rem;">Nuovo Dipendente</h2>
+        <form th:action="@{/admin/staff/new}" th:object="${dipendenteDto}" method="post">
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" th:field="*{nome}" class="form-control">
+                <div th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}" class="error-message"></div>
+            </div>
+            <div class="form-group">
+                <label>Cognome</label>
+                <input type="text" th:field="*{cognome}" class="form-control">
+                <div th:if="${#fields.hasErrors('cognome')}" th:errors="*{cognome}" class="error-message"></div>
+            </div>
+            <hr style="border-color: #444; margin: 15px 0;">
+            <div class="form-group">
+                <label>Ruolo</label>
+                <select th:field="*{ruolo}" class="form-control">
+                    <option value="">Seleziona...</option>
+                    <option th:each="r : ${T(com.websystemdesign.model.Ruolo).values()}"
+                            th:if="${r.name() != 'CLIENTE'}" th:value="${r}" th:text="${r}"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Sede</label>
+                <select th:field="*{sedeId}" class="form-control">
+                    <option value="">Seleziona...</option>
+                    <option th:each="s : ${sedi}" th:value="${s.id}" th:text="${s.nome}"></option>
+                </select>
+            </div>
+            <button type="submit" class="btn-submit">Salva</button>
         </form>
-    </header>
-
-    <div class="form-page" style="flex-direction: column; justify-content: flex-start; padding-top: 100px;">
-        <h1 style="font-family: 'Playfair Display', serif; font-size: 3rem; margin-bottom: 1rem;">Gestione Staff</h1>
-        <p style="margin-bottom: 2rem;">Visualizza e gestisci i membri del personale.</p>
-
-        <!-- Messaggio di successo -->
-        <div th:if="${successMessage}" class="alert alert-success" style="background-color: #28a745; padding: 1rem; margin-bottom: 1rem; width: 100%; max-width: 1200px; text-align: center;">
-            <p th:text="${successMessage}" style="margin: 0;"></p>
-        </div>
-
-        <div style="width: 100%; max-width: 1200px; text-align: right; margin-bottom: 1rem;">
-            <button id="openModalBtn" class="btn-submit" style="width: auto; padding: 10px 20px;">Aggiungi Dipendente</button>
-        </div>
-
-        <table class="admin-table" style="width: 100%; max-width: 1200px;">
-            <thead>
-                <tr>
-                    <th>Nome</th>
-                    <th>Cognome</th>
-                    <th>Username</th>
-                    <th>Ruolo</th>
-                    <th>Sede</th>
-                    <th>Azioni</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="dipendente : ${dipendenti}">
-                    <td th:text="${dipendente.nome}">Nome</td>
-                    <td th:text="${dipendente.cognome}">Cognome</td>
-                    <td th:text="${dipendente.username}">Username</td>
-                    <td th:text="${dipendente.ruolo}">Ruolo</td>
-                    <td th:text="${dipendente.nomeSede}">Sede</td>
-                    <td>
-                        <form th:action="@{/admin/staff/delete/{id}(id=${dipendente.id})}" method="post" style="display:inline;">
-                            <button type="submit" class="action-btn btn-delete"
-                                    onclick="return confirm('Sei sicuro di voler licenziare questo dipendente? L\'azione è irreversibile.')">
-                                Licenzia
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
     </div>
-
-    <!-- Il Modale -->
-    <div id="addStaffModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2 style="font-family: 'Playfair Display', serif; color: var(--primary-gold); margin-bottom: 1rem;">Nuovo Dipendente</h2>
-            <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 1rem;">Username e password verranno generati automaticamente.</p>
-
-            <form th:action="@{/admin/staff/new}" th:object="${dipendenteDto}" method="post">
-
-                <!-- Dati Utente -->
-                <div class="form-group">
-                    <label for="nome">Nome</label>
-                    <input type="text" id="nome" th:field="*{nome}" class="form-control">
-                    <div th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}" class="error-message"></div>
-                </div>
-                <div class="form-group">
-                    <label for="cognome">Cognome</label>
-                    <input type="text" id="cognome" th:field="*{cognome}" class="form-control">
-                    <div th:if="${#fields.hasErrors('cognome')}" th:errors="*{cognome}" class="error-message"></div>
-                </div>
-
-                <hr style="border-color: rgba(197, 160, 89, 0.3); margin: 2rem 0;">
-
-                <!-- Dati Dipendente -->
-                <div class="form-group">
-                    <label for="ruolo">Ruolo</label>
-                    <select id="ruolo" th:field="*{ruolo}" class="form-control">
-                        <option value="">Seleziona...</option>
-                        <option th:each="r : ${T(com.websystemdesign.model.Ruolo).values()}"
-                                th:if="${r.name() != 'CLIENTE'}"
-                                th:value="${r}"
-                                th:text="${r}"></option>
-                    </select>
-                    <div th:if="${#fields.hasErrors('ruolo')}" th:errors="*{ruolo}" class="error-message"></div>
-                </div>
-                <div class="form-group">
-                    <label for="sede">Sede</label>
-                    <select id="sede" th:field="*{sedeId}" class="form-control">
-                        <option value="">Seleziona...</option>
-                        <option th:each="s : ${sedi}"
-                                th:value="${s.id}"
-                                th:text="${s.nome}"></option>
-                    </select>
-                    <div th:if="${#fields.hasErrors('sedeId')}" th:errors="*{sedeId}" class="error-message"></div>
-                </div>
-
-                <button type="submit" class="btn-submit">Salva Dipendente</button>
-            </form>
-        </div>
-    </div>
-
-    <script th:src="@{/js/admin-staff.js}"></script>
-
+</div>
+<script th:src="@{/js/admin-staff.js}"></script>
 </body>
 </html>

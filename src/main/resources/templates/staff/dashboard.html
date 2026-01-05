@@ -3,62 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Staff</title>
+    <title>Staff Dashboard - Housekeeping</title>
+
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            text-align: center;
-            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/image/background.avif');
-            background-size: cover;
-            background-position: center;
-        }
-        .dashboard-container {
-            background-color: rgba(0, 0, 0, 0.8);
-            padding: 3rem;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-        }
-        h1 {
-            color: var(--primary-gold);
-            font-family: 'Playfair Display', serif;
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-        p {
-            color: var(--text-light);
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-        }
-        .logout-form {
-            margin-top: 2rem;
-        }
-        .logout-button {
-            background-color: var(--primary-gold);
-            color: #000;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s ease;
-        }
-        .logout-button:hover {
-            background-color: #e0b86c;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/staff.css}">
 </head>
 <body>
-    <div class="dashboard-container">
-        <h1>Benvenuto, Staff!</h1>
-        <p>Questa è la tua dashboard.</p>
-        <form th:action="@{/logout}" method="post" class="logout-form">
-            <button type="submit" class="logout-button">Logout</button>
-        </form>
+
+<header>
+    <div style="display: flex; flex-direction: column; justify-content: center;">
+        <a href="#" class="logo">Staff Panel</a>
+        <span style="color: var(--primary-gold); font-size: 0.9rem; letter-spacing: 1px; margin-top: 5px;" th:text="${nomeSede}">
+                Hotel Roma
+            </span>
     </div>
+
+    <form th:action="@{/logout}" method="post">
+        <button type="submit" class="btn-logout">Logout</button>
+    </form>
+</header>
+
+<div class="staff-dashboard-container">
+    <h1 class="staff-title">Stato Operativo Camere</h1>
+
+    <div class="staff-grid">
+
+        <div th:each="camera : ${camere}" th:class="'room-card ' + ${camera.status}">
+
+            <div>
+                <span class="room-status-badge" th:text="${camera.status}">LIBERA</span>
+            </div>
+
+            <div class="room-number" th:text="${camera.numero}">101</div>
+
+            <div class="client-info" th:if="${camera.clienteAttuale != null}">
+                Ospite attuale: <br>
+                <span class="client-name" th:text="${camera.clienteAttuale}">Mario Rossi</span>
+            </div>
+            <div class="client-info" th:if="${camera.clienteAttuale == null && camera.status.name() != 'LIBERA'}">
+                <span style="color: #888; font-style: italic;">Cliente in uscita o in arrivo</span>
+            </div>
+
+            <div class="notes-box" th:if="${not #lists.isEmpty(camera.note)}">
+                <strong>⚠️ Note / Richieste:</strong>
+                <ul>
+                    <li th:each="nota : ${camera.note}" th:text="${nota}">Allergia polvere</li>
+                </ul>
+            </div>
+
+            <form th:if="${camera.status.name() == 'DA_PULIRE'}"
+                  th:action="@{/staff/camera/{id}/pulita(id=${camera.id})}" method="post">
+                <button type="submit" class="btn-clean-action" onclick="return confirm('Confermi che la camera è pulita e pronta?')">
+                    ✅ Segna Pronta
+                </button>
+            </form>
+
+            <div th:if="${camera.status.name() == 'OCCUPATA'}" style="margin-top: 20px; color: #888; font-size: 0.85rem; text-align: center;">
+                Attendere Check-out per pulizie.
+            </div>
+            <div th:if="${camera.status.name() == 'LIBERA'}" style="margin-top: 20px; color: #28a745; font-size: 0.85rem; text-align: center;">
+                Camera pronta per nuovi ospiti.
+            </div>
+
+        </div> </div> </div>
+
 </body>
 </html>

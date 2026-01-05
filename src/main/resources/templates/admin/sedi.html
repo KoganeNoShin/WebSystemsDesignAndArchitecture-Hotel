@@ -2,6 +2,7 @@
 <html lang="it" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestione Strutture - Comitini Admin</title>
   <link rel="stylesheet" th:href="@{/css/style.css}">
   <link rel="stylesheet" th:href="@{/css/admin.css}">
@@ -39,15 +40,13 @@
     </thead>
     <tbody>
     <tr th:each="sede : ${sedi}">
-      <td th:text="${sede.nome}" style="font-weight:bold; color: var(--primary-gold);">Nome</td>
-      <td th:text="${sede.location}">Città</td>
-      <td th:text="${sede.tassaSoggiorno}">€ 2.50</td>
-      <td>
-        <a th:href="@{/admin/sedi/{id}/camere(id=${sede.id})}" class="action-btn" style="background-color: #444; margin-right: 5px; text-decoration: none;">Gestisci Camere</a>
-
+      <td data-label="Nome" th:text="${sede.nome}" style="font-weight:bold; color: var(--primary-gold);">Nome</td>
+      <td data-label="Location" th:text="${sede.location}">Città</td>
+      <td data-label="Tassa" th:text="${sede.tassaSoggiorno}">€ 2.50</td>
+      <td data-label="Azioni">
+        <a th:href="@{/admin/sedi/{id}/camere(id=${sede.id})}" class="action-btn" style="margin-right: 5px;">Gestisci Camere</a>
         <form th:action="@{/admin/sedi/delete/{id}(id=${sede.id})}" method="post" style="display:inline;">
-          <button type="submit" class="action-btn btn-delete"
-                  onclick="return confirm('Eliminare questa struttura?')">Elimina</button>
+          <button type="submit" class="action-btn btn-delete" onclick="return confirm('Eliminare questa struttura?')">Elimina</button>
         </form>
       </td>
     </tr>
@@ -59,40 +58,33 @@
   <div class="modal-content">
     <span class="close">&times;</span>
     <h2 style="font-family: 'Playfair Display'; color: var(--primary-gold);">Nuova Sede</h2>
-
     <form th:action="@{/admin/sedi/new}" th:object="${sedeDto}" method="post">
       <div class="form-group">
         <label>Nome Hotel</label>
-        <input type="text" th:field="*{nome}" class="form-control" placeholder="es. Grand Hotel Palace">
+        <input type="text" th:field="*{nome}" class="form-control">
         <div th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}" class="error-message"></div>
       </div>
-
       <div class="form-group">
-        <label>Location (Città)</label>
-        <input type="text" th:field="*{location}" class="form-control" placeholder="es. Roma">
+        <label>Location</label>
+        <input type="text" th:field="*{location}" class="form-control">
         <div th:if="${#fields.hasErrors('location')}" th:errors="*{location}" class="error-message"></div>
       </div>
-
       <div class="form-group">
-        <label>Tassa di Soggiorno (Descrizione o Importo)</label>
-        <input type="text" th:field="*{tassaSoggiorno}" class="form-control" placeholder="es. 2.50€ per notte">
+        <label>Tassa Soggiorno</label>
+        <input type="text" th:field="*{tassaSoggiorno}" class="form-control">
         <div th:if="${#fields.hasErrors('tassaSoggiorno')}" th:errors="*{tassaSoggiorno}" class="error-message"></div>
       </div>
-
-      <button type="submit" class="btn-submit">Salva Struttura</button>
+      <button type="submit" class="btn-submit">Salva</button>
     </form>
   </div>
 </div>
-
 <script>
   var modal = document.getElementById("addSedeModal");
   var btn = document.getElementById("openModalBtn");
   var span = document.getElementsByClassName("close")[0];
-
   if(btn) btn.onclick = function() { modal.style.display = "block"; }
   if(span) span.onclick = function() { modal.style.display = "none"; }
   window.onclick = function(event) { if (event.target == modal) modal.style.display = "none"; }
 </script>
-
 </body>
 </html>

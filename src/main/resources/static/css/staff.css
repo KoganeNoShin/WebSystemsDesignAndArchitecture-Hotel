@@ -1,0 +1,157 @@
+/* =========================================
+   STAFF DASHBOARD STYLES
+   Eredita variabili da style.css
+========================================= */
+
+/* Contenitore principale */
+.staff-dashboard-container {
+    /* Padding top alto per non finire sotto l'header fisso */
+    padding: 120px 20px 50px;
+    min-height: 100vh;
+
+    /* CORREZIONE 1: Rimosso background-color solido per far vedere l'immagine del body */
+    /* background-color: #1a1a1a; <-- CANCELLATO */
+}
+
+/* Titolo della sezione */
+.staff-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    color: var(--primary-gold);
+    text-align: center;
+    margin-bottom: 40px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8); /* Aggiunta ombra per leggibilità su immagine */
+}
+
+/* --- GRIGLIA RESPONSIVE --- */
+.staff-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* --- STILE CARD --- */
+.room-card {
+    /* Aggiunta trasparenza per far intravedere lo sfondo ma mantenere leggibilità */
+    background-color: rgba(37, 37, 37, 0.95);
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 25px;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    overflow: hidden;
+}
+
+.room-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    border-color: var(--primary-gold);
+}
+
+/* Barra colorata superiore */
+.room-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+}
+
+.room-card.LIBERA::before { background-color: #28a745; }
+.room-card.OCCUPATA::before { background-color: #dc3545; }
+.room-card.DA_PULIRE::before { background-color: #ffc107; }
+
+/* Numero Camera */
+.room-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    color: var(--primary-gold);
+    margin: 15px 0;
+    font-weight: 700;
+}
+
+/* Badge Stato */
+.room-status-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.LIBERA .room-status-badge { background-color: rgba(40, 167, 69, 0.2); color: #28a745; }
+.OCCUPATA .room-status-badge { background-color: rgba(220, 53, 69, 0.2); color: #dc3545; }
+.DA_PULIRE .room-status-badge { background-color: rgba(255, 193, 7, 0.2); color: #ffc107; }
+
+/* Info Cliente */
+.client-info {
+    color: #ccc;
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+}
+.client-name {
+    color: white;
+    font-weight: bold;
+}
+
+/* Box Note */
+.notes-box {
+    background-color: rgba(0,0,0,0.3);
+    border-left: 3px solid var(--primary-gold);
+    padding: 12px;
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: #ddd;
+    border-radius: 0 5px 5px 0;
+}
+.notes-box ul {
+    margin-top: 5px;
+    padding-left: 20px;
+}
+
+/* Bottone Azione */
+.btn-clean-action {
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    background-color: transparent;
+    border: 2px solid #ffc107;
+    color: #ffc107;
+    font-family: 'Lato', sans-serif;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+
+.btn-clean-action:hover {
+    background-color: #ffc107;
+    color: black;
+}
+
+/* --- ADATTAMENTI MOBILE --- */
+@media (max-width: 768px) {
+    .staff-dashboard-container {
+        /* CORREZIONE 2: Aumentato padding-top per evitare sovrapposizione header */
+        padding-top: 160px;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .staff-title {
+        font-size: 2rem;
+        margin-bottom: 30px;
+    }
+
+    .room-number {
+        font-size: 2rem;
+    }
+}

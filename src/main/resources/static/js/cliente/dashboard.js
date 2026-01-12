@@ -1,4 +1,3 @@
-// --- JS per Modale Dettagli ---
 function openDetails(id) {
     const modal = document.getElementById('detailsModal');
     const body = document.getElementById('modalBody');
@@ -69,7 +68,6 @@ function closeDetails() {
     document.body.style.overflow = "auto";
 }
 
-// --- JS per Modale Note ---
 let currentPrenotazioneId = null;
 const notesModal = document.getElementById('notesModal');
 const notesHistory = document.getElementById('notes-history');
@@ -80,7 +78,6 @@ function openNotes(prenotazioneId) {
     notesModal.style.display = "flex";
     document.body.style.overflow = "hidden";
 
-    // Reset filtri
     document.getElementById('filterFrom').value = '';
     document.getElementById('filterTo').value = '';
     document.getElementById('filterLimit').value = '10';
@@ -144,8 +141,6 @@ function sendNote(event) {
     })
     .then(res => res.json())
     .then(newNote => {
-        // Ricarica le note per rispettare l'ordinamento e i filtri, oppure aggiungi in cima se non ci sono filtri restrittivi
-        // Per semplicità, ricarichiamo
         loadNotes();
         document.getElementById('newNoteText').value = '';
     });

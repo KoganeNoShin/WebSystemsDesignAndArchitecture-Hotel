@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Gestione Modale
     var modal = document.getElementById("addStaffModal");
     var btn = document.getElementById("openModalBtn");
     var span = document.getElementsByClassName("close")[0];
@@ -19,7 +18,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // Se ci sono errori nel form (rilevati da Thymeleaf), apri il modale automaticamente
         if (document.querySelector('.error-message')) {
             modal.style.display = "block";
         }

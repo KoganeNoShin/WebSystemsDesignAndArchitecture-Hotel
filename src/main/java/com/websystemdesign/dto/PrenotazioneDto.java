@@ -30,7 +30,6 @@ public class PrenotazioneDto {
 
     private StatoPrenotazione stato;
 
-    // Includiamo i DTO delle entità collegate per avere una risposta completa
     private Set<NotaDto> note;
     private Set<OspiteDto> ospiti;
     private Set<ServiceDto> services;

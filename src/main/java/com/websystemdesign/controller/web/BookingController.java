@@ -47,11 +47,10 @@ public class BookingController {
     }
 
     private boolean checkCanBook(Authentication authentication, RedirectAttributes redirectAttributes) {
-        if (authentication == null) return true; // Non loggato, lascia passare (verrà bloccato dopo login o gestito diversamente)
+        if (authentication == null) return true;
         
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         Utente utente = utenteRepository.findByUsername(userDetails.getUsername()).orElseThrow();
-        // Se non è un cliente (es. admin), può prenotare? Assumiamo di sì o no. Qui controlliamo solo i clienti.
         if (clienteRepository.findByUtenteId(utente.getId()).isPresent()) {
             Cliente cliente = clienteRepository.findByUtenteId(utente.getId()).get();
             if (!clienteService.canBook(cliente.getId())) {
@@ -62,7 +61,6 @@ public class BookingController {
         return true;
     }
 
-    // Step 1: Scelta della Sede
     @GetMapping("/new")
     public String selectSede(Model model, Authentication authentication, RedirectAttributes redirectAttributes) {
         if (!checkCanBook(authentication, redirectAttributes)) return "redirect:/cliente/dashboard";
@@ -71,7 +69,6 @@ public class BookingController {
         return "booking/select-sede";
     }
 
-    // Step 2: Scelta della Camera
     @GetMapping("/rooms")
     public String selectRoom(@RequestParam Long sedeId, Model model, Authentication authentication, RedirectAttributes redirectAttributes) {
         if (!checkCanBook(authentication, redirectAttributes)) return "redirect:/cliente/dashboard";
@@ -84,7 +81,6 @@ public class BookingController {
         return "booking/select-room-step2";
     }
 
-    // Step 3: Date, Ospiti e Servizi
     @GetMapping("/dates")
     public String selectDates(@RequestParam Long cameraId, Model model, Authentication authentication, RedirectAttributes redirectAttributes) {
         if (!checkCanBook(authentication, redirectAttributes)) return "redirect:/cliente/dashboard";
@@ -99,7 +95,6 @@ public class BookingController {
         return "booking/select-dates-step3";
     }
 
-    // Step 4: Riepilogo
     @GetMapping("/review")
     public String reviewBooking(@RequestParam Long cameraId,
                                 @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkin,
@@ -112,7 +107,6 @@ public class BookingController {
         
         if (!checkCanBook(authentication, redirectAttributes)) return "redirect:/cliente/dashboard";
 
-        // Validazione Date
         if (checkin.isBefore(LocalDate.now().plusDays(1))) {
             redirectAttributes.addFlashAttribute("errorMessage", "La prenotazione deve iniziare almeno da domani.");
             return "redirect:/booking/dates?cameraId=" + cameraId;
@@ -148,7 +142,6 @@ public class BookingController {
         return "booking/review";
     }
 
-    // Step 5: Conferma e Salvataggio
     @PostMapping("/confirm")
     public String confirmBooking(@RequestParam Long cameraId,
                                  @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkin,
@@ -160,7 +153,6 @@ public class BookingController {
 
         if (!checkCanBook(authentication, redirectAttributes)) return "redirect:/cliente/dashboard";
 
-        // Validazione Date (anche qui per sicurezza)
         if (checkin.isBefore(LocalDate.now().plusDays(1))) {
             redirectAttributes.addFlashAttribute("errorMessage", "La prenotazione deve iniziare almeno da domani.");
             return "redirect:/booking/dates?cameraId=" + cameraId;

@@ -40,7 +40,6 @@ public class CameraService {
         return cameraRepository.findBySedeId(sedeId);
     }
 
-    // Restituisce la lista delle immagini disponibili per la camera
     public List<String> getImmaginiCamera(Camera camera) {
         String tipo = camera.getTipologia() != null && camera.getTipologia().equalsIgnoreCase("Suite") ? "Suite" : "Rooms";
         int maxFolder = 12; 
@@ -54,30 +53,24 @@ public class CameraService {
         List<String> immagini = new ArrayList<>();
         
         try {
-            // Cerchiamo la cartella nelle risorse
             File folder = new ClassPathResource(relativePath).getFile();
             
             if (folder.exists() && folder.isDirectory()) {
                 File[] files = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".webp") || name.toLowerCase().endsWith(".jpg") || name.toLowerCase().endsWith(".png"));
                 
                 if (files != null) {
-                    // Aggiungiamo tutti i file trovati
                     for (File file : files) {
                         immagini.add(webPath + file.getName());
                     }
                 }
             }
         } catch (Exception e) {
-            // Fallback in caso di errore (es. esecuzione da JAR dove getFile() non funziona)
-            // O se la cartella non viene trovata.
-            // Mettiamo almeno un'immagine di default o proviamo i primi 3 numeri
             System.err.println("Errore nel recupero immagini per camera " + camera.getId() + ": " + e.getMessage());
             for (int i = 1; i <= 3; i++) {
                 immagini.add(webPath + i + ".webp");
             }
         }
         
-        // Se non abbiamo trovato nulla (lista vuota), fallback
         if (immagini.isEmpty()) {
              immagini.add(webPath + "1.webp");
         }

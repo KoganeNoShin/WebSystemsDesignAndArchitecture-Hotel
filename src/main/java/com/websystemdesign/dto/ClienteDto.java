@@ -22,6 +22,5 @@ public class ClienteDto {
     @NotBlank(message = "Il numero del documento è obbligatorio")
     private String numDocumento;
 
-    // L'ID dell'utente associato. Non trasferiamo l'intero oggetto Utente.
     private Long utenteId;
 }

@@ -22,7 +22,6 @@ public class HomeController {
         this.serviceHotelService = serviceHotelService;
     }
 
-    // Reindirizza la radice del sito verso /home
     @GetMapping("/")
     public String root() {
         return "redirect:/home";
@@ -36,7 +35,7 @@ public class HomeController {
     @GetMapping("/home/rooms")
     public String showRooms(Model model) {
         model.addAttribute("camere", cameraService.getAllCamera());
-        model.addAttribute("sedi", sedeService.getAllSedi()); // Aggiungo le sedi per il filtro
+        model.addAttribute("sedi", sedeService.getAllSedi());
         return "rooms";
     }
 
@@ -49,7 +48,7 @@ public class HomeController {
     @GetMapping("/home/services")
     public String showServices(Model model) {
         model.addAttribute("servizi", serviceHotelService.getAllServices());
-        model.addAttribute("sedi", sedeService.getAllSedi()); // Necessario per il filtro
+        model.addAttribute("sedi", sedeService.getAllSedi());
         return "services";
     }
 }

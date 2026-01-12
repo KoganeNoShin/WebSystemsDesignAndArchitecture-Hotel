@@ -41,7 +41,6 @@ public class UtenteService implements UserDetailsService {
 
     @Transactional
     public void registraNuovoCliente(RegistrationDto registrationDto) {
-        // 1. Crea e salva l'Utente
         Utente nuovoUtente = new Utente();
         nuovoUtente.setNome(registrationDto.getNome());
         nuovoUtente.setCognome(registrationDto.getCognome());
@@ -49,10 +48,8 @@ public class UtenteService implements UserDetailsService {
         nuovoUtente.setPassword(passwordEncoder.encode(registrationDto.getPassword()));
         utenteRepository.save(nuovoUtente);
 
-        // 2. Crea e salva il Cliente collegato (con dati anagrafici nulli)
         Cliente nuovoCliente = new Cliente();
         nuovoCliente.setUtente(nuovoUtente);
-        // I campi anagrafici sono ora nullable nel DB, quindi non serve settarli a ""
         
         clienteRepository.save(nuovoCliente);
     }

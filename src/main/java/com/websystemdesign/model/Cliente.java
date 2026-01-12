@@ -17,7 +17,7 @@ public class Cliente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column // Nullable by default
+    @Column
     private String cittadinanza;
 
     @Column
@@ -41,7 +41,6 @@ public class Cliente {
     @ToString.Exclude
     private Set<Prenotazione> prenotazioni;
     
-    // Costruttore completo per il seeder (opzionale, ma utile per non rompere il codice esistente)
     public Cliente(String cittadinanza, String luogo, String dataNascita, String tipoDocumento, String numDocumento, Utente utente) {
         this.cittadinanza = cittadinanza;
         this.luogo = luogo;

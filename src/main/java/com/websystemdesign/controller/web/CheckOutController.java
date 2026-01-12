@@ -48,7 +48,6 @@ public class CheckOutController {
             return "redirect:/cliente/dashboard";
         }
 
-        // Calcolo Costi e Sconti
         LocalDate oggi = LocalDate.now();
         LocalDate checkin = prenotazione.getDataInizio();
         LocalDate checkoutPrevisto = prenotazione.getDataFine();
@@ -70,12 +69,11 @@ public class CheckOutController {
         boolean isAnticipato = nottiRimanenti > 0;
         
         if (isAnticipato) {
-            sconto = costoNottiRimanenti * 0.5f; // Sconto 50% sulle notti non godute
+            sconto = costoNottiRimanenti * 0.5f;
         }
         
         float costoCameraFinale = costoNottiUsufruite + (costoNottiRimanenti - sconto);
         
-        // Costi Extra
         float costoServizi = (float) prenotazione.getServices().stream().mapToDouble(Service::getCosto).sum();
         float costoMultimedia = (float) prenotazione.getMultimedia().stream().mapToDouble(Multimedia::getCosto).sum();
         
@@ -102,7 +100,6 @@ public class CheckOutController {
         
         Prenotazione prenotazione = prenotazioneRepository.findById(prenotazioneId).orElseThrow();
         
-        // Aggiorna stato prenotazione
         prenotazione.setStato(StatoPrenotazione.CHECKED_OUT);
         prenotazione.setCosto(totalePagato);
         if (LocalDate.now().isBefore(prenotazione.getDataFine())) {
@@ -110,7 +107,6 @@ public class CheckOutController {
         }
         prenotazioneRepository.save(prenotazione);
         
-        // Aggiorna stato camera a DA_PULIRE
         Camera camera = prenotazione.getCamera();
         camera.setStatus(StatoCamera.DA_PULIRE);
         cameraRepository.save(camera);

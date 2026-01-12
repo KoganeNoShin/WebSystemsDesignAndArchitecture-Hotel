@@ -31,8 +31,6 @@ public class AdminSedeController {
         this.cameraMapper = cameraMapper;
     }
 
-    // --- GESTIONE SEDI ---
-
     @GetMapping
     public String showSediPage(Model model) {
         model.addAttribute("sedi", sedeService.getAllSedi());
@@ -71,27 +69,23 @@ public class AdminSedeController {
         return "redirect:/admin/sedi";
     }
 
-    // --- GESTIONE CAMERE PER UNA SPECIFICA SEDE ---
-
     @GetMapping("/{id}/camere")
     public String showCamerePage(@PathVariable("id") Long sedeId, Model model) {
         Sede sede = sedeService.getSedeById(sedeId)
                 .orElseThrow(() -> new IllegalArgumentException("Sede non valida:" + sedeId));
 
         model.addAttribute("sede", sede);
-        // Usiamo il nuovo metodo del service creato nello Step 1
         model.addAttribute("camere", cameraService.getCamereBySede(sedeId));
 
         if (!model.containsAttribute("cameraDto")) {
             CameraDto dto = new CameraDto();
-            dto.setSedeId(sedeId); // Pre-impariamo l'ID della sede
+            dto.setSedeId(sedeId);
             model.addAttribute("cameraDto", dto);
         }
 
-        return "admin/camere"; // Nuovo file HTML
+        return "admin/camere";
     }
 
-    // Rinominiamo la rotta in 'save' perché gestisce sia create che update
     @PostMapping("/{id}/camere/save")
     public String saveCamera(@PathVariable("id") Long sedeId,
                              @Valid @ModelAttribute("cameraDto") CameraDto cameraDto,
@@ -113,25 +107,20 @@ public class AdminSedeController {
         Camera camera;
 
         if (cameraDto.getId() != null) {
-            // UPDATE: Recuperiamo l'esistente
             camera = cameraService.getRoomById(cameraDto.getId())
                     .orElseThrow(() -> new IllegalArgumentException("Camera non trovata"));
 
-            // Aggiorniamo i campi (INCLUSA LA NUOVA TIPOLOGIA)
             camera.setNumero(cameraDto.getNumero());
             camera.setPostiLetto(cameraDto.getPostiLetto());
             camera.setPrezzoBase(cameraDto.getPrezzoBase());
-            camera.setTipologia(cameraDto.getTipologia()); // <--- NUOVO!
+            camera.setTipologia(cameraDto.getTipologia());
             camera.setLuce(cameraDto.isLuce());
             camera.setTapparelle(cameraDto.isTapparelle());
             camera.setTemperatura(cameraDto.getTemperatura());
 
-            // Nota: Non aggiorniamo lo status qui per non sovrascrivere check-in
         } else {
-            // CREATE: Usiamo il mapper
             camera = cameraMapper.toEntity(cameraDto);
             camera.setSede(sede);
-            // Se la tipologia è null, mettiamo default
             if (camera.getTipologia() == null || camera.getTipologia().isEmpty()) {
                 camera.setTipologia("Standard");
             }

@@ -53,7 +53,6 @@ public class ClienteProfileController {
             try {
                 dto.setDataNascita(LocalDate.parse(cliente.getDataNascita()));
             } catch (DateTimeParseException e) {
-                // Ignora
             }
         }
 
@@ -85,7 +84,6 @@ public class ClienteProfileController {
         String username = userDetails.getUsername();
         Cliente cliente = clienteService.getClienteByUsername(username).orElseThrow();
         
-        // Ricalcola isProfileComplete per la vista in caso di errore
         boolean isProfileComplete = checkProfileComplete(cliente);
         
         if (bindingResult.hasErrors()) {
@@ -93,7 +91,6 @@ public class ClienteProfileController {
             return "cliente/profile";
         }
         
-        // Validazione Età (18+) solo se stiamo modificando la data
         if (dto.getDataNascita() != null) {
             if (Period.between(dto.getDataNascita(), LocalDate.now()).getYears() < 18) {
                 bindingResult.rejectValue("dataNascita", "error.dataNascita", "Devi essere maggiorenne.");
@@ -102,8 +99,6 @@ public class ClienteProfileController {
             }
         }
         
-        // Se i dati anagrafici erano già presenti, non li sovrascriviamo (immutabilità)
-        // Ma permettiamo sempre l'aggiornamento del documento
         if (isProfileComplete) {
             dto.setCittadinanza(cliente.getCittadinanza());
             dto.setLuogoNascita(cliente.getLuogo());
@@ -122,6 +117,5 @@ public class ClienteProfileController {
         return cliente.getCittadinanza() != null && !cliente.getCittadinanza().isEmpty() &&
                cliente.getLuogo() != null && !cliente.getLuogo().isEmpty() &&
                cliente.getDataNascita() != null && !cliente.getDataNascita().isEmpty();
-               // Non controlliamo il documento qui per il lock, perché il documento è sempre editabile
     }
 }

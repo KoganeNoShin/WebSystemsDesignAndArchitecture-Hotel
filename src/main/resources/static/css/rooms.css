@@ -1,5 +1,3 @@
-/* Stile specifico per la pagina Camere */
-
 .rooms-container {
     padding: 8rem 2rem 4rem;
     max-width: 1400px;
@@ -13,7 +11,6 @@
     }
 }
 
-/* Filtri */
 .filters-container {
     display: flex;
     justify-content: space-between;
@@ -51,7 +48,7 @@
     font-size: 0.9rem;
     transition: all 0.3s;
     border-radius: 3px;
-    flex: 1; /* Su mobile si espandono */
+    flex: 1;
 }
 
 .filter-btn:hover {
@@ -82,10 +79,9 @@
     outline: none;
 }
 
-/* Griglia Camere */
 .rooms-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Ridotto a 280px */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 2rem;
     width: 100%;
 }
@@ -202,7 +198,6 @@
     background-color: #e0b86c;
 }
 
-/* Modale Galleria */
 .modal {
     display: none;
     position: fixed;
@@ -221,17 +216,16 @@
     margin: auto;
     display: block;
     max-width: 90%;
-    max-height: 90vh; /* Altezza massima viewport */
+    max-height: 90vh;
     border-radius: 5px;
     box-shadow: 0 0 20px rgba(255,255,255,0.2);
     position: relative;
 }
 
-/* Immagine dentro la modale */
 #modalImage {
     width: 100%;
     height: auto;
-    max-height: 80vh; /* Limita altezza immagine */
+    max-height: 80vh;
     object-fit: contain;
     display: block;
 }
@@ -262,7 +256,7 @@
     top: 50%;
     width: auto;
     padding: 16px;
-    margin-top: -25px; /* Centrato verticalmente */
+    margin-top: -25px;
     color: white;
     font-weight: bold;
     font-size: 20px;

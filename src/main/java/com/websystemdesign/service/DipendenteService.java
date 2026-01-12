@@ -34,7 +34,6 @@ public class DipendenteService {
 
     @Transactional
     public String[] registraNuovoDipendente(DipendenteDto dto) {
-        // 1. Genera Username
         String baseUsername = dto.getNome().toLowerCase().replaceAll("\\s+", "") + "." + 
                               dto.getCognome().toLowerCase().replaceAll("\\s+", "");
         String finalUsername = baseUsername;
@@ -45,10 +44,8 @@ public class DipendenteService {
             counter++;
         }
 
-        // 2. Genera Password
         String rawPassword = UUID.randomUUID().toString().substring(0, 8);
         
-        // 3. Crea e salva l'Utente
         Utente nuovoUtente = new Utente();
         nuovoUtente.setNome(dto.getNome());
         nuovoUtente.setCognome(dto.getCognome());
@@ -56,7 +53,6 @@ public class DipendenteService {
         nuovoUtente.setPassword(passwordEncoder.encode(rawPassword));
         utenteRepository.save(nuovoUtente);
 
-        // 4. Crea e salva il Dipendente
         Sede sede = sedeRepository.findById(dto.getSedeId())
                 .orElseThrow(() -> new RuntimeException("Sede non trovata"));
 
@@ -65,7 +61,6 @@ public class DipendenteService {
         
         dipendenteRepository.save(nuovoDipendente);
         
-        // Restituisce username e password per mostrarli all'admin
         return new String[]{finalUsername, rawPassword};
     }
 

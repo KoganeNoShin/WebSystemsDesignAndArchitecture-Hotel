@@ -11,10 +11,8 @@ public interface UtenteMapper {
 
     UtenteMapper INSTANCE = Mappers.getMapper(UtenteMapper.class);
 
-    // Da Entità a DTO
     UtenteDto toDto(Utente utente);
 
-    // Da DTO a Entità: ignoriamo esplicitamente il campo password
     @Mapping(target = "password", ignore = true)
     Utente toEntity(UtenteDto utenteDto);
 }

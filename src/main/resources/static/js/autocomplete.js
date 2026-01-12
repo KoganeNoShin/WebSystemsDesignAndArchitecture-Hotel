@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let cityList = [];
         const suggestions = document.createElement('div');
-        suggestions.classList.add('suggestions-box'); // Usa classe invece di ID per stile condiviso
+        suggestions.classList.add('suggestions-box');
         suggestions.style.position = 'absolute';
         suggestions.style.backgroundColor = '#2c2c2c';
         suggestions.style.border = '1px solid #444';
@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', function () {
         suggestions.style.overflowY = 'auto';
         suggestions.style.zIndex = '1000';
 
-        // Assicurati che il parent sia relative per posizionare suggestions
         luogoElement.parentNode.style.position = 'relative';
         luogoElement.parentNode.appendChild(suggestions);
 
@@ -39,7 +38,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     .catch(error => console.error(`Errore nel caricamento di ${jsonFile}:`, error));
             } else {
                 cityList = [];
-                // Se è "Altro" o non mappato, lascia libero l'input ma senza suggerimenti
                 if (country && country !== 'Seleziona...') {
                     luogoElement.disabled = false;
                     luogoElement.placeholder = 'Inserisci manualmente';
@@ -97,7 +95,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Init
         if (cittadinanzaElement.value) {
             loadCities(cittadinanzaElement.value);
         } else {
@@ -105,20 +102,15 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // 1. Gestione ID (Registrazione / Profilo singolo)
     const singleCit = document.getElementById('cittadinanza');
     const singleLuogo = document.getElementById('luogoNascita');
     if (singleCit && singleLuogo) {
         setupAutocomplete(singleCit, singleLuogo);
     }
 
-    // 2. Gestione Classi (Check-in multiplo)
-    // Cerchiamo coppie di elementi con classi specifiche
     const citInputs = document.querySelectorAll('.input-cittadinanza');
     const luogoInputs = document.querySelectorAll('.input-luogo');
 
-    // Assumiamo che siano nello stesso ordine o raggruppati
-    // Per sicurezza, iteriamo sui container o usiamo l'indice se la struttura è rigida
     for (let i = 0; i < citInputs.length; i++) {
         if (luogoInputs[i]) {
             setupAutocomplete(citInputs[i], luogoInputs[i]);

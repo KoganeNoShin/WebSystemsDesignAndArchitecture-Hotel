@@ -48,7 +48,6 @@ public class CheckInController {
             return "redirect:/cliente/dashboard";
         }
 
-        // Nuova Regola: Check-in possibile fino alle 11:00 del giorno di arrivo
         LocalDateTime deadline = prenotazione.getDataInizio().atTime(11, 0);
         if (LocalDateTime.now().isAfter(deadline)) {
              redirectAttributes.addFlashAttribute("errorMessage", "Tempo scaduto per il Check-in online (limite ore 11:00 del giorno di arrivo).");
@@ -139,12 +138,9 @@ public class CheckInController {
             }
         }
 
-        // Aggiorna stato Prenotazione a CHECKED_IN
         prenotazione.setStato(StatoPrenotazione.CHECKED_IN);
         prenotazioneRepository.save(prenotazione);
         
-        // NESSUN aggiornamento stato camera (gestito dal collega)
-
         redirectAttributes.addFlashAttribute("successMessage", "Check-in online completato con successo! Benvenuto.");
         return "redirect:/cliente/dashboard";
     }

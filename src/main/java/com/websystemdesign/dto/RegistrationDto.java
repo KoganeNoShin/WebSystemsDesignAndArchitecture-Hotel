@@ -6,7 +6,6 @@ import lombok.Data;
 @Data
 public class RegistrationDto {
 
-    // --- Dati Utente ---
     @NotBlank(message = "Il nome è obbligatorio")
     private String nome;
 

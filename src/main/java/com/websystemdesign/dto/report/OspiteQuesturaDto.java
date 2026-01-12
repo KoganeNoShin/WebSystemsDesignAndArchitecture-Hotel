@@ -12,7 +12,6 @@ public class OspiteQuesturaDto {
     private String luogoNascita;
     private String cittadinanza;
 
-    // Questi campi saranno popolati solo per il capogruppo (il Cliente che ha prenotato)
     private String tipoDocumento;
     private String numeroDocumento;
 }

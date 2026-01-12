@@ -1,9 +1,5 @@
-/* --- CONTACT PAGE --- */
-
-/* Rimuoviamo stili body che vanno in conflitto con style.css */
-
 .contact-page {
-    flex: 1; /* Occupa lo spazio disponibile */
+    flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -27,7 +23,6 @@
     margin-bottom: 2rem;
 }
 
-/* Layout a triangolo inverso */
 .contact-info {
     display: flex;
     flex-wrap: wrap;
@@ -37,11 +32,10 @@
 }
 
 .info-item {
-    flex: 1 1 300px; /* Larghezza base, si adatta */
+    flex: 1 1 300px;
     max-width: 350px;
 }
 
-/* L'ultimo elemento (Orari) occuperà una riga intera se c'è spazio, centrandosi */
 .info-item:last-child {
     flex-basis: 100%;
     margin-top: 1rem;

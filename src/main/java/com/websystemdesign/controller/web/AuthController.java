@@ -38,21 +38,17 @@ public class AuthController {
                                       BindingResult bindingResult,
                                       RedirectAttributes redirectAttributes) {
 
-        // Controlla se l'username esiste già
         if (utenteService.getUtenteByUsername(registrationDto.getUsername()).isPresent()) {
             bindingResult.rejectValue("username", "error.registrationDto", "Questo username è già stato preso.");
         }
 
-        // Se ci sono già errori di validazione base, non procedere oltre
         if (bindingResult.hasErrors()) {
             return "register";
         }
 
-        // Prova a registrare l'utente
         try {
             utenteService.registraNuovoCliente(registrationDto);
         } catch (Exception e) {
-            // Gestione per altri errori imprevisti
             bindingResult.reject("error.global", "Si è verificato un errore durante la registrazione. Riprova.");
             return "register";
         }

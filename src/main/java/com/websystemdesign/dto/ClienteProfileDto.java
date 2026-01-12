@@ -10,12 +10,10 @@ import java.time.LocalDate;
 @Data
 public class ClienteProfileDto {
 
-    // Dati sola lettura (dal Utente)
     private String nome;
     private String cognome;
     private String username;
 
-    // Dati modificabili (dal Cliente) - Opzionali per salvataggio parziale
     private String cittadinanza;
 
     private String luogoNascita;
@@ -26,6 +24,5 @@ public class ClienteProfileDto {
 
     private TipoDocumento tipoDocumento;
 
-    // Rimossa validazione @Size per permettere cancellazione/salvataggio parziale
     private String numDocumento;
 }

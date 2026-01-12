@@ -83,7 +83,6 @@ public class ClienteService {
     
     public boolean canBook(Long clienteId) {
         List<Prenotazione> prenotazioni = prenotazioneRepository.findByClienteId(clienteId);
-        // Se esiste anche solo una prenotazione che NON è (CHECKED_OUT o CANCELLATA), allora NON può prenotare.
         return prenotazioni.stream()
                 .noneMatch(p -> p.getStato() != StatoPrenotazione.CHECKED_OUT && p.getStato() != StatoPrenotazione.CANCELLATA);
     }

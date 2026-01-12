@@ -63,7 +63,6 @@ public class ClienteDashboardController {
                 .filter(p -> p.getStato() != StatoPrenotazione.CANCELLATA)
                 .collect(Collectors.toList());
 
-        // Prenotazione Attiva (Soggiorno in Corso)
         Optional<Prenotazione> attivaOpt = prenotazioniValide.stream()
                 .filter(p -> p.getStato() == StatoPrenotazione.CHECKED_IN)
                 .filter(p -> p.getCamera().getStatus() == StatoCamera.OCCUPATA)
@@ -86,7 +85,6 @@ public class ClienteDashboardController {
             model.addAttribute("isRoomReady", true); 
         }
 
-        // Prenotazioni Future
         List<Prenotazione> future = prenotazioniValide.stream()
                 .filter(p -> {
                     boolean isConfermata = p.getStato() == StatoPrenotazione.CONFERMATA;
@@ -103,13 +101,11 @@ public class ClienteDashboardController {
                 .collect(Collectors.toList());
         model.addAttribute("prenotazioniFuture", future);
 
-        // Prenotazioni Passate
         List<Prenotazione> passate = tutteLePrenotazioni.stream()
                 .filter(p -> p.getStato() == StatoPrenotazione.CHECKED_OUT)
                 .collect(Collectors.toList());
         model.addAttribute("prenotazioniPassate", passate);
         
-        // Flag per limitare nuove prenotazioni: True se NON può prenotare
         boolean hasFutureBooking = !clienteService.canBook(cliente.getId());
         model.addAttribute("hasFutureBooking", hasFutureBooking);
 

@@ -60,7 +60,6 @@ public class ApiClienteController {
         dto.setCheckin(p.getDataInizio());
         dto.setCheckout(p.getDataFine());
         
-        // Calcolo Costi
         float costoServizi = 0.0f;
         if (p.getServices() != null) {
             costoServizi = (float) p.getServices().stream().mapToDouble(Service::getCosto).sum();
@@ -71,21 +70,14 @@ public class ApiClienteController {
             costoMultimedia = (float) p.getMultimedia().stream().mapToDouble(Multimedia::getCosto).sum();
         }
         
-        // Ricalcoliamo il costo base della camera per sicurezza (o sottraiamo dal totale se ci fidiamo del totale)
-        // Meglio ricalcolare: PrezzoBase * Notti
         long nights = ChronoUnit.DAYS.between(p.getDataInizio(), p.getDataFine());
         if (nights < 1) nights = 1;
         float costoCamera = p.getCamera().getPrezzoBase() * nights;
         
-        // Il totale salvato nel DB dovrebbe essere la somma di tutto.
-        // Se il DB è disallineato, usiamo la somma calcolata ora o quella del DB?
-        // Usiamo quella del DB come "Totale Dovuto", ma mostriamo i dettagli calcolati.
-        // Se c'è discrepanza, potrebbe essere un problema, ma per ora mostriamo i dettagli.
-        
         dto.setCostoCamera(costoCamera);
         dto.setCostoServizi(costoServizi);
         dto.setCostoMultimedia(costoMultimedia);
-        dto.setCostoTotale(p.getCosto()); // Totale dal DB
+        dto.setCostoTotale(p.getCosto());
         
         dto.setServizi(p.getServices().stream()
                 .map(s -> s.getNome() + " (€ " + s.getCosto() + ")")

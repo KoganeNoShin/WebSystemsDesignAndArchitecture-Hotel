@@ -48,20 +48,18 @@ public class MultimediaController {
         Utente utente = utenteRepository.findByUsername(userDetails.getUsername()).orElseThrow();
         Cliente cliente = clienteRepository.findByUtenteId(utente.getId()).orElseThrow();
 
-        // Trova la prenotazione attiva (CHECKED_IN)
         Optional<Prenotazione> prenotazioneOpt = prenotazioneRepository.findByClienteId(cliente.getId()).stream()
                 .filter(p -> p.getStato() == StatoPrenotazione.CHECKED_IN)
                 .findFirst();
 
         if (prenotazioneOpt.isEmpty()) {
-            return "redirect:/cliente/dashboard"; // Nessun soggiorno attivo
+            return "redirect:/cliente/dashboard";
         }
 
         Prenotazione prenotazione = prenotazioneOpt.get();
         List<Multimedia> catalogo = multimediaRepository.findAll();
         Set<Multimedia> acquistati = prenotazione.getMultimedia();
 
-        // Rimuovi gli acquistati dal catalogo per non mostrarli doppi (opzionale, ma pulito)
         catalogo.removeAll(acquistati);
 
         model.addAttribute("prenotazione", prenotazione);
@@ -76,18 +74,12 @@ public class MultimediaController {
         Prenotazione prenotazione = prenotazioneRepository.findById(prenotazioneId).orElseThrow();
         Multimedia contenuto = multimediaRepository.findById(multimediaId).orElseThrow();
 
-        // Aggiungi contenuto
         if (prenotazione.getMultimedia() == null) {
             prenotazione.setMultimedia(new java.util.HashSet<>());
         }
         
         if (!prenotazione.getMultimedia().contains(contenuto)) {
             prenotazione.getMultimedia().add(contenuto);
-            // Aggiorna costo totale prenotazione (aggiungendo costo contenuto)
-            // Nota: Questo costo verrà saldato al check-out
-            // Potremmo voler tenere traccia dei costi extra separatamente, ma per ora sommiamo al totale.
-            // Oppure non sommiamo qui e calcoliamo il totale dinamico al check-out.
-            // Sommiamo per semplicità di visualizzazione nella dashboard.
             prenotazione.setCosto(prenotazione.getCosto() + contenuto.getCosto());
             
             prenotazioneRepository.save(prenotazione);

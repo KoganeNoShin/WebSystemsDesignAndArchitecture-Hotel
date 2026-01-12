@@ -61,8 +61,7 @@ public class DataSeeder implements CommandLineRunner {
     @Transactional
     public void run(String... args) throws Exception {
         System.out.println("Inizio Data Seeding...");
-        
-        // Pulizia relazioni
+
         ospiteRepository.deleteAll();
         prenotazioneRepository.deleteAll();
         clienteRepository.deleteAll();
@@ -83,11 +82,9 @@ public class DataSeeder implements CommandLineRunner {
         if (sedeRepository.count() == 0) {
             System.out.println("Database vuoto. Inizio Data Seeding...");
 
-            // 1. Sedi
             Sede sedeCortina = createSedeIfNotFound("Alpine Palace Cortina", "Cortina d'Ampezzo", "5.00");
             Sede sedeRoma = createSedeIfNotFound("Urban Luxury Roma", "Roma Centro", "7.50");
 
-            // 2. Servizi
             Service spa = createService("Accesso SPA", 50.0f);
             Service colazione = createService("Colazione in camera", 15.0f);
             Service navetta = createService("Navetta Aeroportuale", 30.0f);
@@ -104,45 +101,37 @@ public class DataSeeder implements CommandLineRunner {
             sedeRepository.save(sedeCortina);
             sedeRepository.save(sedeRoma);
 
-            // 3. Camere
             List<Camera> camereCortina = createCamereForSede(sedeCortina);
             List<Camera> camereRoma = createCamereForSede(sedeRoma);
 
-            // 4. Multimedia (Caricamento da JSON)
             loadMultimediaFromJson();
 
-            // 5. Utenti
             seedUsers(sedeCortina);
-            
-            // 6. Prenotazioni di Test per Mario
+
             Utente marioUser = utenteRepository.findByUsername("mario").orElseThrow();
             Cliente mario = clienteRepository.findByUtenteId(marioUser.getId()).orElseThrow();
             
             createPrenotazioneTest(mario, camereCortina.get(0), LocalDate.now().plusDays(2), LocalDate.now().plusDays(5), StatoPrenotazione.CONFERMATA);
             createPrenotazioneTest(mario, camereCortina.get(1), LocalDate.now().plusDays(10), LocalDate.now().plusDays(15), StatoPrenotazione.CONFERMATA);
 
-            // 7. Utente Diego (Richiesto)
             if (utenteRepository.findByUsername("Diego").isEmpty()) {
                 Utente diegoUser = new Utente("Diego", passwordEncoder.encode("password"), "Diego", "Corona");
                 utenteRepository.save(diegoUser);
 
                 Cliente diego = new Cliente("Italiana", "Roma", "1995-05-05", "Patente", "RM987654", diegoUser);
                 clienteRepository.save(diego);
-                
-                // 4 Prenotazioni Passate (CHECKED_OUT)
+
                 createPrenotazioneTest(diego, camereRoma.get(0), LocalDate.now().minusDays(30), LocalDate.now().minusDays(25), StatoPrenotazione.CHECKED_OUT);
                 createPrenotazioneTest(diego, camereCortina.get(3), LocalDate.now().minusDays(60), LocalDate.now().minusDays(55), StatoPrenotazione.CHECKED_OUT);
                 createPrenotazioneTest(diego, camereRoma.get(2), LocalDate.now().minusDays(100), LocalDate.now().minusDays(95), StatoPrenotazione.CHECKED_OUT);
                 createPrenotazioneTest(diego, camereCortina.get(4), LocalDate.now().minusDays(150), LocalDate.now().minusDays(145), StatoPrenotazione.CHECKED_OUT);
-                
-                // 1 Prenotazione ATTIVA (CHECKED_IN) - Soggiorno in corso
+
                 Camera cameraAttivaDiego = camereCortina.get(2);
                 cameraAttivaDiego.setStatus(StatoCamera.OCCUPATA);
                 cameraRepository.save(cameraAttivaDiego);
                 
                 Prenotazione pAttiva = createPrenotazioneTest(diego, cameraAttivaDiego, LocalDate.now().minusDays(2), LocalDate.now().plusDays(5), StatoPrenotazione.CHECKED_IN);
-                
-                // Aggiungiamo Giulia Greco
+
                 Ospite giulia = new Ospite();
                 giulia.setPrenotazione(pAttiva);
                 giulia.setNome("Giulia");
@@ -153,8 +142,7 @@ public class DataSeeder implements CommandLineRunner {
                 ospiteRepository.save(giulia);
                 
                 pAttiva.setNumeroOspiti(2);
-                
-                // Aggiungiamo un film acquistato a Diego per test
+
                 List<Multimedia> films = multimediaRepository.findAll();
                 if (!films.isEmpty()) {
                     pAttiva.setMultimedia(new HashSet<>());
@@ -165,7 +153,6 @@ public class DataSeeder implements CommandLineRunner {
                 prenotazioneRepository.save(pAttiva);
             }
 
-            // 8. Utente Simone (Richiesto)
             if (utenteRepository.findByUsername("Simone").isEmpty()) {
                 Utente simoneUser = new Utente("Simone", passwordEncoder.encode("password"), "Simone", "Comitini");
                 utenteRepository.save(simoneUser);

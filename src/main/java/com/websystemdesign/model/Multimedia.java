@@ -26,9 +26,9 @@ public class Multimedia {
     private float costo;
     
     @Column
-    private String immagine; // URL del poster
+    private String immagine;
 
-    @Column(length = 1000) // Descrizione più lunga
+    @Column(length = 1000)
     private String descrizione;
     
     @Column

@@ -1,5 +1,3 @@
-/* Stile per la pagina di Check-in */
-
 .checkin-page {
     padding: 8rem 2rem 4rem;
     max-width: 900px;
@@ -78,7 +76,6 @@ h1 {
     background-color: #e0b86c;
 }
 
-/* Stile per suggerimenti autocomplete */
 .suggestion-item:hover {
     background-color: var(--primary-gold);
     color: #000;

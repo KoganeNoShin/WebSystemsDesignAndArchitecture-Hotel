@@ -6,6 +6,84 @@
     <title>Dashboard Cliente - Comitini Residence</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/cliente/dashboard.css}">
+    <style>
+        /* Stile Modale Conferma Cancellazione */
+        .modal-confirm {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-confirm-content {
+            background-color: #1a1a1a;
+            padding: 2rem;
+            border: 1px solid #ff4d4d;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255, 77, 77, 0.2);
+        }
+
+        .modal-confirm-title {
+            color: #ff4d4d;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-confirm-text {
+            color: #ccc;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        .modal-confirm-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .btn-confirm-delete {
+            background-color: #ff4d4d;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+        .btn-confirm-delete:hover {
+            background-color: #cc0000;
+        }
+
+        .btn-cancel-delete {
+            background-color: transparent;
+            border: 1px solid #777;
+            color: #ccc;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+        .btn-cancel-delete:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
 
@@ -128,10 +206,12 @@
                             </div>
 
                             <!-- Cancella -->
-                            <form th:if="${p.stato.name() == 'CONFERMATA'}" th:action="@{/cliente/booking/cancel}" method="post" onsubmit="return confirm('Sei sicuro di voler cancellare questa prenotazione?');">
-                                <input type="hidden" name="prenotazioneId" th:value="${p.id}">
-                                <button type="submit" class="btn-action" style="border-color: #ff4d4d; color: #ff4d4d; font-size: 0.8rem; padding: 5px 15px;">Cancella</button>
-                            </form>
+                            <div th:if="${p.stato.name() == 'CONFERMATA'}">
+                                <button type="button" class="btn-action" style="border-color: #ff4d4d; color: #ff4d4d; font-size: 0.8rem; padding: 5px 15px;"
+                                        th:data-id="${p.id}" onclick="openCancelModal(this.getAttribute('data-id'))">
+                                    Cancella
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -177,6 +257,22 @@
         </div>
     </div>
 
+    <!-- MODALE CONFERMA CANCELLAZIONE -->
+    <div id="cancelModal" class="modal-confirm">
+        <div class="modal-confirm-content">
+            <h3 class="modal-confirm-title">Conferma Cancellazione</h3>
+            <p class="modal-confirm-text">Sei sicuro di voler cancellare questa prenotazione? L'operazione è irreversibile.</p>
+
+            <div class="modal-confirm-actions">
+                <button class="btn-cancel-delete" onclick="closeCancelModal()">Annulla</button>
+                <form id="cancelForm" th:action="@{/cliente/booking/cancel}" method="post">
+                    <input type="hidden" name="prenotazioneId" id="cancelPrenotazioneId">
+                    <button type="submit" class="btn-confirm-delete">Conferma Cancellazione</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <footer>
         <nav>
             <ul class="nav-links">
@@ -189,6 +285,32 @@
     </footer>
 
     <script th:src="@{/js/cliente/dashboard.js}"></script>
+    <script>
+        // Gestione Modale Cancellazione
+        const cancelModal = document.getElementById('cancelModal');
+        const cancelInput = document.getElementById('cancelPrenotazioneId');
+
+        function openCancelModal(id) {
+            cancelInput.value = id;
+            cancelModal.style.display = 'flex';
+        }
+
+        function closeCancelModal() {
+            cancelModal.style.display = 'none';
+        }
+
+        // Chiudi modale cliccando fuori
+        window.onclick = function(event) {
+            if (event.target == cancelModal) {
+                closeCancelModal();
+            }
+            // Gestione chiusura altre modali (già presente in dashboard.js ma ridondante qui per sicurezza)
+            if (event.target.classList.contains('modal')) {
+                closeDetails();
+                closeNotes();
+            }
+        }
+    </script>
 
 </body>
 </html>

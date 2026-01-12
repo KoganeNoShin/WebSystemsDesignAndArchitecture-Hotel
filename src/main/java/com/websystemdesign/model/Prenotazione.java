@@ -41,7 +41,7 @@ public class Prenotazione {
     private float costo;
     
     @Column(nullable = false)
-    private int numeroOspiti = 1; // Default 1
+    private int numeroOspiti = 1;
 
     @OneToMany(mappedBy = "prenotazione", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude

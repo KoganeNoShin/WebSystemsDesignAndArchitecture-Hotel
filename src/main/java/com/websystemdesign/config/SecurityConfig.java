@@ -35,17 +35,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // Disabilita CSRF per semplificare le chiamate AJAX
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        // Risorse pubbliche
                         .requestMatchers("/", "/home/**", "/api/booking/**", "/api/availability/**", "/login", "/register", "/css/**", "/image/**", "/js/**", "/json/**").permitAll()
-                        
-                        // Risorse protette
                         .requestMatchers("/api/cliente/**").hasRole("CLIENTE")
                         .requestMatchers("/cliente/**").hasRole("CLIENTE")
                         .requestMatchers("/admin/**").hasRole("AMMINISTRATORE")
                         .requestMatchers("/staff/**").hasRole("STAFF")
-
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

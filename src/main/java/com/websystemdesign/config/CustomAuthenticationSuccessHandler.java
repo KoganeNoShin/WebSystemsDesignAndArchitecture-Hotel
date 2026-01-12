@@ -25,14 +25,11 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
         
         SavedRequest savedRequest = requestCache.getRequest(request, response);
 
-        // Se c'è una richiesta salvata (es. utente ha cliccato su "Prenota" da sloggato),
-        // usa la logica standard per reindirizzarlo lì.
         if (savedRequest != null) {
             super.onAuthenticationSuccess(request, response, authentication);
             return;
         }
 
-        // Altrimenti, usa la logica basata sul ruolo
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         for (GrantedAuthority authority : authorities) {
             String role = authority.getAuthority();
@@ -48,8 +45,7 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
                 return;
             }
         }
-        
-        // Fallback
+
         getRedirectStrategy().sendRedirect(request, response, "/");
     }
 }

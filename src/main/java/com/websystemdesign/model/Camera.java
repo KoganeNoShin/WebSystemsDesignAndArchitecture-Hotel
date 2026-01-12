@@ -46,12 +46,12 @@ public class Camera {
 
     @NonNull
     @Column(nullable = false)
-    private String numero; // Es. "101", "204B"
+    private String numero;
 
     @NonNull
     @Column(nullable = false)
-    private float prezzoBase; // Prezzo per notte
+    private float prezzoBase;
 
     @Column(nullable = false)
-    private String tipologia = "Standard"; // "Standard" o "Suite"
+    private String tipologia = "Standard";
 }

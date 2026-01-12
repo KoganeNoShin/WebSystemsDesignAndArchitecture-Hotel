@@ -8,7 +8,7 @@ import java.util.List;
 public class StaffCameraDto {
     private Long id;
     private String numero;
-    private StatoCamera status; // LIBERA, OCCUPATA, DA_PULIRE
-    private String clienteAttuale; // Nome Cognome (utile per lo staff)
-    private List<String> note; // Es. "Allergia polvere", "Cane in camera"
+    private StatoCamera status;
+    private String clienteAttuale;
+    private List<String> note;
 }

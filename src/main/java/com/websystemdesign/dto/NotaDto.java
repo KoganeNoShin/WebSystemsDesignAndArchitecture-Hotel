@@ -8,11 +8,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NotaDto {
-    private Long prenotazioneId; // Aggiunto per risolvere errore di mapping
+    private Long prenotazioneId;
     private String testo;
     private String data;
     
-    // Costruttore per compatibilità con il controller esistente
     public NotaDto(String testo, String data) {
         this.testo = testo;
         this.data = data;

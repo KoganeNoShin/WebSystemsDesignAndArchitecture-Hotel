@@ -65,7 +65,6 @@ public class DomoticaController {
             camera.setTapparelle((Boolean) payload.get("tapparelle"));
         }
         if (payload.containsKey("temperatura")) {
-            // Gestione sicura del tipo numerico (Integer o Double)
             Object tempObj = payload.get("temperatura");
             if (tempObj instanceof Number) {
                 camera.setTemperatura(((Number) tempObj).floatValue());

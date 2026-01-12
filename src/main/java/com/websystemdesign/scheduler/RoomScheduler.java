@@ -24,18 +24,11 @@ public class RoomScheduler {
         this.cameraRepository = cameraRepository;
     }
 
-    /**
-     * Ore 11:00 - CHECK-OUT FORZATO (Logica di perdita controllo camera)
-     * Cerca tutte le prenotazioni che finiscono OGGI e che non hanno ancora fatto check-out.
-     * Imposta la camera su DA_PULIRE.
-     */
-    @Scheduled(cron = "0 0 11 * * *") // Ogni giorno alle 11:00:00
+    @Scheduled(cron = "0 0 11 * * *")
     @Transactional
     public void forceRoomCleanupStatus() {
         LocalDate oggi = LocalDate.now();
 
-        // Cerchiamo prenotazioni che finiscono oggi
-        // Nota: questa query va ottimizzata nel repository in un progetto reale, qui facciamo stream per semplicità
         List<Prenotazione> inScadenza = prenotazioneRepository.findAll().stream()
                 .filter(p -> p.getDataFine().equals(oggi))
                 .filter(p -> p.getStato() != StatoPrenotazione.CHECKED_OUT)
@@ -43,7 +36,6 @@ public class RoomScheduler {
 
         for (Prenotazione p : inScadenza) {
             Camera c = p.getCamera();
-            // Anche se il cliente non ha fatto check-out formale, la camera deve essere liberata per le pulizie
             if (c.getStatus() != StatoCamera.DA_PULIRE) {
                 c.setStatus(StatoCamera.DA_PULIRE);
                 cameraRepository.save(c);

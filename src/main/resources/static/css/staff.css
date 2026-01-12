@@ -1,29 +1,18 @@
-/* =========================================
-   STAFF DASHBOARD STYLES
-   Eredita variabili da style.css
-========================================= */
-
-/* Contenitore principale */
 .staff-dashboard-container {
-    /* Padding top alto per non finire sotto l'header fisso */
     padding: 120px 20px 50px;
     min-height: 100vh;
 
-    /* CORREZIONE 1: Rimosso background-color solido per far vedere l'immagine del body */
-    /* background-color: #1a1a1a; <-- CANCELLATO */
 }
 
-/* Titolo della sezione */
 .staff-title {
     font-family: 'Playfair Display', serif;
     font-size: 3rem;
     color: var(--primary-gold);
     text-align: center;
     margin-bottom: 40px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.8); /* Aggiunta ombra per leggibilità su immagine */
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
 }
 
-/* --- GRIGLIA RESPONSIVE --- */
 .staff-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -32,9 +21,7 @@
     margin: 0 auto;
 }
 
-/* --- STILE CARD --- */
 .room-card {
-    /* Aggiunta trasparenza per far intravedere lo sfondo ma mantenere leggibilità */
     background-color: rgba(37, 37, 37, 0.95);
     border: 1px solid #333;
     border-radius: 8px;
@@ -51,7 +38,6 @@
     border-color: var(--primary-gold);
 }
 
-/* Barra colorata superiore */
 .room-card::before {
     content: '';
     position: absolute;
@@ -65,7 +51,6 @@
 .room-card.OCCUPATA::before { background-color: #dc3545; }
 .room-card.DA_PULIRE::before { background-color: #ffc107; }
 
-/* Numero Camera */
 .room-number {
     font-family: 'Playfair Display', serif;
     font-size: 2.5rem;
@@ -74,7 +59,6 @@
     font-weight: 700;
 }
 
-/* Badge Stato */
 .room-status-badge {
     display: inline-block;
     padding: 5px 12px;
@@ -89,7 +73,6 @@
 .OCCUPATA .room-status-badge { background-color: rgba(220, 53, 69, 0.2); color: #dc3545; }
 .DA_PULIRE .room-status-badge { background-color: rgba(255, 193, 7, 0.2); color: #ffc107; }
 
-/* Info Cliente */
 .client-info {
     color: #ccc;
     font-size: 0.95rem;
@@ -100,7 +83,6 @@
     font-weight: bold;
 }
 
-/* Box Note */
 .notes-box {
     background-color: rgba(0,0,0,0.3);
     border-left: 3px solid var(--primary-gold);
@@ -115,7 +97,6 @@
     padding-left: 20px;
 }
 
-/* Bottone Azione */
 .btn-clean-action {
     width: 100%;
     padding: 12px;
@@ -137,10 +118,8 @@
     color: black;
 }
 
-/* --- ADATTAMENTI MOBILE --- */
 @media (max-width: 768px) {
     .staff-dashboard-container {
-        /* CORREZIONE 2: Aumentato padding-top per evitare sovrapposizione header */
         padding-top: 160px;
         padding-left: 15px;
         padding-right: 15px;

@@ -45,15 +45,13 @@ public class NoteController {
     public List<NotaDto> getNote(@PathVariable Long prenotazioneId,
                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
-                                 @RequestParam(defaultValue = "10") String limit, // "all", "1", "10"
+                                 @RequestParam(defaultValue = "10") String limit,
                                  Authentication authentication) {
         
         checkOwnership(prenotazioneId, authentication);
         
-        // Recupera tutte le note ordinate per data decrescente
         Stream<Nota> stream = notaRepository.findByPrenotazioneIdOrderByDataCreazioneDesc(prenotazioneId).stream();
 
-        // Filtro temporale
         if (from != null) {
             stream = stream.filter(n -> n.getDataCreazione().isAfter(from) || n.getDataCreazione().isEqual(from));
         }
@@ -61,13 +59,11 @@ public class NoteController {
             stream = stream.filter(n -> n.getDataCreazione().isBefore(to) || n.getDataCreazione().isEqual(to));
         }
 
-        // Limite
         if (!"all".equalsIgnoreCase(limit)) {
             try {
                 int max = Integer.parseInt(limit);
                 stream = stream.limit(max);
             } catch (NumberFormatException e) {
-                // Ignora se non è un numero valido, default 10 o all
             }
         }
 

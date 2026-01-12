@@ -11,11 +11,8 @@ import java.util.List;
 @Repository
 public interface PrenotazioneRepository extends JpaRepository<Prenotazione, Long> {
 
-    // ! NOTA ! al momento sostituito con findSovrapposizioni
-    // Trova tutte le prenotazioni per una data camera che si sovrappongono a un dato intervallo di date
     List<Prenotazione> findByCameraIdAndDataInizioBeforeAndDataFineAfter(Long camera_id, LocalDate dataFine, LocalDate dataInizio);
 
-    // Trova tutte le prenotazioni di un cliente
     List<Prenotazione> findByClienteId(Long cliente_id);
 
     @Query("SELECT p FROM Prenotazione p WHERE p.camera.id = :cameraId " +

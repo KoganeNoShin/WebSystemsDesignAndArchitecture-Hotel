@@ -1,6 +1,3 @@
-/* Stili specifici per l'area di amministrazione */
-
-/* --- LAYOUT GENERALE --- */
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -19,7 +16,7 @@
     cursor: pointer;
     text-decoration: none;
     display: block;
-    border-radius: 8px; /* Arrotondamento coerente */
+    border-radius: 8px;
 }
 
 .dashboard-card:hover {
@@ -47,15 +44,14 @@
     font-family: 'Lato', sans-serif;
 }
 
-/* --- TABELLE (Desktop Default) --- */
 .admin-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 2rem;
-    background-color: rgba(26, 26, 26, 0.95); /* Più scuro per leggibilità */
+    background-color: rgba(26, 26, 26, 0.95);
     border: 1px solid rgba(197, 160, 89, 0.3);
     border-radius: 8px;
-    overflow: hidden; /* Per i bordi arrotondati */
+    overflow: hidden;
 }
 
 .admin-table th, .admin-table td {
@@ -83,7 +79,6 @@
     background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* --- BOTTONI AZIONE --- */
 .action-btn {
     display: inline-block;
     padding: 6px 12px;
@@ -98,7 +93,6 @@
     background: transparent;
 }
 
-/* Bottone Modifica / Gestisci (Blu/Grigio scuro) */
 .action-btn {
     border: 1px solid #aaa;
     color: #ddd;
@@ -108,7 +102,6 @@
     color: var(--primary-gold);
 }
 
-/* Bottone Elimina (Rosso) */
 .btn-delete {
     border: 1px solid #d0021b;
     color: #ff6b6b;
@@ -120,23 +113,22 @@
     border-color: #d0021b;
 }
 
-/* --- MODALE --- */
 .modal {
     display: none;
     position: fixed;
-    z-index: 2000; /* Sopra tutto */
+    z-index: 2000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto; /* Abilita scroll se il form è lungo */
+    overflow: auto;
     background-color: rgba(0,0,0,0.85);
     backdrop-filter: blur(5px);
 }
 
 .modal-content {
     background-color: #1a1a1a;
-    margin: 5vh auto; /* Margine verticale */
+    margin: 5vh auto;
     padding: 2rem;
     border: 1px solid var(--primary-gold);
     width: 90%;
@@ -166,7 +158,6 @@
     display: block;
 }
 
-/* Alert Box (Success/Error) */
 .alert-box {
     padding: 15px;
     margin-bottom: 20px;
@@ -179,26 +170,18 @@
 .alert-box.error { background-color: rgba(220, 53, 69, 0.2); border: 1px solid #dc3545; color: #dc3545; }
 
 
-/* =========================================
-   RESPONSIVE (MOBILE)
-   ========================================= */
 @media (max-width: 768px) {
 
-    /* 1. Adattamento Contenitore Principale */
     .form-page {
-        /* Aumentiamo il padding top perché l'header su mobile è più alto (logo sopra, bottone sotto) */
         padding-top: 160px !important;
         padding-left: 15px;
         padding-right: 15px;
     }
 
-    /* 2. Titoli più piccoli */
     h1 { font-size: 2rem !important; }
 
-    /* 3. Bottoni full width */
     #openModalBtn { width: 100% !important; margin-bottom: 20px; }
 
-    /* 4. TRASFORMAZIONE TABELLE IN CARD (Fondamentale) */
     .admin-table,
     .admin-table tbody,
     .admin-table tr,
@@ -207,12 +190,10 @@
         width: 100%;
     }
 
-    /* Nascondiamo l'header della tabella (thead) */
     .admin-table thead {
         display: none;
     }
 
-    /* Ogni riga diventa una card */
     .admin-table tr {
         margin-bottom: 1.5rem;
         background-color: rgba(255, 255, 255, 0.05);
@@ -221,17 +202,16 @@
         padding: 10px;
     }
 
-    /* Stile delle celle */
     .admin-table td {
-        text-align: right; /* Valore a destra */
-        padding-left: 50%; /* Spazio per l'etichetta */
+        text-align: right;
+        padding-left: 50%;
         position: relative;
         border-bottom: 1px solid rgba(255,255,255,0.05);
     }
 
     .admin-table td:last-child {
         border-bottom: none;
-        text-align: center; /* Azioni al centro */
+        text-align: center;
         padding-left: 0;
         padding-top: 15px;
         display: flex;
@@ -239,9 +219,8 @@
         gap: 10px;
     }
 
-    /* Etichetta (Label) finta usando data-label */
     .admin-table td::before {
-        content: attr(data-label); /* Legge l'attributo HTML */
+        content: attr(data-label);
         position: absolute;
         left: 15px;
         width: 45%;
@@ -256,7 +235,6 @@
         transform: translateY(-50%);
     }
 
-    /* Eccezione per l'ultima riga (Azioni) che non ha label laterale */
     .admin-table td:last-child::before {
         content: "";
     }

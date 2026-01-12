@@ -26,13 +26,9 @@ public class AvailabilityController {
 
     @GetMapping("/camera/{id}")
     public List<DateOccupateDto> getOccupiedDates(@PathVariable Long id) {
-        // Recuperiamo tutte le prenotazioni future per la camera
-        // Per semplicità prendiamo tutte quelle che finiscono dopo oggi
-        // Nota: in un sistema reale useremmo una query specifica per ottimizzare
         List<Prenotazione> prenotazioni = prenotazioneRepository.findAll().stream()
                 .filter(p -> p.getCamera().getId().equals(id))
                 .filter(p -> p.getDataFine().isAfter(LocalDate.now()))
-                // Filtriamo eventuali stati cancellati se necessario (es. p.getStato() != CANCELLATA)
                 .collect(Collectors.toList());
 
         return prenotazioni.stream()

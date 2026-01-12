@@ -30,7 +30,7 @@ public class Sede {
     private String tassaSoggiorno;
 
     @OneToMany(mappedBy = "sede")
-    @ToString.Exclude // Evita la ricorsione infinita
+    @ToString.Exclude
     private Set<Camera> camere;
 
     @OneToMany(mappedBy = "sede")

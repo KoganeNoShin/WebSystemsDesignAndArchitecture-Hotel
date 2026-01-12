@@ -35,17 +35,14 @@ public class ApiBookingController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkout,
             @RequestParam int numOspiti) {
 
-        // 1. Trova tutte le camere della sede
         List<Camera> camereSede = cameraService.getCamereBySede(sedeId);
 
-        // 2. Trova gli ID delle camere già prenotate in quelle date
         List<Long> idCamereOccupate = prenotazioneRepository.findAll().stream()
                 .filter(p -> p.getCamera().getSede().getId().equals(sedeId))
                 .filter(p -> p.getDataInizio().isBefore(checkout) && p.getDataFine().isAfter(checkin))
                 .map(p -> p.getCamera().getId())
                 .collect(Collectors.toList());
 
-        // 3. Filtra le camere disponibili e con capienza sufficiente
         return camereSede.stream()
                 .filter(camera -> !idCamereOccupate.contains(camera.getId()))
                 .filter(camera -> camera.getPostiLetto() >= numOspiti)
@@ -63,7 +60,6 @@ public class ApiBookingController {
         dto.setImmagini(cameraService.getImmaginiCamera(camera));
         dto.setSedeId(camera.getSede().getId());
         
-        // Popolamento campi domotica
         dto.setLuce(camera.isLuce());
         dto.setTapparelle(camera.isTapparelle());
         dto.setTemperatura(camera.getTemperatura());

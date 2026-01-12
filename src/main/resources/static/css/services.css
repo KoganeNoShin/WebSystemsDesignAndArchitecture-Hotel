@@ -1,9 +1,5 @@
-/* --- SERVICES PAGE --- */
-
-/* Rimuoviamo stili body che vanno in conflitto con style.css */
-
 .services-page {
-    flex: 1; /* Occupa lo spazio disponibile */
+    flex: 1;
     padding: 8rem 2rem 4rem;
     display: flex;
     justify-content: center;

@@ -9,26 +9,21 @@ public class BookingDetailDto {
     private Long id;
     private String stato;
     
-    // Camera
     private String cameraNumero;
     private String cameraTipologia;
     private String sedeNome;
     private String sedeLocation;
     
-    // Date
     private LocalDate checkin;
     private LocalDate checkout;
     
-    // Costi Dettagliati
     private float costoCamera;
     private float costoServizi;
     private float costoMultimedia;
     private float costoTotale;
     
-    // Servizi
     private List<String> servizi;
     
-    // Ospiti (se presenti)
     private List<OspiteDto> ospiti;
     
     @Data

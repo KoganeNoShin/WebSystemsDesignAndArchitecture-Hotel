@@ -7,6 +7,84 @@
 
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/staff.css}">
+    <style>
+        /* Stile Modale Conferma */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #1a1a1a;
+            padding: 2rem;
+            border: 1px solid var(--primary-gold);
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(197, 160, 89, 0.2);
+        }
+
+        .modal-title {
+            color: var(--primary-gold);
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-text {
+            color: #ccc;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .btn-confirm-modal {
+            background-color: var(--primary-gold);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+        .btn-confirm-modal:hover {
+            background-color: #e0b86c;
+        }
+
+        .btn-cancel-modal {
+            background-color: transparent;
+            border: 1px solid #777;
+            color: #ccc;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+        .btn-cancel-modal:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
 
@@ -51,12 +129,11 @@
                 </ul>
             </div>
 
-            <form th:if="${camera.status.name() == 'DA_PULIRE'}"
-                  th:action="@{/staff/camera/{id}/pulita(id=${camera.id})}" method="post">
-                <button type="submit" class="btn-clean-action" onclick="return confirm('Confermi che la camera è pulita e pronta?')">
+            <div th:if="${camera.status.name() == 'DA_PULIRE'}">
+                <button type="button" class="btn-clean-action" th:data-id="${camera.id}" th:data-numero="${camera.numero}" onclick="openConfirmModal(this.getAttribute('data-id'), this.getAttribute('data-numero'))">
                     ✅ Segna Pronta
                 </button>
-            </form>
+            </div>
 
             <div th:if="${camera.status.name() == 'OCCUPATA'}" style="margin-top: 20px; color: #888; font-size: 0.85rem; text-align: center;">
                 Attendere Check-out per pulizie.
@@ -65,7 +142,46 @@
                 Camera pronta per nuovi ospiti.
             </div>
 
-        </div> </div> </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modale di Conferma -->
+<div id="confirmModal" class="modal">
+    <div class="modal-content">
+        <h3 class="modal-title">Conferma Pulizia</h3>
+        <p class="modal-text">Confermi che la camera <strong id="modalRoomNum" style="color: #fff;"></strong> è stata pulita ed è pronta per i prossimi ospiti?</p>
+
+        <div class="modal-actions">
+            <button class="btn-cancel-modal" onclick="closeConfirmModal()">Annulla</button>
+            <form id="confirmForm" method="post" style="display: inline;">
+                <button type="submit" class="btn-confirm-modal">Conferma</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById('confirmModal');
+    const form = document.getElementById('confirmForm');
+    const roomNumSpan = document.getElementById('modalRoomNum');
+
+    function openConfirmModal(cameraId, roomNumber) {
+        form.action = '/staff/camera/' + cameraId + '/pulita';
+        roomNumSpan.innerText = roomNumber;
+        modal.style.display = 'flex';
+    }
+
+    function closeConfirmModal() {
+        modal.style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            closeConfirmModal();
+        }
+    }
+</script>
 
 </body>
 </html>

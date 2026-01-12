@@ -10,6 +10,6 @@ public class AdminDashboardController {
 
     @GetMapping("/dashboard")
     public String showAdminDashboard() {
-        return "admin/dashboard"; // Cerca in templates/admin/dashboard.html
+        return "admin/dashboard";
     }
 }

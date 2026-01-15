@@ -10,12 +10,15 @@
 <body>
 
 <header>
-  <div style="display: flex; flex-direction: column;">
+  <div style="display: flex; flex-direction: column; align-items: flex-start;">
     <a th:href="@{/admin/dashboard}" class="logo">Comitini Admin</a>
-    <a th:href="@{/admin/dashboard}" class="back-link">&larr; Dashboard</a>
+    <a th:href="@{/admin/dashboard}"
+       style="color: var(--primary-gold); text-decoration: none; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; border: 1px solid var(--primary-gold); padding: 5px 10px; border-radius: 3px; transition: all 0.3s ease;">
+      &larr; Dashboard
+    </a>
   </div>
-  <form th:action="@{/logout}" method="post">
-    <button type="submit" class="btn-login" style="border:none; background:none; cursor:pointer;">Logout</button>
+  <form th:action="@{/logout}" method="post" style="display: inline;">
+    <button type="submit" class="btn-login" style="background: none; border: none; cursor: pointer;">Logout</button>
   </form>
 </header>
 

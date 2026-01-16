@@ -8,6 +8,85 @@
     <link rel="stylesheet" th:href="@{/css/booking.css}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <style>
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #2c2c2c;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #c5a059;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 8px;
+            text-align: center;
+            color: #fff;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(-20px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+        .modal-header {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #c5a059;
+            font-weight: bold;
+        }
+        .modal-body {
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+        .modal-footer button {
+            background-color: #c5a059;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .modal-footer button:hover {
+            background-color: #b38f4d;
+        }
+
+        /* Flatpickr Custom Styles for Occupancy */
+        .start-occupied {
+            background: linear-gradient(135deg, transparent 50%, rgba(255, 77, 77, 0.3) 50%) !important;
+            border-color: transparent !important;
+        }
+        .end-occupied {
+            background: linear-gradient(135deg, rgba(255, 77, 77, 0.3) 50%, transparent 50%) !important;
+            border-color: transparent !important;
+        }
+        .full-occupied {
+            background-color: rgba(255, 77, 77, 0.3) !important;
+            border-color: transparent !important;
+        }
+        /* Fix per hover su date custom */
+        .flatpickr-day.start-occupied:hover, .flatpickr-day.end-occupied:hover {
+            background: #e6e6e6 !important;
+            color: #000 !important;
+        }
+        .flatpickr-day.selected.start-occupied, .flatpickr-day.selected.end-occupied {
+             background: #c5a059 !important;
+             color: #fff !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -23,8 +102,11 @@
             <span class="active">3. Date & Servizi</span> &nbsp;>&nbsp; <span>4. Conferma</span>
         </div>
 
+        <!-- Messaggio di errore dal backend -->
+        <div th:if="${errorMessage}" style="background-color: rgba(255, 77, 77, 0.2); color: #ff4d4d; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; border: 1px solid #ff4d4d; text-align: center;" th:text="${errorMessage}"></div>
+
         <div class="layout-grid">
-            <!-- Colonna Sinistra: Riepilogo Camera (Su mobile va sotto) -->
+            <!-- Colonna Sinistra: Riepilogo Camera -->
             <div class="room-summary">
                 <h2 th:text="'Camera ' + ${camera.numero}">Camera 101</h2>
                 <p th:text="${camera.tipologia}">Standard</p>
@@ -40,7 +122,7 @@
                 </div>
             </div>
 
-            <!-- Colonna Destra: Form (Su mobile va sopra) -->
+            <!-- Colonna Destra: Form -->
             <div class="form-section">
                 <form th:action="@{/booking/review}" method="get" id="bookingForm">
                     <input type="hidden" name="sedeId" th:value="${sede.id}">
@@ -49,8 +131,10 @@
                     <div class="form-group">
                         <label>Seleziona Date</label>
                         <div class="date-picker-wrapper">
-                            <input type="text" id="checkin" name="checkin" class="form-control" placeholder="Check-in" required onchange="updateTotal()" th:value="${param.checkin}">
-                            <input type="text" id="checkout" name="checkout" class="form-control" placeholder="Check-out" required onchange="updateTotal()" th:value="${param.checkout}">
+                            <input type="text" id="dateRange" class="form-control" placeholder="Seleziona periodo" required>
+                            <!-- Input nascosti per inviare i dati separati al backend -->
+                            <input type="hidden" id="checkin" name="checkin" th:value="${param.checkin}">
+                            <input type="hidden" id="checkout" name="checkout" th:value="${param.checkout}">
                         </div>
                     </div>
 
@@ -89,48 +173,152 @@
         </nav>
     </footer>
 
+    <!-- Custom Modal -->
+    <div id="customModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalTitle">Attenzione</div>
+            <div class="modal-body" id="modalMessage">Messaggio</div>
+            <div class="modal-footer">
+                <button onclick="closeModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
     <script>
         const cameraId = [[${camera.id}]];
         let basePrice = parseFloat(document.getElementById('basePrice').innerText);
+        let occupiedRanges = []; // Store occupied ranges globally
+
+        function showModal(title, message) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerText = message;
+            const modal = document.getElementById('customModal');
+            modal.style.display = "flex";
+        }
+
+        function closeModal() {
+            document.getElementById('customModal').style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('customModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // Helper per normalizzare le date a mezzanotte locale
+        function normalizeDate(date) {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
 
         // Carica date occupate
         fetch(`/api/availability/camera/${cameraId}`)
             .then(response => response.json())
             .then(data => {
-                const disableDates = data.map(d => { return { from: d.from, to: d.to }; });
+                occupiedRanges = data.map(d => {
+                    return {
+                        from: normalizeDate(d.from),
+                        to: normalizeDate(d.to)
+                    };
+                });
 
-                flatpickr("#checkin", {
+                // Calcola date da disabilitare (solo quelle interne)
+                const disableDates = [];
+                occupiedRanges.forEach(range => {
+                    const start = new Date(range.from);
+                    const end = new Date(range.to);
+
+                    const diffTime = Math.abs(end - start);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays > 1) {
+                        const innerStart = new Date(start);
+                        innerStart.setDate(innerStart.getDate() + 1);
+                        const innerEnd = new Date(end);
+                        innerEnd.setDate(innerEnd.getDate() - 1);
+                        disableDates.push({ from: innerStart, to: innerEnd });
+                    }
+                });
+
+                // Configura Flatpickr in modalità range
+                const fp = flatpickr("#dateRange", {
+                    mode: "range",
                     locale: "it",
                     minDate: new Date().fp_incr(1), // Minimo domani
                     disable: disableDates,
                     dateFormat: "Y-m-d",
-                    defaultDate: document.getElementById('checkin').value, // Pre-popola se presente
-                    onChange: function(selectedDates, dateStr, instance) {
-                        if (selectedDates.length > 0) {
-                            const checkoutPicker = document.querySelector("#checkout")._flatpickr;
-                            checkoutPicker.set("minDate", selectedDates[0].fp_incr(1));
-                            // Reset checkout se non valido
-                            if (checkoutPicker.selectedDates.length > 0 && checkoutPicker.selectedDates[0] <= selectedDates[0]) {
-                                checkoutPicker.clear();
+                    defaultDate: [
+                        document.getElementById('checkin').value,
+                        document.getElementById('checkout').value
+                    ],
+                    onDayCreate: function(dObj, dStr, fp, dayElem) {
+                        const date = normalizeDate(dayElem.dateObj);
+
+                        for (let i = 0; i < occupiedRanges.length; i++) {
+                            const start = occupiedRanges[i].from;
+                            const end = occupiedRanges[i].to;
+
+                            if (date.getTime() === start.getTime()) {
+                                dayElem.classList.add("start-occupied");
+                            } else if (date.getTime() === end.getTime()) {
+                                dayElem.classList.add("end-occupied");
+                            } else if (date > start && date < end) {
+                                dayElem.classList.add("full-occupied");
                             }
+                        }
+                    },
+                    onChange: function(selectedDates, dateStr, instance) {
+                        if (selectedDates.length === 2) {
+                            const start = normalizeDate(selectedDates[0]);
+                            const end = normalizeDate(selectedDates[1]);
+
+                            // Validazione sovrapposizioni
+                            let isValid = true;
+                            for (let i = 0; i < occupiedRanges.length; i++) {
+                                const occ = occupiedRanges[i];
+                                // Logica: start < occ.to && end > occ.from
+                                // Usiamo getTime() per confronto sicuro
+                                if (start.getTime() < occ.to.getTime() && end.getTime() > occ.from.getTime()) {
+                                    isValid = false;
+                                    break;
+                                }
+                            }
+
+                            if (!isValid) {
+                                showModal("Date non disponibili", "L'intervallo selezionato si sovrappone a una prenotazione esistente.");
+                                instance.clear();
+                                document.getElementById('checkin').value = "";
+                                document.getElementById('checkout').value = "";
+                                updateTotal();
+                                return;
+                            }
+
+                            // Aggiorna input nascosti
+                            const checkinStr = instance.formatDate(selectedDates[0], "Y-m-d");
+                            const checkoutStr = instance.formatDate(selectedDates[1], "Y-m-d");
+
+                            document.getElementById('checkin').value = checkinStr;
+                            document.getElementById('checkout').value = checkoutStr;
+
+                            updateTotal();
+                        } else {
+                            // Selezione incompleta
+                            document.getElementById('checkin').value = "";
+                            document.getElementById('checkout').value = "";
                             updateTotal();
                         }
                     }
                 });
 
-                flatpickr("#checkout", {
-                    locale: "it",
-                    minDate: new Date().fp_incr(2), // Minimo dopodomani
-                    disable: disableDates,
-                    dateFormat: "Y-m-d",
-                    defaultDate: document.getElementById('checkout').value, // Pre-popola se presente
-                    onChange: updateTotal
-                });
-
-                // Aggiorna totale iniziale se date presenti
-                updateTotal();
+                // Se ci sono valori iniziali, aggiorna il totale
+                if (document.getElementById('checkin').value && document.getElementById('checkout').value) {
+                    updateTotal();
+                }
             });
 
         function updateTotal() {
@@ -159,7 +347,6 @@
 
             let total = basePrice * nights;
 
-            // Aggiungi servizi
             document.querySelectorAll('input[name="selectedServices"]:checked').forEach(cb => {
                 total += parseFloat(cb.getAttribute('data-price'));
             });

@@ -116,6 +116,13 @@ public class BookingController {
             return "redirect:/booking/dates?cameraId=" + cameraId;
         }
 
+        // Controllo sovrapposizioni
+        List<Prenotazione> sovrapposizioni = prenotazioneRepository.findSovrapposizioni(cameraId, checkout, checkin);
+        if (!sovrapposizioni.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "La camera non è disponibile per le date selezionate.");
+            return "redirect:/booking/dates?cameraId=" + cameraId;
+        }
+
         Camera camera = cameraService.getRoomById(cameraId).orElseThrow();
         long nights = ChronoUnit.DAYS.between(checkin, checkout);
         if (nights < 1) nights = 1;
@@ -155,6 +162,12 @@ public class BookingController {
 
         if (checkin.isBefore(LocalDate.now().plusDays(1))) {
             redirectAttributes.addFlashAttribute("errorMessage", "La prenotazione deve iniziare almeno da domani.");
+            return "redirect:/booking/dates?cameraId=" + cameraId;
+        }
+
+        List<Prenotazione> sovrapposizioni = prenotazioneRepository.findSovrapposizioni(cameraId, checkout, checkin);
+        if (!sovrapposizioni.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "La camera non è più disponibile per le date selezionate.");
             return "redirect:/booking/dates?cameraId=" + cameraId;
         }
 

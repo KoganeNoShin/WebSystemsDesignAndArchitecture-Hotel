@@ -2,6 +2,7 @@ package com.websystemdesign.controller.api;
 
 import com.websystemdesign.dto.CameraDto;
 import com.websystemdesign.model.Camera;
+import com.websystemdesign.model.StatoPrenotazione;
 import com.websystemdesign.repository.PrenotazioneRepository;
 import com.websystemdesign.service.CameraService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,7 @@ public class ApiBookingController {
 
         List<Long> idCamereOccupate = prenotazioneRepository.findAll().stream()
                 .filter(p -> p.getCamera().getSede().getId().equals(sedeId))
+                .filter(p -> p.getStato() != StatoPrenotazione.CANCELLATA)
                 .filter(p -> p.getDataInizio().isBefore(checkout) && p.getDataFine().isAfter(checkin))
                 .map(p -> p.getCamera().getId())
                 .collect(Collectors.toList());

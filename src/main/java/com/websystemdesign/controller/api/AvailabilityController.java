@@ -2,6 +2,7 @@ package com.websystemdesign.controller.api;
 
 import com.websystemdesign.dto.DateOccupateDto;
 import com.websystemdesign.model.Prenotazione;
+import com.websystemdesign.model.StatoPrenotazione;
 import com.websystemdesign.repository.PrenotazioneRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +29,7 @@ public class AvailabilityController {
     public List<DateOccupateDto> getOccupiedDates(@PathVariable Long id) {
         List<Prenotazione> prenotazioni = prenotazioneRepository.findAll().stream()
                 .filter(p -> p.getCamera().getId().equals(id))
+                .filter(p -> p.getStato() != StatoPrenotazione.CANCELLATA)
                 .filter(p -> p.getDataFine().isAfter(LocalDate.now()))
                 .collect(Collectors.toList());
 

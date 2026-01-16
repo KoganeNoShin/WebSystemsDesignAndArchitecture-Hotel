@@ -21,27 +21,26 @@
 
             <form th:action="@{/register}" th:object="${registrationDto}" method="post" onsubmit="return validatePassword()">
 
-                <!-- Dati Utente -->
                 <div class="form-group">
                     <label for="nome">Nome</label>
-                    <input type="text" id="nome" th:field="*{nome}" class="form-control">
+                    <input type="text" id="nome" th:field="*{nome}" class="form-control" required>
                     <div th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}" class="error-message"></div>
                 </div>
                 <div class="form-group">
                     <label for="cognome">Cognome</label>
-                    <input type="text" id="cognome" th:field="*{cognome}" class="form-control">
+                    <input type="text" id="cognome" th:field="*{cognome}" class="form-control" required>
                     <div th:if="${#fields.hasErrors('cognome')}" th:errors="*{cognome}" class="error-message"></div>
                 </div>
                 <div class="form-group">
                     <label for="username">Username</label>
-                    <input type="text" id="username" th:field="*{username}" class="form-control">
+                    <input type="text" id="username" th:field="*{username}" class="form-control" required>
                     <div th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="error-message"></div>
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
                     <div class="password-wrapper">
-                        <input type="password" id="password" th:field="*{password}" class="form-control">
+                        <input type="password" id="password" th:field="*{password}" class="form-control" required>
                         <span class="toggle-password" onclick="togglePassword('password', this)">👁️‍🗨️</span>
                     </div>
                     <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="error-message"></div>
@@ -75,7 +74,7 @@
 
             if (password !== confirmPassword) {
                 errorDiv.style.display = "block";
-                return false; // Blocca l'invio del form
+                return false;
             }
             errorDiv.style.display = "none";
             return true;

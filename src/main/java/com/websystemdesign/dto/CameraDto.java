@@ -22,8 +22,9 @@ public class CameraDto {
     @Positive(message = "I posti letto devono essere almeno 1")
     private int postiLetto;
 
+    @NotNull(message = "Il prezzo è obbligatorio")
     @Positive(message = "Il prezzo base deve essere positivo")
-    private float prezzoBase;
+    private Float prezzoBase;
 
     @NotNull(message = "Lo stato della camera è obbligatorio")
     private StatoCamera status;

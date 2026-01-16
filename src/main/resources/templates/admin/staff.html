@@ -2,7 +2,8 @@
 <html lang="it" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Gestione Staff - Comitini Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Staff - Comitini Admin</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
 </head>
@@ -11,7 +12,7 @@
 <header>
     <div style="display: flex; flex-direction: column; align-items: flex-start;">
         <a th:href="@{/admin/dashboard}" class="logo">Comitini Admin</a>
-        <a th:href="@{/admin/dashboard}"
+        <a th:href="@{/admin/dashboard}" class="back-link"
            style="color: var(--primary-gold); text-decoration: none; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; border: 1px solid var(--primary-gold); padding: 5px 10px; border-radius: 3px; transition: all 0.3s ease;">
             &larr; Dashboard
         </a>
@@ -50,12 +51,10 @@
             <td data-label="Ruolo" th:text="${dipendente.ruolo}">Ruolo</td>
             <td data-label="Sede" th:text="${dipendente.nomeSede}">Sede</td>
             <td data-label="Azioni">
-                <form th:action="@{/admin/staff/delete/{id}(id=${dipendente.id})}" method="post" style="display:inline;">
-                    <button type="submit" class="action-btn btn-delete"
-                            onclick="return confirm('Sei sicuro di voler licenziare questo dipendente? L\'azione è irreversibile.')">
-                        Licenzia
-                    </button>
-                </form>
+                <button type="button" class="action-btn btn-delete"
+                        th:onclick="'openDeleteModal(' + ${dipendente.id} + ')'">
+                    Licenzia
+                </button>
             </td>
         </tr>
         </tbody>
@@ -64,31 +63,31 @@
 
 <div id="addStaffModal" class="modal">
     <div class="modal-content">
-        <span class="close">&times;</span>
+        <span class="close" onclick="closeAddModal()">&times;</span>
         <h2 style="font-family: 'Playfair Display', serif; color: var(--primary-gold); margin-bottom: 1rem;">Nuovo Dipendente</h2>
-        <form th:action="@{/admin/staff/new}" th:object="${dipendenteDto}" method="post">
+        <form id="staffForm" th:action="@{/admin/staff/new}" th:object="${dipendenteDto}" method="post">
             <div class="form-group">
-                <label>Nome</label>
-                <input type="text" th:field="*{nome}" class="form-control">
+                <label>Nome *</label>
+                <input type="text" id="field-nome" th:field="*{nome}" class="form-control" required>
                 <div th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}" class="error-message"></div>
             </div>
             <div class="form-group">
-                <label>Cognome</label>
-                <input type="text" th:field="*{cognome}" class="form-control">
+                <label>Cognome *</label>
+                <input type="text" id="field-cognome" th:field="*{cognome}" class="form-control" required>
                 <div th:if="${#fields.hasErrors('cognome')}" th:errors="*{cognome}" class="error-message"></div>
             </div>
             <hr style="border-color: #444; margin: 15px 0;">
             <div class="form-group">
-                <label>Ruolo</label>
-                <select th:field="*{ruolo}" class="form-control">
+                <label>Ruolo *</label>
+                <select id="field-ruolo" th:field="*{ruolo}" class="form-control" required>
                     <option value="">Seleziona...</option>
                     <option th:each="r : ${T(com.websystemdesign.model.Ruolo).values()}"
                             th:if="${r.name() != 'CLIENTE'}" th:value="${r}" th:text="${r}"></option>
                 </select>
             </div>
             <div class="form-group">
-                <label>Sede</label>
-                <select th:field="*{sedeId}" class="form-control">
+                <label>Sede *</label>
+                <select id="field-sede" th:field="*{sedeId}" class="form-control" required>
                     <option value="">Seleziona...</option>
                     <option th:each="s : ${sedi}" th:value="${s.id}" th:text="${s.nome}"></option>
                 </select>
@@ -97,6 +96,51 @@
         </form>
     </div>
 </div>
-<script th:src="@{/js/admin-staff.js}"></script>
+
+<div id="deleteConfirmModal" class="modal">
+    <div class="modal-confirm-content">
+        <span class="close" onclick="closeDeleteModal()">&times;</span>
+        <h3>Conferma Licenziamento</h3>
+        <p>Sei sicuro di voler licenziare questo dipendente?<br>L'azione è irreversibile.</p>
+        <form id="deleteForm" method="post" action="">
+            <button type="submit" class="btn-confirm-delete">Conferma Eliminazione</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    var addModal = document.getElementById("addStaffModal");
+
+    document.getElementById("openModalBtn").onclick = function() {
+        document.getElementById("field-nome").value = "";
+        document.getElementById("field-cognome").value = "";
+        document.getElementById("field-ruolo").selectedIndex = 0;
+        document.getElementById("field-sede").selectedIndex = 0;
+
+        addModal.style.display = "block";
+    }
+
+    function closeAddModal() {
+        addModal.style.display = "none";
+    }
+
+    var deleteModal = document.getElementById("deleteConfirmModal");
+    var deleteForm = document.getElementById("deleteForm");
+
+    function openDeleteModal(id) {
+        deleteForm.action = "/admin/staff/delete/" + id;
+        deleteModal.style.display = "block";
+    }
+
+    function closeDeleteModal() {
+        deleteModal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        if (event.target == addModal) closeAddModal();
+        if (event.target == deleteModal) closeDeleteModal();
+    }
+</script>
+
 </body>
 </html>

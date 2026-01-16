@@ -6,6 +6,74 @@
     <title>Domotica - Comitini Residence</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/cliente/domotica.css}">
+    <style>
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #2c2c2c;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #c5a059;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 8px;
+            text-align: center;
+            color: #fff;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(-20px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+        .modal-header {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #c5a059;
+            font-weight: bold;
+        }
+        .modal-body {
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+        .modal-footer button {
+            background-color: #c5a059;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .modal-footer button:hover {
+            background-color: #b38f4d;
+        }
+
+        /* Input Modal Styles */
+        .modal-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            background-color: #444;
+            border: 1px solid #666;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+    </style>
 </head>
 <body>
 
@@ -39,7 +107,7 @@
             <div class="smart-card thermostat-card">
                 <div class="card-label" style="margin-bottom: 1rem;">Climatizzazione</div>
 
-                <div class="thermostat-container" onclick="manualTempInput()">
+                <div class="thermostat-container" onclick="openTempModal()">
                     <span class="temp-value" id="tempDisplay" th:text="${camera.temperatura}">22.0</span>
                     <span class="temp-unit">°C</span>
                 </div>
@@ -64,10 +132,81 @@
         </nav>
     </footer>
 
+    <!-- Alert Modal -->
+    <div id="alertModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="alertTitle">Attenzione</div>
+            <div class="modal-body" id="alertMessage">Messaggio</div>
+            <div class="modal-footer">
+                <button onclick="closeAlertModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Input Modal -->
+    <div id="inputModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Imposta Temperatura</div>
+            <div class="modal-body">
+                <p style="margin-bottom: 10px;">Inserisci un valore tra 16 e 24:</p>
+                <input type="number" id="tempInput" class="modal-input" min="16" max="24" step="0.1">
+            </div>
+            <div class="modal-footer">
+                <button onclick="confirmTempInput()">Conferma</button>
+                <button onclick="closeInputModal()" style="background-color: #444; margin-left: 10px;">Annulla</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentTemp = parseFloat(document.getElementById('tempDisplay').innerText);
         let lightState = document.getElementById('lightCard').classList.contains('active');
         let shutterState = document.getElementById('shutterCard').classList.contains('active');
+
+        // Modal Functions
+        function showAlert(title, message) {
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMessage').innerText = message;
+            document.getElementById('alertModal').style.display = "flex";
+        }
+
+        function closeAlertModal() {
+            document.getElementById('alertModal').style.display = "none";
+        }
+
+        function openTempModal() {
+            document.getElementById('tempInput').value = currentTemp;
+            document.getElementById('inputModal').style.display = "flex";
+            document.getElementById('tempInput').focus();
+        }
+
+        function closeInputModal() {
+            document.getElementById('inputModal').style.display = "none";
+        }
+
+        function confirmTempInput() {
+            const inputVal = document.getElementById('tempInput').value;
+            if (inputVal !== null && inputVal !== '') {
+                const val = parseFloat(inputVal.replace(',', '.'));
+                if (!isNaN(val)) {
+                    updateTemp(val);
+                    closeInputModal();
+                } else {
+                    showAlert("Errore", "Valore non valido.");
+                }
+            }
+        }
+
+        window.onclick = function(event) {
+            const alertModal = document.getElementById('alertModal');
+            const inputModal = document.getElementById('inputModal');
+            if (event.target == alertModal) {
+                alertModal.style.display = "none";
+            }
+            if (event.target == inputModal) {
+                inputModal.style.display = "none";
+            }
+        }
 
         function toggleLight() {
             lightState = !lightState;
@@ -106,18 +245,6 @@
 
         function changeTemp(delta) {
             updateTemp(currentTemp + delta);
-        }
-
-        function manualTempInput() {
-            const input = prompt("Inserisci la temperatura desiderata (16 - 24):", currentTemp);
-            if (input !== null) {
-                const val = parseFloat(input.replace(',', '.'));
-                if (!isNaN(val)) {
-                    updateTemp(val);
-                } else {
-                    alert("Valore non valido.");
-                }
-            }
         }
 
         function updateTemp(newVal) {

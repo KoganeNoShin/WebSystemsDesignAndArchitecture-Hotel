@@ -88,6 +88,19 @@ public class ClienteProfileController {
         
         if (bindingResult.hasErrors()) {
             model.addAttribute("isProfileComplete", isProfileComplete);
+            
+            if (cliente.getCittadinanza() != null && !cliente.getCittadinanza().isEmpty()) {
+                dto.setCittadinanza(cliente.getCittadinanza());
+            }
+            if (cliente.getLuogo() != null && !cliente.getLuogo().isEmpty()) {
+                dto.setLuogoNascita(cliente.getLuogo());
+            }
+            if (cliente.getDataNascita() != null && !cliente.getDataNascita().isEmpty()) {
+                try {
+                    dto.setDataNascita(LocalDate.parse(cliente.getDataNascita()));
+                } catch (DateTimeParseException e) {}
+            }
+            
             return "cliente/profile";
         }
         
@@ -99,12 +112,14 @@ public class ClienteProfileController {
             }
         }
         
-        if (isProfileComplete) {
+        if (cliente.getCittadinanza() != null && !cliente.getCittadinanza().isEmpty()) {
             dto.setCittadinanza(cliente.getCittadinanza());
+        }
+        if (cliente.getLuogo() != null && !cliente.getLuogo().isEmpty()) {
             dto.setLuogoNascita(cliente.getLuogo());
-            if (cliente.getDataNascita() != null) {
-                dto.setDataNascita(LocalDate.parse(cliente.getDataNascita()));
-            }
+        }
+        if (cliente.getDataNascita() != null && !cliente.getDataNascita().isEmpty()) {
+            dto.setDataNascita(LocalDate.parse(cliente.getDataNascita()));
         }
 
         clienteService.updateClienteProfile(username, dto);

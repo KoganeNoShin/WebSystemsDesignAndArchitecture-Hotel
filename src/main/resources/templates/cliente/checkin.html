@@ -6,6 +6,62 @@
     <title>Check-in Online - Comitini Residence</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/cliente/checkin.css}">
+    <style>
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #2c2c2c;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #c5a059;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 8px;
+            text-align: center;
+            color: #fff;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(-20px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+        .modal-header {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #c5a059;
+            font-weight: bold;
+        }
+        .modal-body {
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+        .modal-footer button {
+            background-color: #c5a059;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .modal-footer button:hover {
+            background-color: #b38f4d;
+        }
+    </style>
 </head>
 <body>
 
@@ -18,7 +74,6 @@
         <div class="checkin-container">
             <h1>Check-in Online</h1>
 
-            <!-- Messaggi di errore dal server -->
             <div th:if="${errorMessage}" style="background-color: rgba(255, 77, 77, 0.2); color: #ff4d4d; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; border: 1px solid #ff4d4d; text-align: center;" th:text="${errorMessage}"></div>
 
             <p style="text-align: center; color: #ccc; margin-bottom: 2rem;">
@@ -29,7 +84,6 @@
             <form th:action="@{/cliente/checkin/confirm}" method="post" onsubmit="return validateAges()">
                 <input type="hidden" name="prenotazioneId" th:value="${prenotazione.id}">
 
-                <!-- CAPOGRUPPO -->
                 <h3 class="section-title">Dati Capogruppo (Tu)</h3>
                 <div class="form-row">
                     <div class="form-group">
@@ -42,7 +96,6 @@
                     </div>
                 </div>
 
-                <!-- Dati Anagrafici (Bloccati se già presenti) -->
                 <div class="form-row">
                     <div class="form-group">
                         <label>Cittadinanza</label>
@@ -65,12 +118,10 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Data di Nascita</label>
-                        <!-- Aggiungo classe specifica per il capogruppo per validazione 18+ -->
                         <input type="date" name="dataNascita" class="form-control date-birth capogruppo-date" th:value="${cliente.dataNascita}" required th:readonly="${isProfileLocked}">
                     </div>
                 </div>
 
-                <!-- Documento (Sempre Modificabile) -->
                 <div class="form-row">
                     <div class="form-group">
                         <label>Tipo Documento</label>
@@ -88,7 +139,6 @@
                     </div>
                 </div>
 
-                <!-- ALTRI OSPITI -->
                 <div th:if="${!ospitiList.empty}">
                     <h3 class="section-title">Altri Ospiti</h3>
                     <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 1rem;">Inserisci i dati degli altri occupanti della camera.</p>
@@ -145,31 +195,57 @@
         </nav>
     </footer>
 
+    <!-- Custom Modal -->
+    <div id="customModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalTitle">Attenzione</div>
+            <div class="modal-body" id="modalMessage">Messaggio</div>
+            <div class="modal-footer">
+                <button onclick="closeModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
     <script th:src="@{/js/autocomplete.js}"></script>
     <script>
+        function showModal(title, message) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerText = message;
+            const modal = document.getElementById('customModal');
+            modal.style.display = "flex";
+        }
+
+        function closeModal() {
+            document.getElementById('customModal').style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('customModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
         function validateAges() {
             const dateInputs = document.querySelectorAll('.date-birth');
             const today = new Date();
             let valid = true;
 
-            // Rimuovi bordi rossi precedenti
             dateInputs.forEach(input => input.style.borderColor = "#555");
 
             for (let i = 0; i < dateInputs.length; i++) {
                 const input = dateInputs[i];
-                if (!input.value) continue; // Salta se vuoto (ma è required)
+                if (!input.value) continue;
 
                 const birthDate = new Date(input.value);
 
-                // Controllo data futura
                 if (birthDate >= today) {
-                    alert("La data di nascita non può essere nel futuro o oggi.");
+                    showModal("Errore Data", "La data di nascita non può essere nel futuro o oggi.");
                     input.style.borderColor = "#ff4d4d";
                     valid = false;
-                    break; // Interrompi al primo errore
+                    break;
                 }
 
-                // Controllo età massima
                 let age = today.getFullYear() - birthDate.getFullYear();
                 const m = today.getMonth() - birthDate.getMonth();
                 if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
@@ -177,16 +253,15 @@
                 }
 
                 if (age > 120) {
-                    alert("Data di nascita non valida (età > 120).");
+                    showModal("Errore Data", "Data di nascita non valida (età > 120).");
                     input.style.borderColor = "#ff4d4d";
                     valid = false;
                     break;
                 }
 
-                // Controllo Maggiorenne per Capogruppo
                 if (input.classList.contains('capogruppo-date')) {
                     if (age < 18) {
-                        alert("Il capogruppo deve essere maggiorenne.");
+                        showModal("Errore Età", "Il capogruppo deve essere maggiorenne.");
                         input.style.borderColor = "#ff4d4d";
                         valid = false;
                         break;

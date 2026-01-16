@@ -27,7 +27,6 @@
 
             <form th:action="@{/cliente/profile}" th:object="${profileDto}" method="post">
 
-                <!-- Dati Utente (Read-Only) -->
                 <div class="form-group">
                     <label>Nome</label>
                     <input type="text" th:field="*{nome}" class="form-control" readonly>
@@ -43,11 +42,10 @@
 
                 <hr style="border-color: rgba(197, 160, 89, 0.3); margin: 2rem 0;">
 
-                <!-- Dati Cliente (Anagrafica bloccata se completa) -->
                 <div class="form-group">
                     <label for="cittadinanza">Cittadinanza</label>
-                    <input th:if="${isProfileComplete}" type="text" th:field="*{cittadinanza}" class="form-control" readonly>
-                    <select th:if="${!isProfileComplete}" id="cittadinanza" th:field="*{cittadinanza}" class="form-control">
+                    <input th:if="${profileDto.cittadinanza != null && !profileDto.cittadinanza.isEmpty() && !#fields.hasErrors('cittadinanza')}" type="text" th:field="*{cittadinanza}" class="form-control" readonly>
+                    <select th:if="${profileDto.cittadinanza == null || profileDto.cittadinanza.isEmpty() || #fields.hasErrors('cittadinanza')}" id="cittadinanza" th:field="*{cittadinanza}" class="form-control">
                         <option value="">Seleziona...</option>
                         <option value="Italiana">Italiana</option>
                         <option value="Francese">Francese</option>
@@ -60,16 +58,15 @@
                 </div>
                 <div class="form-group">
                     <label for="luogoNascita">Luogo di Nascita</label>
-                    <input type="text" id="luogoNascita" th:field="*{luogoNascita}" class="form-control" autocomplete="off" th:readonly="${isProfileComplete}">
+                    <input type="text" id="luogoNascita" th:field="*{luogoNascita}" class="form-control" autocomplete="off" th:readonly="${profileDto.luogoNascita != null && !profileDto.luogoNascita.isEmpty() && !#fields.hasErrors('luogoNascita')}">
                     <div th:if="${#fields.hasErrors('luogoNascita')}" th:errors="*{luogoNascita}" class="error-message"></div>
                 </div>
                 <div class="form-group">
                     <label for="dataNascita">Data di Nascita</label>
-                    <input type="date" id="dataNascita" th:field="*{dataNascita}" class="form-control" th:readonly="${isProfileComplete}">
+                    <input type="date" id="dataNascita" th:field="*{dataNascita}" class="form-control" th:readonly="${profileDto.dataNascita != null && !#fields.hasErrors('dataNascita')}">
                     <div th:if="${#fields.hasErrors('dataNascita')}" th:errors="*{dataNascita}" class="error-message"></div>
                 </div>
 
-                <!-- Documento (Sempre Modificabile) -->
                 <div class="form-group">
                     <label for="tipoDocumento">Tipo Documento</label>
                     <select id="tipoDocumento" th:field="*{tipoDocumento}" class="form-control">

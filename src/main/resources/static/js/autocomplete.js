@@ -116,4 +116,32 @@ document.addEventListener('DOMContentLoaded', function () {
             setupAutocomplete(citInputs[i], luogoInputs[i]);
         }
     }
+
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            const dataNascitaInput = document.getElementById('dataNascita');
+            if (dataNascitaInput && dataNascitaInput.value) {
+                const dataNascita = new Date(dataNascitaInput.value);
+                const oggi = new Date();
+                let eta = oggi.getFullYear() - dataNascita.getFullYear();
+                const m = oggi.getMonth() - dataNascita.getMonth();
+                if (m < 0 || (m === 0 && oggi.getDate() < dataNascita.getDate())) {
+                    eta--;
+                }
+
+                if (eta < 18) {
+                    event.preventDefault();
+
+                    let errorDiv = dataNascitaInput.nextElementSibling;
+                    if (!errorDiv || !errorDiv.classList.contains('error-message')) {
+                        errorDiv = document.createElement('div');
+                        errorDiv.classList.add('error-message');
+                        dataNascitaInput.parentNode.appendChild(errorDiv);
+                    }
+                    errorDiv.textContent = 'Devi essere maggiorenne.';
+                }
+            }
+        });
+    }
 });

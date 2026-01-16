@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
     <style>
-        /* Modal Styles */
         .modal {
             display: none;
             position: fixed;
@@ -81,15 +80,12 @@
         <h1 style="text-align: center; margin-bottom: 1rem;">Scegli la tua Camera</h1>
         <p style="text-align: center; color: #aaa; margin-bottom: 3rem;" th:text="'Presso ' + ${sede.nome}">Presso Cortina</p>
 
-        <!-- Barra di Ricerca Date e Ospiti -->
         <div class="search-bar">
             <div class="search-group">
-                <label>Check-in</label>
-                <input type="text" id="checkin" class="search-control" placeholder="Seleziona data">
-            </div>
-            <div class="search-group">
-                <label>Check-out</label>
-                <input type="text" id="checkout" class="search-control" placeholder="Seleziona data">
+                <label>Seleziona Date</label>
+                <input type="text" id="dateRange" class="search-control" placeholder="Seleziona periodo" style="width: 250px;">
+                <input type="hidden" id="checkin">
+                <input type="hidden" id="checkout">
             </div>
             <div class="search-group">
                 <label>Ospiti</label>
@@ -113,7 +109,6 @@
         </div>
 
         <div class="rooms-grid" id="roomsGrid">
-            <!-- Mostra tutte le camere della sede al caricamento -->
             <div th:each="camera : ${camere}"
                  class="room-card"
                  th:data-type="${camera.tipologia ?: 'Standard'}"
@@ -145,7 +140,6 @@
         </nav>
     </footer>
 
-    <!-- Custom Modal -->
     <div id="customModal" class="modal">
         <div class="modal-content">
             <div class="modal-header" id="modalTitle">Attenzione</div>
@@ -160,28 +154,29 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
     <script>
         const sedeId = [[${sede.id}]];
-        let allRoomsData = []; // Mantiene i dati di tutte le camere
+        let allRoomsData = [];
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Inizializza i date picker
-            flatpickr("#checkin", {
+            flatpickr("#dateRange", {
+                mode: "range",
                 locale: "it",
-                minDate: new Date().fp_incr(1), // Minimo domani
+                minDate: new Date().fp_incr(1),
                 dateFormat: "Y-m-d",
-                onChange: function(selectedDates) {
-                    if (selectedDates.length > 0) {
-                        const checkoutPicker = document.querySelector("#checkout")._flatpickr;
-                        checkoutPicker.set("minDate", selectedDates[0].fp_incr(1));
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (selectedDates.length === 2) {
+                        document.getElementById('checkin').value = instance.formatDate(selectedDates[0], "Y-m-d");
+                        document.getElementById('checkout').value = instance.formatDate(selectedDates[1], "Y-m-d");
+                    } else {
+                        document.getElementById('checkin').value = "";
+                        document.getElementById('checkout').value = "";
                     }
                 }
             });
-            flatpickr("#checkout", { locale: "it", minDate: new Date().fp_incr(2), dateFormat: "Y-m-d" }); // Minimo dopodomani
 
-            // Salva i dati iniziali delle camere
             document.querySelectorAll('.room-card').forEach(card => {
                 allRoomsData.push({
                     id: card.getAttribute('data-id'),
-                    element: card.cloneNode(true) // Clona l'elemento per riutilizzarlo
+                    element: card.cloneNode(true)
                 });
             });
         });
@@ -197,7 +192,6 @@
             document.getElementById('customModal').style.display = "none";
         }
 
-        // Chiudi modale cliccando fuori
         window.onclick = function(event) {
             const modal = document.getElementById('customModal');
             if (event.target == modal) {
@@ -223,15 +217,12 @@
                 .then(data => {
                     const availableRoomIds = data.map(room => room.id.toString());
 
-                    // Pulisci la griglia
                     grid.innerHTML = '';
 
-                    // Mostra solo le camere disponibili
                     let hasRooms = false;
                     allRoomsData.forEach(roomData => {
                         if (availableRoomIds.includes(roomData.id)) {
                             const newCard = roomData.element.cloneNode(true);
-                            // Aggiorna il link con le date selezionate
                             const link = newCard.querySelector('.btn-select');
                             link.href = `/booking/dates?cameraId=${roomData.id}&checkin=${checkin}&checkout=${checkout}&numOspiti=${numOspiti}`;
                             grid.appendChild(newCard);
@@ -243,7 +234,6 @@
                          grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #aaa;">Nessuna camera disponibile per i criteri selezionati.</p>';
                     }
 
-                    // Riapplica filtri correnti
                     const activeBtn = document.querySelector('.filter-btn.active');
                     if (activeBtn) {
                         filterRooms(activeBtn.innerText.toLowerCase() === 'tutte' ? 'all' : activeBtn.innerText, activeBtn);
@@ -255,15 +245,12 @@
                 });
         }
 
-        // Funzioni di filtro e ordinamento
         function filterRooms(type, btnElement) {
-            // Gestione classe active
             if (btnElement) {
                 const buttons = document.querySelectorAll('.filter-btn');
                 buttons.forEach(btn => btn.classList.remove('active'));
                 btnElement.classList.add('active');
             } else {
-                // Se chiamato programmaticamente, trova il bottone giusto
                 const buttons = document.querySelectorAll('.filter-btn');
                 buttons.forEach(btn => {
                     if (btn.innerText.toUpperCase() === (type === 'all' ? 'TUTTE' : type.toUpperCase())) {
@@ -277,7 +264,6 @@
             const cards = document.querySelectorAll('.room-card');
             cards.forEach(card => {
                 const cardType = card.getAttribute('data-type');
-                // Normalizza il tipo per il confronto (es. "Standard" vs "Standard")
                 const normalizedType = type === 'Standard' ? 'Standard' : (type === 'Suite' ? 'Suite' : 'all');
 
                 if (type === 'all' || cardType === normalizedType) {
@@ -292,7 +278,6 @@
             const grid = document.getElementById('roomsGrid');
             const cards = Array.from(grid.children);
 
-            // Se ci sono messaggi di testo invece di card, non ordinare
             if(cards.length > 0 && !cards[0].classList.contains('room-card')) return;
 
             cards.sort((a, b) => {

@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
     <style>
-        /* Modal Styles */
         .modal {
             display: none;
             position: fixed;
@@ -64,7 +63,6 @@
             background-color: #b38f4d;
         }
 
-        /* Flatpickr Custom Styles for Occupancy */
         .start-occupied {
             background: linear-gradient(135deg, transparent 50%, rgba(255, 77, 77, 0.3) 50%) !important;
             border-color: transparent !important;
@@ -76,8 +74,8 @@
         .full-occupied {
             background-color: rgba(255, 77, 77, 0.3) !important;
             border-color: transparent !important;
+            text-decoration: line-through;
         }
-        /* Fix per hover su date custom */
         .flatpickr-day.start-occupied:hover, .flatpickr-day.end-occupied:hover {
             background: #e6e6e6 !important;
             color: #000 !important;
@@ -102,11 +100,9 @@
             <span class="active">3. Date & Servizi</span> &nbsp;>&nbsp; <span>4. Conferma</span>
         </div>
 
-        <!-- Messaggio di errore dal backend -->
         <div th:if="${errorMessage}" style="background-color: rgba(255, 77, 77, 0.2); color: #ff4d4d; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; border: 1px solid #ff4d4d; text-align: center;" th:text="${errorMessage}"></div>
 
         <div class="layout-grid">
-            <!-- Colonna Sinistra: Riepilogo Camera -->
             <div class="room-summary">
                 <h2 th:text="'Camera ' + ${camera.numero}">Camera 101</h2>
                 <p th:text="${camera.tipologia}">Standard</p>
@@ -122,7 +118,6 @@
                 </div>
             </div>
 
-            <!-- Colonna Destra: Form -->
             <div class="form-section">
                 <form th:action="@{/booking/review}" method="get" id="bookingForm">
                     <input type="hidden" name="sedeId" th:value="${sede.id}">
@@ -132,7 +127,6 @@
                         <label>Seleziona Date</label>
                         <div class="date-picker-wrapper">
                             <input type="text" id="dateRange" class="form-control" placeholder="Seleziona periodo" required>
-                            <!-- Input nascosti per inviare i dati separati al backend -->
                             <input type="hidden" id="checkin" name="checkin" th:value="${param.checkin}">
                             <input type="hidden" id="checkout" name="checkout" th:value="${param.checkout}">
                         </div>
@@ -173,7 +167,6 @@
         </nav>
     </footer>
 
-    <!-- Custom Modal -->
     <div id="customModal" class="modal">
         <div class="modal-content">
             <div class="modal-header" id="modalTitle">Attenzione</div>
@@ -189,7 +182,7 @@
     <script>
         const cameraId = [[${camera.id}]];
         let basePrice = parseFloat(document.getElementById('basePrice').innerText);
-        let occupiedRanges = []; // Store occupied ranges globally
+        let occupiedRanges = [];
 
         function showModal(title, message) {
             document.getElementById('modalTitle').innerText = title;
@@ -209,14 +202,12 @@
             }
         }
 
-        // Helper per normalizzare le date a mezzanotte locale
         function normalizeDate(date) {
             const d = new Date(date);
             d.setHours(0, 0, 0, 0);
             return d;
         }
 
-        // Carica date occupate
         fetch(`/api/availability/camera/${cameraId}`)
             .then(response => response.json())
             .then(data => {
@@ -227,7 +218,6 @@
                     };
                 });
 
-                // Calcola date da disabilitare (solo quelle interne)
                 const disableDates = [];
                 occupiedRanges.forEach(range => {
                     const start = new Date(range.from);
@@ -245,11 +235,10 @@
                     }
                 });
 
-                // Configura Flatpickr in modalità range
                 const fp = flatpickr("#dateRange", {
                     mode: "range",
                     locale: "it",
-                    minDate: new Date().fp_incr(1), // Minimo domani
+                    minDate: new Date().fp_incr(1),
                     disable: disableDates,
                     dateFormat: "Y-m-d",
                     defaultDate: [
@@ -277,12 +266,9 @@
                             const start = normalizeDate(selectedDates[0]);
                             const end = normalizeDate(selectedDates[1]);
 
-                            // Validazione sovrapposizioni
                             let isValid = true;
                             for (let i = 0; i < occupiedRanges.length; i++) {
                                 const occ = occupiedRanges[i];
-                                // Logica: start < occ.to && end > occ.from
-                                // Usiamo getTime() per confronto sicuro
                                 if (start.getTime() < occ.to.getTime() && end.getTime() > occ.from.getTime()) {
                                     isValid = false;
                                     break;
@@ -298,7 +284,6 @@
                                 return;
                             }
 
-                            // Aggiorna input nascosti
                             const checkinStr = instance.formatDate(selectedDates[0], "Y-m-d");
                             const checkoutStr = instance.formatDate(selectedDates[1], "Y-m-d");
 
@@ -307,7 +292,6 @@
 
                             updateTotal();
                         } else {
-                            // Selezione incompleta
                             document.getElementById('checkin').value = "";
                             document.getElementById('checkout').value = "";
                             updateTotal();
@@ -315,7 +299,6 @@
                     }
                 });
 
-                // Se ci sono valori iniziali, aggiorna il totale
                 if (document.getElementById('checkin').value && document.getElementById('checkout').value) {
                     updateTotal();
                 }

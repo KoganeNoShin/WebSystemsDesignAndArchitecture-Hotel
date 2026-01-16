@@ -60,26 +60,6 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        if(false) {
-            System.out.println("Inizio Data Seeding...");
-
-            ospiteRepository.deleteAll();
-            prenotazioneRepository.deleteAll();
-            clienteRepository.deleteAll();
-            dipendenteRepository.deleteAll();
-            utenteRepository.deleteAll();
-            cameraRepository.deleteAll();
-
-            List<Sede> allSedi = sedeRepository.findAll();
-            for (Sede s : allSedi) {
-                s.setServices(null);
-                sedeRepository.save(s);
-            }
-
-            sedeRepository.deleteAll();
-            serviceRepository.deleteAll();
-            multimediaRepository.deleteAll();
-        }
         if (sedeRepository.count() == 0) {
             System.out.println("Database vuoto. Inizio Data Seeding...");
 

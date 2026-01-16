@@ -6,11 +6,9 @@
     <title>Le Nostre Camere - Comitini Residence</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/rooms.css}">
-    <!-- Flatpickr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
     <style>
-        /* Stile extra per il calendario modale */
         #calendarModal .modal-content {
             background-color: #1a1a1a;
             padding: 2rem;
@@ -36,7 +34,6 @@
             color: var(--primary-gold);
         }
 
-        /* --- COLORI CALENDARIO --- */
         .flatpickr-day.flatpickr-disabled,
         .flatpickr-day.flatpickr-disabled:hover {
             background-color: rgba(255, 77, 77, 0.3) !important;
@@ -57,6 +54,21 @@
         .flatpickr-day.today {
             border-color: var(--primary-gold) !important;
         }
+
+        /* Custom Occupancy Styles */
+        .start-occupied {
+            background: linear-gradient(135deg, transparent 50%, rgba(255, 77, 77, 0.3) 50%) !important;
+            border-color: transparent !important;
+        }
+        .end-occupied {
+            background: linear-gradient(135deg, rgba(255, 77, 77, 0.3) 50%, transparent 50%) !important;
+            border-color: transparent !important;
+        }
+        .full-occupied {
+            background-color: rgba(255, 77, 77, 0.3) !important;
+            border-color: transparent !important;
+            text-decoration: line-through;
+        }
     </style>
 </head>
 <body>
@@ -64,7 +76,6 @@
     <header>
         <a href="/home" class="logo">Comitini Residence</a>
 
-        <!-- Pulsante Login/Dashboard dinamico -->
         <div sec:authorize="!isAuthenticated()">
             <a th:href="@{/login}" class="btn-login">Login</a>
         </div>
@@ -76,7 +87,6 @@
     <div class="rooms-container">
         <h1 style="text-align: center; margin-bottom: 2rem; font-family: 'Playfair Display', serif; color: var(--primary-gold);">Le Nostre Camere</h1>
 
-        <!-- Filtri -->
         <div class="filters-container">
             <div class="filter-group">
                 <button class="filter-btn active" onclick="setTypeFilter('all')">Tutte</button>
@@ -97,7 +107,6 @@
                  th:data-type="${camera.tipologia ?: 'Standard'}"
                  th:data-sede="${camera.sede.id}">
 
-                <!-- Carosello Immagini -->
                 <div class="room-carousel" onclick="openModal(this)" style="cursor: pointer;" title="Clicca per ingrandire">
                     <div th:each="imgUrl, iterStat : ${@cameraService.getImmaginiCamera(camera)}"
                          class="carousel-image"
@@ -117,7 +126,6 @@
 
                     <div style="display: flex; gap: 10px; justify-content: center;">
                         <button class="check-btn" th:onclick="'openCalendar(' + ${camera.id} + ')'">📅 Disponibilità</button>
-                        <!-- Link diretto alla prenotazione (Step 3: Date) -->
                         <a th:href="@{/booking/dates(cameraId=${camera.id})}" class="btn-book">Prenota Ora</a>
                     </div>
                 </div>
@@ -129,7 +137,6 @@
         </div>
     </div>
 
-    <!-- MODALE GALLERIA -->
     <div id="galleryModal" class="modal">
         <span class="close-modal" onclick="closeModal('galleryModal')">&times;</span>
         <div class="modal-content">
@@ -139,7 +146,6 @@
         </div>
     </div>
 
-    <!-- MODALE CALENDARIO -->
     <div id="calendarModal" class="modal">
         <span class="close-modal" onclick="closeModal('calendarModal')">&times;</span>
         <div class="modal-content">
@@ -155,14 +161,12 @@
     <footer>
         <nav>
             <ul class="nav-links">
-                <!-- Nascondi Registrati se loggato -->
                 <li sec:authorize="!isAuthenticated()"><a th:href="@{/register}">Registrati</a></li>
 
                 <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
                 <li><a th:href="@{/home/services}">Servizi</a></li>
                 <li><a th:href="@{/home/contact}">Contatti</a></li>
 
-                <!-- Aggiungi Logout se loggato -->
                 <li sec:authorize="isAuthenticated()">
                     <form th:action="@{/logout}" method="post" style="display: inline;">
                         <button type="submit" style="background:none; border:none; color:rgba(255, 255, 255, 0.7); font-size:0.8rem; text-transform:uppercase; letter-spacing:2px; cursor:pointer; font-family:'Lato', sans-serif; transition: color 0.3s ease;" onmouseover="this.style.color='#c5a059'" onmouseout="this.style.color='rgba(255, 255, 255, 0.7)'">Logout</button>
@@ -172,12 +176,10 @@
         </nav>
     </footer>
 
-    <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
 
     <script>
-        // --- FILTRI ---
         let currentType = 'all';
 
         function setTypeFilter(type) {
@@ -206,7 +208,6 @@
             });
         }
 
-        // --- CAROSELLO AUTOMATICO ---
         document.addEventListener('DOMContentLoaded', function() {
             const carousels = document.querySelectorAll('.room-carousel');
             carousels.forEach(carousel => {
@@ -222,7 +223,6 @@
             });
         });
 
-        // --- MODALE GALLERIA ---
         let modalImages = [];
         let modalIndex = 0;
         const modalImg = document.getElementById('modalImage');
@@ -258,8 +258,13 @@
             modalImg.src = modalImages[modalIndex];
         }
 
-        // --- CALENDARIO DISPONIBILITÀ ---
         let calendarInstance = null;
+
+        function normalizeDate(date) {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
 
         function openCalendar(cameraId) {
             const modal = document.getElementById('calendarModal');
@@ -276,8 +281,28 @@
             fetch(`/api/availability/camera/${cameraId}`)
                 .then(response => response.json())
                 .then(data => {
-                    const disableDates = data.map(d => {
-                        return { from: d.from, to: d.to };
+                    const occupiedRanges = data.map(d => {
+                        return {
+                            from: normalizeDate(d.from),
+                            to: normalizeDate(d.to)
+                        };
+                    });
+
+                    const disableDates = [];
+                    occupiedRanges.forEach(range => {
+                        const start = new Date(range.from);
+                        const end = new Date(range.to);
+
+                        const diffTime = Math.abs(end - start);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                        if (diffDays > 1) {
+                            const innerStart = new Date(start);
+                            innerStart.setDate(innerStart.getDate() + 1);
+                            const innerEnd = new Date(end);
+                            innerEnd.setDate(innerEnd.getDate() - 1);
+                            disableDates.push({ from: innerStart, to: innerEnd });
+                        }
                     });
 
                     calendarInstance = flatpickr(container, {
@@ -285,7 +310,23 @@
                         locale: "it",
                         minDate: "today",
                         disable: disableDates,
-                        dateFormat: "Y-m-d"
+                        dateFormat: "Y-m-d",
+                        onDayCreate: function(dObj, dStr, fp, dayElem) {
+                            const date = normalizeDate(dayElem.dateObj);
+
+                            for (let i = 0; i < occupiedRanges.length; i++) {
+                                const start = occupiedRanges[i].from;
+                                const end = occupiedRanges[i].to;
+
+                                if (date.getTime() === start.getTime()) {
+                                    dayElem.classList.add("start-occupied");
+                                } else if (date.getTime() === end.getTime()) {
+                                    dayElem.classList.add("end-occupied");
+                                } else if (date > start && date < end) {
+                                    dayElem.classList.add("full-occupied");
+                                }
+                            }
+                        }
                     });
                 })
                 .catch(err => console.error("Errore caricamento disponibilità:", err));

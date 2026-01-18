@@ -1,6 +1,8 @@
 package com.websystemdesign.dto;
 
 import com.websystemdesign.model.StatoCamera;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
@@ -19,11 +21,12 @@ public class CameraDto {
     @NotNull(message = "Il numero o nome della camera è obbligatorio")
     private String numero;
 
-    @Positive(message = "I posti letto devono essere almeno 1")
+    @Min(value = 1, message = "I posti letto devono essere almeno 1")
+    @Max(value = 8, message = "I posti letto non possono essere più di 8")
     private int postiLetto;
 
     @NotNull(message = "Il prezzo è obbligatorio")
-    @Positive(message = "Il prezzo base deve essere positivo")
+    @Min(value = 100, message = "Il prezzo base deve essere almeno 100€")
     private Float prezzoBase;
 
     @NotNull(message = "Lo stato della camera è obbligatorio")
@@ -31,6 +34,9 @@ public class CameraDto {
 
     private boolean luce;
     private boolean tapparelle;
+
+    @Min(value = 16, message = "La temperatura minima è 16°C")
+    @Max(value = 24, message = "La temperatura massima è 24°C")
     private float temperatura;
 
     private List<String> immagini;

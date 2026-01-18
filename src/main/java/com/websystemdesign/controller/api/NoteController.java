@@ -10,6 +10,7 @@ import com.websystemdesign.service.ClienteService;
 import com.websystemdesign.service.NotaService;
 import com.websystemdesign.service.PrenotazioneService;
 import com.websystemdesign.service.UtenteService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
@@ -54,10 +55,10 @@ public class NoteController {
     }
 
     @PostMapping("/add")
-    public NotaDto addNota(@RequestParam Long prenotazioneId, @RequestParam String testo, Authentication authentication) {
-        Prenotazione p = checkOwnership(prenotazioneId, authentication);
+    public NotaDto addNota(@Valid @RequestBody NotaDto notaDto, Authentication authentication) {
+        Prenotazione p = checkOwnership(notaDto.getPrenotazioneId(), authentication);
         
-        Nota nota = notaService.addNota(testo, p);
+        Nota nota = notaService.addNota(notaDto.getTesto(), p);
         
         return notaMapper.toDto(nota);
     }

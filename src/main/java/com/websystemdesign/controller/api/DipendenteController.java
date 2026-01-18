@@ -4,6 +4,7 @@ import com.websystemdesign.dto.DipendenteDto;
 import com.websystemdesign.mapper.DipendenteMapper;
 import com.websystemdesign.model.Dipendente;
 import com.websystemdesign.service.DipendenteService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +39,7 @@ public class DipendenteController {
     }
 
     @PostMapping
-    public DipendenteDto createDipendente(@RequestBody DipendenteDto dipendenteDto) {
+    public DipendenteDto createDipendente(@Valid @RequestBody DipendenteDto dipendenteDto) {
         Dipendente dipendente = dipendenteMapper.toEntity(dipendenteDto);
         Dipendente savedDipendente = dipendenteService.saveDipendente(dipendente);
         return dipendenteMapper.toDto(savedDipendente);

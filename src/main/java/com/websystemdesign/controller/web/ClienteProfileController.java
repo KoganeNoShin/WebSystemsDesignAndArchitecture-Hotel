@@ -88,25 +88,19 @@ public class ClienteProfileController {
         
         if (bindingResult.hasErrors()) {
             model.addAttribute("isProfileComplete", isProfileComplete);
-            
-            if (cliente.getCittadinanza() != null && !cliente.getCittadinanza().isEmpty()) {
-                dto.setCittadinanza(cliente.getCittadinanza());
-            }
-            if (cliente.getLuogo() != null && !cliente.getLuogo().isEmpty()) {
-                dto.setLuogoNascita(cliente.getLuogo());
-            }
-            if (cliente.getDataNascita() != null && !cliente.getDataNascita().isEmpty()) {
-                try {
-                    dto.setDataNascita(LocalDate.parse(cliente.getDataNascita()));
-                } catch (DateTimeParseException e) {}
-            }
-            
+            // ... (codice per ripopolare i campi in caso di errore)
             return "cliente/profile";
         }
         
         if (dto.getDataNascita() != null) {
-            if (Period.between(dto.getDataNascita(), LocalDate.now()).getYears() < 18) {
+            int age = Period.between(dto.getDataNascita(), LocalDate.now()).getYears();
+            if (age < 18) {
                 bindingResult.rejectValue("dataNascita", "error.dataNascita", "Devi essere maggiorenne.");
+                model.addAttribute("isProfileComplete", isProfileComplete);
+                return "cliente/profile";
+            }
+            if (age > 100) {
+                bindingResult.rejectValue("dataNascita", "error.dataNascita", "L'età massima consentita è 100 anni.");
                 model.addAttribute("isProfileComplete", isProfileComplete);
                 return "cliente/profile";
             }

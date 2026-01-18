@@ -93,6 +93,10 @@ public class AdminSedeController {
                              Model model,
                              RedirectAttributes redirectAttributes) {
 
+        if ("Suite".equalsIgnoreCase(cameraDto.getTipologia()) && cameraDto.getPrezzoBase() < 250) {
+            bindingResult.rejectValue("prezzoBase", "error.cameraDto", "Il prezzo minimo per una Suite è 250€");
+        }
+
         if (bindingResult.hasErrors()) {
             Sede sede = sedeService.getSedeById(sedeId).orElseThrow();
             model.addAttribute("sede", sede);

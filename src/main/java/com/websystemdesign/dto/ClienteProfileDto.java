@@ -2,6 +2,7 @@ package com.websystemdesign.dto;
 
 import com.websystemdesign.model.TipoDocumento;
 import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -24,5 +25,6 @@ public class ClienteProfileDto {
 
     private TipoDocumento tipoDocumento;
 
+    @Pattern(regexp = "^[A-Z0-9]{5,20}$", message = "Il numero del documento deve essere alfanumerico (tutto maiuscolo) e lungo tra 5 e 20 caratteri")
     private String numDocumento;
 }

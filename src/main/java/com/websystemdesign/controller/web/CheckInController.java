@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Controller
 @RequestMapping("/cliente/checkin")
@@ -102,11 +103,21 @@ public class CheckInController {
             clienteDb.setDataNascita(clienteForm.getDataNascita());
             
             if (clienteForm.getDataNascita() != null && !clienteForm.getDataNascita().isEmpty()) {
-                if (Period.between(LocalDate.parse(clienteForm.getDataNascita()), LocalDate.now()).getYears() < 18) {
+                int age = Period.between(LocalDate.parse(clienteForm.getDataNascita()), LocalDate.now()).getYears();
+                if (age < 18) {
                     redirectAttributes.addFlashAttribute("errorMessage", "Il capogruppo deve essere maggiorenne.");
                     return "redirect:/cliente/checkin/" + prenotazioneId;
                 }
+                if (age > 100) {
+                    redirectAttributes.addFlashAttribute("errorMessage", "L'età massima consentita è 100 anni.");
+                    return "redirect:/cliente/checkin/" + prenotazioneId;
+                }
             }
+        }
+        
+        if (clienteForm.getNumDocumento() == null || !Pattern.matches("^[A-Z0-9]{5,20}$", clienteForm.getNumDocumento())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Il numero del documento deve essere alfanumerico (tutto maiuscolo) e lungo tra 5 e 20 caratteri.");
+            return "redirect:/cliente/checkin/" + prenotazioneId;
         }
         
         clienteDb.setTipoDocumento(clienteForm.getTipoDocumento());

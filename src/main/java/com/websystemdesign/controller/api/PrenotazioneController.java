@@ -4,6 +4,7 @@ import com.websystemdesign.dto.PrenotazioneDto;
 import com.websystemdesign.mapper.PrenotazioneMapper;
 import com.websystemdesign.model.Prenotazione;
 import com.websystemdesign.service.PrenotazioneService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +39,7 @@ public class PrenotazioneController {
     }
 
     @PostMapping
-    public PrenotazioneDto createPrenotazione(@RequestBody PrenotazioneDto prenotazioneDto) {
+    public PrenotazioneDto createPrenotazione(@Valid @RequestBody PrenotazioneDto prenotazioneDto) {
         Prenotazione prenotazione = prenotazioneMapper.toEntity(prenotazioneDto);
         Prenotazione savedPrenotazione = prenotazioneService.savePrenotazione(prenotazione);
         return prenotazioneMapper.toDto(savedPrenotazione);

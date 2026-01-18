@@ -4,8 +4,11 @@ import com.websystemdesign.dto.CameraDto;
 import com.websystemdesign.mapper.CameraMapper;
 import com.websystemdesign.model.Camera;
 import com.websystemdesign.service.CameraService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,7 +41,11 @@ public class CameraController {
     }
 
     @PostMapping
-    public CameraDto createRoom(@RequestBody CameraDto cameraDto) {
+    public CameraDto createRoom(@Valid @RequestBody CameraDto cameraDto) {
+        if ("Suite".equalsIgnoreCase(cameraDto.getTipologia()) && cameraDto.getPrezzoBase() < 250) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Il prezzo minimo per una Suite è 250€");
+        }
+
         Camera camera = cameraMapper.toEntity(cameraDto);
         
         Camera savedCamera = cameraService.saveRoom(camera);

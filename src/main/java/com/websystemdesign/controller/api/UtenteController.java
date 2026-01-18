@@ -4,6 +4,7 @@ import com.websystemdesign.dto.UtenteDto;
 import com.websystemdesign.mapper.UtenteMapper;
 import com.websystemdesign.model.Utente;
 import com.websystemdesign.service.UtenteService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +39,7 @@ public class UtenteController {
     }
 
     @PostMapping
-    public UtenteDto createUtente(@RequestBody UtenteDto utenteDto) {
+    public UtenteDto createUtente(@Valid @RequestBody UtenteDto utenteDto) {
         Utente utente = utenteMapper.toEntity(utenteDto);
         Utente savedUtente = utenteService.saveUtente(utente);
         return utenteMapper.toDto(savedUtente);

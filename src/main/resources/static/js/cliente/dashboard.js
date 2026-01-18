@@ -131,18 +131,29 @@ function sendNote(event) {
     const testo = document.getElementById('newNoteText').value;
     if (!testo.trim()) return;
 
-    const formData = new FormData();
-    formData.append('prenotazioneId', currentPrenotazioneId);
-    formData.append('testo', testo);
+    const payload = {
+        prenotazioneId: currentPrenotazioneId,
+        testo: testo
+    };
 
     fetch('/api/cliente/note/add', {
         method: 'POST',
-        body: formData
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
     })
-    .then(res => res.json())
+    .then(res => {
+        if (!res.ok) throw new Error('Errore invio nota');
+        return res.json();
+    })
     .then(newNote => {
         loadNotes();
         document.getElementById('newNoteText').value = '';
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Errore nell'invio della nota. Riprova.");
     });
 }
 

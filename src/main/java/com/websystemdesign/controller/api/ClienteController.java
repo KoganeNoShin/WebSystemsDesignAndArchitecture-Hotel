@@ -4,6 +4,7 @@ import com.websystemdesign.dto.ClienteDto;
 import com.websystemdesign.mapper.ClienteMapper;
 import com.websystemdesign.model.Cliente;
 import com.websystemdesign.service.ClienteService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +39,7 @@ public class ClienteController {
     }
 
     @PostMapping
-    public ClienteDto createCliente(@RequestBody ClienteDto clienteDto) {
+    public ClienteDto createCliente(@Valid @RequestBody ClienteDto clienteDto) {
         Cliente cliente = clienteMapper.toEntity(clienteDto);
         Cliente savedCliente = clienteService.saveCliente(cliente);
         return clienteMapper.toDto(savedCliente);

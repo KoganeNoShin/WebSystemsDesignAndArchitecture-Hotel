@@ -4,6 +4,7 @@ import com.websystemdesign.dto.SedeDto;
 import com.websystemdesign.mapper.SedeMapper;
 import com.websystemdesign.model.Sede;
 import com.websystemdesign.service.SedeService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +39,7 @@ public class SedeController {
     }
 
     @PostMapping
-    public SedeDto createSede(@RequestBody SedeDto sedeDto) {
+    public SedeDto createSede(@Valid @RequestBody SedeDto sedeDto) {
         Sede sede = sedeMapper.toEntity(sedeDto);
         Sede savedSede = sedeService.saveSede(sede);
         return sedeMapper.toDto(savedSede);

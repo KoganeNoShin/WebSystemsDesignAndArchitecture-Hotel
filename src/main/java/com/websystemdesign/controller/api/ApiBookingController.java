@@ -5,8 +5,11 @@ import com.websystemdesign.model.Camera;
 import com.websystemdesign.model.StatoPrenotazione;
 import com.websystemdesign.service.CameraService;
 import com.websystemdesign.service.PrenotazioneService;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,6 +21,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/booking")
+@Validated
 public class ApiBookingController {
 
     private final CameraService cameraService;
@@ -34,7 +38,7 @@ public class ApiBookingController {
             @RequestParam Long sedeId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkin,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkout,
-            @RequestParam int numOspiti) {
+            @RequestParam @Min(value = 1, message = "Il numero di ospiti deve essere almeno 1") @Max(value = 8, message = "Il numero di ospiti non può superare 8") int numOspiti) {
 
         List<Camera> camereSede = cameraService.getCamereBySede(sedeId);
 

@@ -66,7 +66,10 @@ public class DomoticaController {
         if (payload.containsKey("temperatura")) {
             Object tempObj = payload.get("temperatura");
             if (tempObj instanceof Number) {
-                camera.setTemperatura(((Number) tempObj).floatValue());
+                float temp = ((Number) tempObj).floatValue();
+                if (temp < 16.0f) temp = 16.0f;
+                if (temp > 24.0f) temp = 24.0f;
+                camera.setTemperatura(temp);
             }
         }
 

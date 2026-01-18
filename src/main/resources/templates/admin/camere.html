@@ -12,7 +12,7 @@
 <header>
   <div style="display: flex; flex-direction: column; align-items: flex-start;">
     <a th:href="@{/admin/dashboard}" class="logo">Comitini Admin</a>
-    <a th:href="@{/admin/sedi}"
+    <a th:href="@{/admin/sedi}" class="back-link"
        style="color: var(--primary-gold); text-decoration: none; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; border: 1px solid var(--primary-gold); padding: 5px 10px; border-radius: 3px; transition: all 0.3s ease;">
       &larr; Sedi
     </a>
@@ -78,10 +78,8 @@
           Modifica
         </button>
 
-        <form th:action="@{/admin/sedi/camere/delete/{id}(id=${camera.id})}" method="post">
-          <input type="hidden" name="sedeId" th:value="${sede.id}">
-          <button type="submit" class="action-btn btn-delete" onclick="return confirm('Eliminare camera?')">X</button>
-        </form>
+        <button type="button" class="action-btn btn-delete"
+                th:onclick="'openDeleteModal(' + ${camera.id} + ', ' + ${sede.id} + ')'">X</button>
       </td>
     </tr>
     </tbody>
@@ -90,19 +88,21 @@
 
 <div id="addCameraModal" class="modal" th:style="${openModal} ? 'display:block' : 'display:none'">
   <div class="modal-content">
-    <span class="close">&times;</span>
+    <span class="close" onclick="closeAddModal()">&times;</span>
     <h2 id="modalTitle" style="font-family: 'Playfair Display'; color: var(--primary-gold);">Aggiungi Camera</h2>
-    <div th:if="${#fields.hasErrors('${cameraDto.*}')}" style="background-color: #ffcccc; color: #cc0000; padding: 10px; margin-bottom: 15px; border-radius: 5px;">
-      <p>Attenzione:</p>
+
+    <div id="error-box" th:if="${#fields.hasErrors('${cameraDto.*}')}" style="background-color: #ffcccc; color: #cc0000; padding: 10px; margin-bottom: 15px; border-radius: 5px;">
+      <p style="font-weight: bold;">Attenzione:</p>
       <ul><li th:each="err : ${#fields.errors('${cameraDto.*}')}" th:text="${err}"></li></ul>
     </div>
+
     <form th:action="@{/admin/sedi/{id}/camere/save(id=${sede.id})}" th:object="${cameraDto}" method="post" id="cameraForm">
       <input type="hidden" id="field-id" th:field="*{id}">
       <input type="hidden" th:field="*{sedeId}">
       <input type="hidden" id="field-status" th:field="*{status}">
       <div class="form-group">
-        <label>Numero Camera</label>
-        <input type="text" id="field-numero" th:field="*{numero}" class="form-control">
+        <label>Numero Camera *</label>
+        <input type="text" id="field-numero" th:field="*{numero}" class="form-control" required>
       </div>
       <div class="form-group">
         <label>Tipologia</label>
@@ -116,11 +116,11 @@
       <div style="display: flex; gap: 20px;">
         <div class="form-group" style="flex: 1;">
           <label>Posti</label>
-          <input type="number" id="field-posti" th:field="*{postiLetto}" class="form-control">
+          <input type="number" id="field-posti" th:field="*{postiLetto}" class="form-control" min="1" required>
         </div>
         <div class="form-group" style="flex: 1;">
-          <label>Prezzo</label>
-          <input type="number" step="0.01" id="field-prezzo" th:field="*{prezzoBase}" class="form-control">
+          <label>Prezzo *</label>
+          <input type="number" step="0.01" id="field-prezzo" th:field="*{prezzoBase}" class="form-control" placeholder="0.00" required>
         </div>
       </div>
       <hr style="border-color: #444; margin: 20px 0;">
@@ -131,24 +131,41 @@
       </div>
       <div class="form-group" style="marginTop: 10px;">
         <label>Temp (°C)</label>
-        <input type="number" step="0.1" id="field-temp" th:field="*{temperatura}" class="form-control">
+        <input type="number" step="0.1" id="field-temp" th:field="*{temperatura}" class="form-control" value="20.0">
       </div>
       <button type="submit" class="btn-submit" id="submitBtn">Salva</button>
     </form>
   </div>
 </div>
+
+<div id="deleteConfirmModal" class="modal">
+  <div class="modal-confirm-content">
+    <span class="close" onclick="closeDeleteModal()">&times;</span>
+    <h3>Elimina Camera</h3>
+    <p>Sei sicuro di voler eliminare questa camera?</p>
+    <form id="deleteForm" method="post" action="">
+      <button type="submit" class="btn-confirm-delete">Conferma Eliminazione</button>
+    </form>
+  </div>
+</div>
+
 <script>
   var modal = document.getElementById("addCameraModal");
-  var span = document.getElementsByClassName("close")[0];
-  function closeModal() { modal.style.display = "none"; }
-  if(span) span.onclick = closeModal;
-  window.onclick = function(event) { if (event.target == modal) closeModal(); }
+  var deleteModal = document.getElementById("deleteConfirmModal");
+  var deleteForm = document.getElementById("deleteForm");
+  var errorBox = document.getElementById("error-box");
+
+  function resetErrors() {
+      if(errorBox) errorBox.style.display = 'none';
+  }
+
   document.getElementById("openModalBtn").onclick = function() {
+      resetErrors(); // Nasconde gli errori vecchi
       document.getElementById("field-id").value = "";
       document.getElementById("field-numero").value = "";
       document.getElementById("field-tipologia").value = "Standard";
       document.getElementById("field-posti").value = "2";
-      document.getElementById("field-prezzo").value = "";
+      document.getElementById("field-prezzo").value = "0.00"; // Default corretto
       document.getElementById("field-luce").checked = false;
       document.getElementById("field-tapparelle").checked = false;
       document.getElementById("field-temp").value = "20.0";
@@ -157,7 +174,9 @@
       document.getElementById("modalTitle").innerText = "Nuova Camera";
       modal.style.display = "block";
   }
+
   function openEditModal(btn) {
+      resetErrors(); // Nasconde gli errori vecchi
       var id = btn.getAttribute("data-id");
       var numero = btn.getAttribute("data-numero");
       var tipologia = btn.getAttribute("data-tipologia");
@@ -167,6 +186,7 @@
       var tapparelle = btn.getAttribute("data-tapparelle") === 'true';
       var temp = btn.getAttribute("data-temp");
       var status = btn.getAttribute("data-status");
+
       document.getElementById("field-id").value = id;
       document.getElementById("field-numero").value = numero;
       document.getElementById("field-tipologia").value = tipologia || "Standard";
@@ -176,9 +196,24 @@
       document.getElementById("field-tapparelle").checked = tapparelle;
       document.getElementById("field-temp").value = temp;
       document.getElementById("field-status").value = status;
+
       document.getElementById("submitBtn").innerText = "Aggiorna Camera";
       document.getElementById("modalTitle").innerText = "Modifica Camera " + numero;
       modal.style.display = "block";
+  }
+
+  function closeAddModal() { modal.style.display = "none"; }
+
+  function openDeleteModal(id, sedeId) {
+      deleteForm.action = "/admin/sedi/camere/delete/" + id + "?sedeId=" + sedeId;
+      deleteModal.style.display = "block";
+  }
+
+  function closeDeleteModal() { deleteModal.style.display = "none"; }
+
+  window.onclick = function(event) {
+      if (event.target == modal) closeAddModal();
+      if (event.target == deleteModal) closeDeleteModal();
   }
 </script>
 

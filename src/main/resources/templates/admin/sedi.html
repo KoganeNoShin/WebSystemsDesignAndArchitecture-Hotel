@@ -12,7 +12,7 @@
 <header>
   <div style="display: flex; flex-direction: column; align-items: flex-start;">
     <a th:href="@{/admin/dashboard}" class="logo">Comitini Admin</a>
-    <a th:href="@{/admin/dashboard}"
+    <a th:href="@{/admin/dashboard}" class="back-link"
        style="color: var(--primary-gold); text-decoration: none; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; border: 1px solid var(--primary-gold); padding: 5px 10px; border-radius: 3px; transition: all 0.3s ease;">
       &larr; Dashboard
     </a>
@@ -48,9 +48,8 @@
       <td data-label="Tassa" th:text="${sede.tassaSoggiorno}">€ 2.50</td>
       <td data-label="Azioni">
         <a th:href="@{/admin/sedi/{id}/camere(id=${sede.id})}" class="action-btn" style="margin-right: 5px;">Gestisci Camere</a>
-        <form th:action="@{/admin/sedi/delete/{id}(id=${sede.id})}" method="post" style="display:inline;">
-          <button type="submit" class="action-btn btn-delete" onclick="return confirm('Eliminare questa struttura?')">Elimina</button>
-        </form>
+        <button type="button" class="action-btn btn-delete"
+                th:onclick="'openDeleteModal(' + ${sede.id} + ')'">Elimina</button>
       </td>
     </tr>
     </tbody>
@@ -59,35 +58,60 @@
 
 <div id="addSedeModal" class="modal" th:style="${openModal} ? 'display:block' : 'display:none'">
   <div class="modal-content">
-    <span class="close">&times;</span>
+    <span class="close" onclick="closeAddModal()">&times;</span>
     <h2 style="font-family: 'Playfair Display'; color: var(--primary-gold);">Nuova Sede</h2>
     <form th:action="@{/admin/sedi/new}" th:object="${sedeDto}" method="post">
       <div class="form-group">
-        <label>Nome Hotel</label>
-        <input type="text" th:field="*{nome}" class="form-control">
+        <label>Nome Hotel *</label>
+        <input type="text" th:field="*{nome}" class="form-control" required>
         <div th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}" class="error-message"></div>
       </div>
       <div class="form-group">
-        <label>Location</label>
-        <input type="text" th:field="*{location}" class="form-control">
+        <label>Location *</label>
+        <input type="text" th:field="*{location}" class="form-control" required>
         <div th:if="${#fields.hasErrors('location')}" th:errors="*{location}" class="error-message"></div>
       </div>
       <div class="form-group">
-        <label>Tassa Soggiorno</label>
-        <input type="text" th:field="*{tassaSoggiorno}" class="form-control">
+        <label>Tassa Soggiorno *</label>
+        <input type="text" th:field="*{tassaSoggiorno}" class="form-control" required>
         <div th:if="${#fields.hasErrors('tassaSoggiorno')}" th:errors="*{tassaSoggiorno}" class="error-message"></div>
       </div>
       <button type="submit" class="btn-submit">Salva</button>
     </form>
   </div>
 </div>
+
+<div id="deleteConfirmModal" class="modal">
+  <div class="modal-confirm-content">
+    <span class="close" onclick="closeDeleteModal()">&times;</span>
+    <h3>Elimina Struttura</h3>
+    <p>Sei sicuro di voler eliminare questa sede?<br>Verranno eliminate anche le camere associate.</p>
+    <form id="deleteForm" method="post" action="">
+      <button type="submit" class="btn-confirm-delete">Conferma Eliminazione</button>
+    </form>
+  </div>
+</div>
+
 <script>
   var modal = document.getElementById("addSedeModal");
-  var btn = document.getElementById("openModalBtn");
-  var span = document.getElementsByClassName("close")[0];
-  if(btn) btn.onclick = function() { modal.style.display = "block"; }
-  if(span) span.onclick = function() { modal.style.display = "none"; }
-  window.onclick = function(event) { if (event.target == modal) modal.style.display = "none"; }
+  var deleteModal = document.getElementById("deleteConfirmModal");
+  var deleteForm = document.getElementById("deleteForm");
+
+  document.getElementById("openModalBtn").onclick = function() { modal.style.display = "block"; }
+
+  function closeAddModal() { modal.style.display = "none"; }
+
+  function openDeleteModal(id) {
+      deleteForm.action = "/admin/sedi/delete/" + id;
+      deleteModal.style.display = "block";
+  }
+
+  function closeDeleteModal() { deleteModal.style.display = "none"; }
+
+  window.onclick = function(event) {
+      if (event.target == modal) closeAddModal();
+      if (event.target == deleteModal) closeDeleteModal();
+  }
 </script>
 </body>
 </html>

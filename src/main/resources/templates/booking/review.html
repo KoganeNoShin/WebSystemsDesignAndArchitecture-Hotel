@@ -84,7 +84,6 @@
                 <input type="hidden" name="checkout" th:value="${checkout}">
                 <input type="hidden" name="numOspiti" th:value="${numOspiti}">
 
-                <!-- Passiamo gli ID dei servizi selezionati -->
                 <th:block th:each="s : ${serviziSelezionati}">
                     <input type="hidden" name="selectedServices" th:value="${s.id}">
                 </th:block>

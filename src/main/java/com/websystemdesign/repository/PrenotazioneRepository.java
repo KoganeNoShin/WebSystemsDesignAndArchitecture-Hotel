@@ -19,4 +19,10 @@ public interface PrenotazioneRepository extends JpaRepository<Prenotazione, Long
             "AND p.dataInizio < :dataFine AND p.dataFine > :dataInizio " +
             "AND p.stato != 'CANCELLATA'")
     List<Prenotazione> findSovrapposizioni(Long cameraId, LocalDate dataFine, LocalDate dataInizio);
+
+    @Query("SELECT p FROM Prenotazione p WHERE p.camera.id = :cameraId " +
+            "AND (:startDate IS NULL OR p.dataInizio >= :startDate) " +
+            "AND (:endDate IS NULL OR p.dataFine <= :endDate) " +
+            "ORDER BY p.dataInizio DESC")
+    List<Prenotazione> findByCameraIdAndFilters(Long cameraId, LocalDate startDate, LocalDate endDate);
 }

@@ -4,16 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Benvenuto - Comitini Residence</title>
-    <!-- Colleghiamo il nostro nuovo file CSS -->
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 
-    <!-- Header con logo e tasto login -->
     <header>
         <a href="/home" class="logo">Comitini Residence</a>
 
-        <!-- Pulsante Login/Dashboard dinamico -->
         <div sec:authorize="!isAuthenticated()">
             <a th:href="@{/login}" class="btn-login">Login</a>
         </div>
@@ -31,7 +28,6 @@
         </div>
     </header>
 
-    <!-- Sezione principale con immagine di sfondo -->
     <main class="hero">
         <div class="hero-content">
             <h1>L'Eleganza Incontra Le Vette</h1>
@@ -39,18 +35,15 @@
         </div>
     </main>
 
-    <!-- Footer con i link di navigazione -->
     <footer>
         <nav>
             <ul class="nav-links">
-                <!-- Nascondi Registrati se loggato -->
                 <li sec:authorize="!isAuthenticated()"><a th:href="@{/register}">Registrati</a></li>
 
                 <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
                 <li><a th:href="@{/home/services}">Servizi</a></li>
                 <li><a th:href="@{/home/contact}">Contatti</a></li>
 
-                <!-- Aggiungi Logout se loggato -->
                 <li sec:authorize="isAuthenticated()">
                     <form th:action="@{/logout}" method="post" style="display: inline;">
                         <button type="submit" style="background:none; border:none; color:rgba(255, 255, 255, 0.7); font-size:0.8rem; text-transform:uppercase; letter-spacing:2px; cursor:pointer; font-family:'Lato', sans-serif; transition: color 0.3s ease;" onmouseover="this.style.color='#c5a059'" onmouseout="this.style.color='rgba(255, 255, 255, 0.7)'">Logout</button>

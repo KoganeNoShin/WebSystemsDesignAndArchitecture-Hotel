@@ -218,6 +218,64 @@
     color: #ffffff;
 }
 
+.history-filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    background-color: rgba(0,0,0,0.3);
+    padding: 15px;
+    border-radius: 5px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 150px;
+}
+
+.filter-item label {
+    font-size: 0.8rem;
+    color: #aaa;
+    margin-bottom: 5px;
+}
+
+.btn-filter {
+    background-color: var(--primary-gold);
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: bold;
+    height: 40px;
+}
+
+
+.scrollable-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #444;
+    border-radius: 5px;
+}
+
+.scrollable-table-container thead th {
+    position: sticky;
+    top: 0;
+    background-color: #222;
+    z-index: 1;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.status-pagato {
+    color: #28a745;
+    font-weight: bold;
+}
+.status-non-pagato {
+    color: #dc3545;
+    font-weight: bold;
+}
 
 @media (max-width: 768px) {
 
@@ -286,5 +344,14 @@
 
     .admin-table td:last-child::before {
         content: "";
+    }
+
+    .history-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-item {
+        width: 100%;
     }
 }

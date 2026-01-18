@@ -17,11 +17,9 @@
     <div class="multimedia-page">
         <h1>Intrattenimento in Camera</h1>
 
-        <!-- Messaggi -->
         <div th:if="${successMessage}" style="background-color: rgba(77, 255, 77, 0.2); color: #4dff4d; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; text-align: center;" th:text="${successMessage}"></div>
         <div th:if="${errorMessage}" style="background-color: rgba(255, 77, 77, 0.2); color: #ff4d4d; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; text-align: center;" th:text="${errorMessage}"></div>
 
-        <!-- I Miei Contenuti -->
         <h2 class="section-title">I Miei Contenuti</h2>
         <div class="media-grid" th:if="${!acquistati.empty}">
             <div th:each="m : ${acquistati}" class="media-card"
@@ -46,7 +44,6 @@
             Non hai ancora acquistato contenuti. Scegli dal catalogo qui sotto.
         </div>
 
-        <!-- Catalogo -->
         <div class="catalog-header">
             <h2 class="section-title" style="margin: 0; border: none;">Catalogo Film</h2>
 
@@ -85,7 +82,6 @@
         </div>
     </div>
 
-    <!-- MODALE DETTAGLI FILM -->
     <div id="movieModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal()">&times;</span>
@@ -94,7 +90,6 @@
                 <h2 class="modal-title" id="modalTitle">Titolo Film</h2>
                 <div class="modal-meta">
                     <span class="modal-rating">★ <span id="modalVote">8.5</span></span>
-                    <!-- Altri meta se disponibili -->
                 </div>
                 <p class="modal-desc" id="modalDesc">Descrizione del film...</p>
 
@@ -164,7 +159,6 @@
             cards.forEach(card => grid.appendChild(card));
         }
 
-        // --- MODALE ---
         function openModalFromData(element) {
             const id = element.getAttribute('data-id');
             const title = element.getAttribute('data-title');

@@ -88,7 +88,6 @@ public class ClienteProfileController {
         
         if (bindingResult.hasErrors()) {
             model.addAttribute("isProfileComplete", isProfileComplete);
-            // ... (codice per ripopolare i campi in caso di errore)
             return "cliente/profile";
         }
         

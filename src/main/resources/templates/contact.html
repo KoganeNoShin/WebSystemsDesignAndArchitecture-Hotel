@@ -12,7 +12,6 @@
     <header>
         <a href="/home" class="logo" title="Torna alla Home">Comitini Residence</a>
 
-        <!-- Pulsante Login/Dashboard dinamico -->
         <div sec:authorize="!isAuthenticated()">
             <a th:href="@{/login}" class="btn-login">Login</a>
         </div>
@@ -26,7 +25,6 @@
             <h1>Contattaci</h1>
 
             <div class="contact-info">
-                <!-- Indirizzi delle Sedi (dal DB) -->
                 <div class="info-item">
                     <h3>Le Nostre Sedi</h3>
                     <div th:if="${sedi.empty}">
@@ -38,7 +36,6 @@
                     </div>
                 </div>
 
-                <!-- Recapiti dei Gestori (Statici o potremmo prenderli dal DB se ci fosse una tabella contatti) -->
                 <div class="info-item">
                     <h3>Recapiti Gestori</h3>
                     <p>
@@ -52,7 +49,6 @@
                     </p>
                 </div>
 
-                <!-- Orari (Centrato in basso) -->
                 <div class="info-item">
                     <h3>Orari Reception</h3>
                     <p>Lunedì - Domenica<br>24h su 24h</p>
@@ -66,14 +62,12 @@
     <footer>
         <nav>
             <ul class="nav-links">
-                <!-- Nascondi Registrati se loggato -->
                 <li sec:authorize="!isAuthenticated()"><a th:href="@{/register}">Registrati</a></li>
 
                 <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
                 <li><a th:href="@{/home/services}">Servizi</a></li>
                 <li><a th:href="@{/home/contact}">Contatti</a></li>
 
-                <!-- Aggiungi Logout se loggato -->
                 <li sec:authorize="isAuthenticated()">
                     <form th:action="@{/logout}" method="post" style="display: inline;">
                         <button type="submit" style="background:none; border:none; color:rgba(255, 255, 255, 0.7); font-size:0.8rem; text-transform:uppercase; letter-spacing:2px; cursor:pointer; font-family:'Lato', sans-serif; transition: color 0.3s ease;" onmouseover="this.style.color='#c5a059'" onmouseout="this.style.color='rgba(255, 255, 255, 0.7)'">Logout</button>

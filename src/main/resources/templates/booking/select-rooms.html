@@ -111,7 +111,7 @@
             opacity: 0.5;
             cursor: not-allowed;
             filter: grayscale(100%);
-            order: 999; /* Spinge in fondo le disabilitate */
+            order: 999;
         }
 
         .room-image {
@@ -151,7 +151,7 @@
         }
 
         .services-section {
-            background-color: rgba(0, 0, 0, 0.8); /* Sfondo più scuro */
+            background-color: rgba(0, 0, 0, 0.8);
             padding: 2rem;
             border-radius: 10px;
             margin-bottom: 3rem;
@@ -165,7 +165,6 @@
             margin-top: 1rem;
         }
 
-        /* Checkbox Servizi Migliorati */
         .service-item {
             display: flex;
             align-items: center;
@@ -190,12 +189,12 @@
         .confirm-section {
             text-align: center;
             margin-top: 2rem;
-            background-color: rgba(0, 0, 0, 0.9); /* Sfondo molto scuro per leggibilità */
+            background-color: rgba(0, 0, 0, 0.9);
             padding: 2rem;
             border-radius: 10px;
             border: 1px solid var(--primary-gold);
             position: sticky;
-            bottom: 20px; /* Sticky in basso se la pagina è lunga */
+            bottom: 20px;
             z-index: 100;
         }
 
@@ -364,7 +363,6 @@
             }
         }
 
-        // Filtri
         function filterRooms(type) {
             const cards = document.querySelectorAll('.room-select-card');
             const buttons = document.querySelectorAll('.filter-btn');
@@ -381,7 +379,6 @@
             });
         }
 
-        // Ordinamento
         function sortRooms(criteria) {
             const grid = document.getElementById('roomsGrid');
             const cards = Array.from(grid.children);

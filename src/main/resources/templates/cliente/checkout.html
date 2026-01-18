@@ -21,14 +21,12 @@
                 Riepilogo finale del soggiorno presso <span th:text="${prenotazione.camera.sede.nome}">Cortina</span>
             </p>
 
-            <!-- Avviso Check-out Anticipato -->
             <div th:if="${isAnticipato}" class="alert-warning">
                 <h3>⚠️ Partenza Anticipata</h3>
                 <p>Stai effettuando il check-out prima della data prevista (<span th:text="${prenotazione.dataFine}">Data</span>).</p>
                 <p>Hai diritto a uno <strong>sconto del 50%</strong> sulle <span th:text="${nottiRimanenti}">2</span> notti non usufruite.</p>
             </div>
 
-            <!-- Riepilogo Costi -->
             <h3 class="section-title">Dettaglio Costi</h3>
 
             <div class="summary-item">
@@ -65,7 +63,6 @@
                 <span th:text="'€ ' + ${#numbers.formatDecimal(totaleDaPagare, 1, 2)}">€ 315.00</span>
             </div>
 
-            <!-- Form Pagamento -->
             <form th:action="@{/cliente/checkout/confirm}" method="post" class="payment-form" onsubmit="return validatePayment()">
                 <input type="hidden" name="prenotazioneId" th:value="${prenotazione.id}">
                 <input type="hidden" name="totalePagato" th:value="${totaleDaPagare}">
@@ -120,7 +117,6 @@
         function validatePayment() {
             let isValid = true;
 
-            // Validazione Nome
             const nameInput = document.getElementById('cardName');
             const nameError = document.getElementById('nameError');
             if (nameInput.value.trim().length < 5 || !/^[a-zA-Z\s]+$/.test(nameInput.value)) {
@@ -132,7 +128,6 @@
                 nameInput.style.borderColor = '#555';
             }
 
-            // Validazione Scadenza
             const monthSelect = document.getElementById('expiryMonth');
             const yearSelect = document.getElementById('expiryYear');
             const expiryError = document.getElementById('expiryError');
@@ -145,7 +140,7 @@
             const currentMonth = now.getMonth() + 1;
 
             if (!expMonth || !expYear) {
-                isValid = false; // Campi non selezionati
+                isValid = false;
             } else if (expYear < currentYear || (expYear === currentYear && expMonth < currentMonth)) {
                 expiryError.style.display = 'block';
                 monthSelect.style.borderColor = '#ff4d4d';

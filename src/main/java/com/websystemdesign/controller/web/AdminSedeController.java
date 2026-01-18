@@ -7,6 +7,7 @@ import com.websystemdesign.model.Camera;
 import com.websystemdesign.model.Sede;
 import com.websystemdesign.model.StatoCamera;
 import com.websystemdesign.service.CameraService;
+import com.websystemdesign.service.PrenotazioneService;
 import com.websystemdesign.service.SedeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,13 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.websystemdesign.model.Prenotazione;
+import com.websystemdesign.model.StatoPrenotazione;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/admin/sedi")
@@ -23,12 +31,14 @@ public class AdminSedeController {
     private final SedeService sedeService;
     private final CameraService cameraService;
     private final CameraMapper cameraMapper;
+    private final PrenotazioneService prenotazioneService;
 
     @Autowired
-    public AdminSedeController(SedeService sedeService, CameraService cameraService, CameraMapper cameraMapper) {
+    public AdminSedeController(SedeService sedeService, CameraService cameraService, CameraMapper cameraMapper, PrenotazioneService prenotazioneService) {
         this.sedeService = sedeService;
         this.cameraService = cameraService;
         this.cameraMapper = cameraMapper;
+        this.prenotazioneService = prenotazioneService;
     }
 
     @GetMapping
@@ -144,5 +154,33 @@ public class AdminSedeController {
         cameraService.deleteRoom(id);
         redirectAttributes.addFlashAttribute("successMessage", "Camera eliminata.");
         return "redirect:/admin/sedi/" + sedeId + "/camere";
+    }
+
+    @GetMapping("/api/camere/{id}/storico")
+    @ResponseBody
+    public List<Map<String, Object>> getStoricoPrenotazioni(@PathVariable("id") Long cameraId,
+                                                            @RequestParam(required = false) LocalDate start,
+                                                            @RequestParam(required = false) LocalDate end) {
+
+        List<Prenotazione> prenotazioni = prenotazioneService.getPrenotazioniByCameraAndDates(cameraId, start, end);
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (Prenotazione p : prenotazioni) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("id", p.getId());
+
+            String nomeOspite = p.getCliente().getUtente().getNome() + " " + p.getCliente().getUtente().getCognome();
+            item.put("ospite", nomeOspite);
+
+            item.put("dataInizio", p.getDataInizio().toString());
+            item.put("dataFine", p.getDataFine().toString());
+
+            boolean isPagata = p.getStato() == StatoPrenotazione.CHECKED_OUT;
+            item.put("pagata", isPagata);
+            item.put("stato", p.getStato().toString());
+
+            result.add(item);
+        }
+        return result;
     }
 }

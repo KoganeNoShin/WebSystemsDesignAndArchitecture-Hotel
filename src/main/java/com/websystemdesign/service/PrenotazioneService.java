@@ -48,4 +48,8 @@ public class PrenotazioneService {
         List<Prenotazione> sovrapposizioni = prenotazioneRepository.findSovrapposizioni(camera_id, fine, inizio);
         return sovrapposizioni.isEmpty();
     }
+
+    public List<Prenotazione> getPrenotazioniByCameraAndDates(Long cameraId, LocalDate start, LocalDate end) {
+        return prenotazioneRepository.findByCameraIdAndFilters(cameraId, start, end);
+    }
 }

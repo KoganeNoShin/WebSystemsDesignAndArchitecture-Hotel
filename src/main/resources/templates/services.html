@@ -7,7 +7,6 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/services.css}">
     <style>
-        /* Stile per il filtro specifico di questa pagina */
         .header-container {
             display: flex;
             flex-direction: column;
@@ -40,7 +39,6 @@
             color: #fff;
         }
 
-        /* Stile per l'elenco delle sedi nella card */
         .sedi-list {
             list-style-type: none;
             padding: 0;
@@ -74,7 +72,6 @@
     <header>
         <a href="/home" class="logo">Comitini Residence</a>
 
-        <!-- Pulsante Login/Dashboard dinamico -->
         <div sec:authorize="!isAuthenticated()">
             <a th:href="@{/login}" class="btn-login">Login</a>
         </div>
@@ -89,7 +86,6 @@
             <div class="header-container">
                 <div class="title-filter-wrapper">
                     <h1>I Nostri Servizi Esclusivi</h1>
-                    <!-- Filtro Sede spostato qui -->
                     <select id="sedeFilter" class="filter-select" onchange="filterServices()">
                         <option value="all">Tutte le Sedi</option>
                         <option th:each="sede : ${sedi}" th:value="${sede.id}" th:text="${sede.nome}"></option>
@@ -124,14 +120,12 @@
     <footer>
         <nav>
             <ul class="nav-links">
-                <!-- Nascondi Registrati se loggato -->
                 <li sec:authorize="!isAuthenticated()"><a th:href="@{/register}">Registrati</a></li>
 
                 <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
                 <li><a th:href="@{/home/services}">Servizi</a></li>
                 <li><a th:href="@{/home/contact}">Contatti</a></li>
 
-                <!-- Aggiungi Logout se loggato -->
                 <li sec:authorize="isAuthenticated()">
                     <form th:action="@{/logout}" method="post" style="display: inline;">
                         <button type="submit" style="background:none; border:none; color:rgba(255, 255, 255, 0.7); font-size:0.8rem; text-transform:uppercase; letter-spacing:2px; cursor:pointer; font-family:'Lato', sans-serif; transition: color 0.3s ease;" onmouseover="this.style.color='#c5a059'" onmouseout="this.style.color='rgba(255, 255, 255, 0.7)'">Logout</button>

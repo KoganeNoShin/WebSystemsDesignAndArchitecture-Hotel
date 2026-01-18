@@ -78,8 +78,13 @@
           Modifica
         </button>
 
-        <button type="button" class="action-btn btn-delete"
-                th:onclick="'openDeleteModal(' + ${camera.id} + ', ' + ${sede.id} + ')'">X</button>
+        <button type="button" class="action-btn"
+                style="border: 1px solid #4a90e2; color: #4a90e2; margin-left: 5px;"
+                th:data-id="${camera.id}"
+                th:data-numero="${camera.numero}"
+                onclick="openHistoryModal(this)">
+          Storico
+        </button>
       </td>
     </tr>
     </tbody>
@@ -116,11 +121,11 @@
       <div style="display: flex; gap: 20px;">
         <div class="form-group" style="flex: 1;">
           <label>Posti</label>
-          <input type="number" id="field-posti" th:field="*{postiLetto}" class="form-control" min="1" required>
+          <input type="number" id="field-posti" th:field="*{postiLetto}" class="form-control" min="1" max="8" required>
         </div>
         <div class="form-group" style="flex: 1;">
           <label>Prezzo *</label>
-          <input type="number" step="0.01" id="field-prezzo" th:field="*{prezzoBase}" class="form-control" placeholder="0.00" required>
+          <input type="number" step="0.01" id="field-prezzo" th:field="*{prezzoBase}" class="form-control" placeholder="0.00" min="0" required>
         </div>
       </div>
       <hr style="border-color: #444; margin: 20px 0;">
@@ -131,41 +136,73 @@
       </div>
       <div class="form-group" style="marginTop: 10px;">
         <label>Temp (°C)</label>
-        <input type="number" step="0.1" id="field-temp" th:field="*{temperatura}" class="form-control" value="20.0">
+        <input type="number" step="0.1" min="10" max="35" id="field-temp" th:field="*{temperatura}" class="form-control" value="20.0">
       </div>
       <button type="submit" class="btn-submit" id="submitBtn">Salva</button>
     </form>
   </div>
 </div>
 
-<div id="deleteConfirmModal" class="modal">
-  <div class="modal-confirm-content">
-    <span class="close" onclick="closeDeleteModal()">&times;</span>
-    <h3>Elimina Camera</h3>
-    <p>Sei sicuro di voler eliminare questa camera?</p>
-    <form id="deleteForm" method="post" action="">
-      <button type="submit" class="btn-confirm-delete">Conferma Eliminazione</button>
-    </form>
+<div id="historyModal" class="modal">
+  <div class="modal-content" style="max-width: 800px;">
+    <span class="close" onclick="closeHistoryModal()">&times;</span>
+    <h2 style="font-family: 'Playfair Display'; color: var(--primary-gold); margin-bottom: 0.5rem;">
+      Storico Camera <span id="historyRoomNumber"></span>
+    </h2>
+
+    <div class="history-filters">
+      <div class="filter-item">
+        <label>Dal:</label>
+        <input type="date" id="filterStart" class="form-control">
+      </div>
+      <div class="filter-item">
+        <label>Al:</label>
+        <input type="date" id="filterEnd" class="form-control">
+      </div>
+      <button class="btn-filter" onclick="fetchHistory()">Filtra</button>
+    </div>
+
+    <div class="scrollable-table-container">
+      <table class="admin-table" style="margin-top: 0; width: 100%;">
+        <thead>
+        <tr>
+          <th>Ospite</th>
+          <th>Check-In</th>
+          <th>Check-Out</th>
+          <th>Pagamento</th>
+        </tr>
+        </thead>
+        <tbody id="historyTableBody">
+        </tbody>
+      </table>
+    </div>
+
+    <div id="loadingMsg" style="text-align: center; padding: 20px; display: none;">
+      Caricamento...
+    </div>
+    <div id="emptyMsg" style="text-align: center; padding: 20px; color: #aaa; display: none;">
+      Nessuna prenotazione trovata nel periodo selezionato.
+    </div>
   </div>
 </div>
 
 <script>
   var modal = document.getElementById("addCameraModal");
-  var deleteModal = document.getElementById("deleteConfirmModal");
-  var deleteForm = document.getElementById("deleteForm");
+  var historyModal = document.getElementById("historyModal");
   var errorBox = document.getElementById("error-box");
+  var currentCameraId = null;
 
   function resetErrors() {
       if(errorBox) errorBox.style.display = 'none';
   }
 
   document.getElementById("openModalBtn").onclick = function() {
-      resetErrors(); // Nasconde gli errori vecchi
+      resetErrors();
       document.getElementById("field-id").value = "";
       document.getElementById("field-numero").value = "";
       document.getElementById("field-tipologia").value = "Standard";
       document.getElementById("field-posti").value = "2";
-      document.getElementById("field-prezzo").value = "0.00"; // Default corretto
+      document.getElementById("field-prezzo").value = "0.00";
       document.getElementById("field-luce").checked = false;
       document.getElementById("field-tapparelle").checked = false;
       document.getElementById("field-temp").value = "20.0";
@@ -176,7 +213,7 @@
   }
 
   function openEditModal(btn) {
-      resetErrors(); // Nasconde gli errori vecchi
+      resetErrors();
       var id = btn.getAttribute("data-id");
       var numero = btn.getAttribute("data-numero");
       var tipologia = btn.getAttribute("data-tipologia");
@@ -202,18 +239,80 @@
       modal.style.display = "block";
   }
 
-  function closeAddModal() { modal.style.display = "none"; }
+  function openHistoryModal(btn) {
+      var id = btn.getAttribute("data-id");
+      var numero = btn.getAttribute("data-numero");
 
-  function openDeleteModal(id, sedeId) {
-      deleteForm.action = "/admin/sedi/camere/delete/" + id + "?sedeId=" + sedeId;
-      deleteModal.style.display = "block";
+      currentCameraId = id;
+      document.getElementById("historyRoomNumber").innerText = numero;
+
+      document.getElementById("filterStart").value = "";
+      document.getElementById("filterEnd").value = "";
+
+      historyModal.style.display = "block";
+      fetchHistory();
   }
 
-  function closeDeleteModal() { deleteModal.style.display = "none"; }
+  function closeHistoryModal() {
+      historyModal.style.display = "none";
+  }
+
+  function fetchHistory() {
+      if(!currentCameraId) return;
+
+      var start = document.getElementById("filterStart").value;
+      var end = document.getElementById("filterEnd").value;
+      var tbody = document.getElementById("historyTableBody");
+      var loading = document.getElementById("loadingMsg");
+      var empty = document.getElementById("emptyMsg");
+
+      tbody.innerHTML = "";
+      loading.style.display = "block";
+      empty.style.display = "none";
+
+      var url = `/admin/sedi/api/camere/${currentCameraId}/storico`;
+      var params = [];
+      if(start) params.push(`start=${start}`);
+      if(end) params.push(`end=${end}`);
+      if(params.length > 0) url += "?" + params.join("&");
+
+      fetch(url)
+          .then(response => response.json())
+          .then(data => {
+              loading.style.display = "none";
+
+              if (data.length === 0) {
+                  empty.style.display = "block";
+                  return;
+              }
+
+              data.forEach(p => {
+                  var row = document.createElement("tr");
+
+                  var statusHtml = p.pagata
+                      ? '<span class="status-pagato">PAGATA (Checked-Out)</span>'
+                      : '<span class="status-non-pagato">NON PAGATA</span>';
+
+                  row.innerHTML = `
+                      <td style="color: white;">${p.ospite}</td>
+                      <td>${p.dataInizio}</td>
+                      <td>${p.dataFine}</td>
+                      <td>${statusHtml}</td>
+                  `;
+                  tbody.appendChild(row);
+              });
+          })
+          .catch(err => {
+              console.error("Errore fetch storico:", err);
+              loading.innerText = "Errore nel caricamento dati.";
+          });
+  }
+
+  function closeAddModal() { modal.style.display = "none"; }
 
   window.onclick = function(event) {
       if (event.target == modal) closeAddModal();
-      if (event.target == deleteModal) closeDeleteModal();
+      if (event.target == historyModal) closeHistoryModal();
   }
 </script>
 

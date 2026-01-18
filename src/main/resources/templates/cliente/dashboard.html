@@ -7,7 +7,6 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/cliente/dashboard.css}">
     <style>
-        /* Stile Modale Conferma Cancellazione */
         .modal-confirm {
             display: none;
             position: fixed;
@@ -96,18 +95,15 @@
 
     <div class="dashboard-page">
 
-        <!-- Messaggi di Successo/Errore -->
         <div th:if="${successMessage}" style="background-color: rgba(77, 255, 77, 0.2); color: #4dff4d; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; border: 1px solid #4dff4d; text-align: center;" th:text="${successMessage}"></div>
         <div th:if="${errorMessage}" style="background-color: rgba(255, 77, 77, 0.2); color: #ff4d4d; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; border: 1px solid #ff4d4d; text-align: center;" th:text="${errorMessage}"></div>
 
-        <!-- Header Dashboard: Benvenuto + Azione -->
         <div class="welcome-section">
             <div class="welcome-text">
                 <h1 th:text="'Benvenuto, ' + ${utente.nome}">Benvenuto, Diego</h1>
                 <p>Area Personale</p>
             </div>
             <div style="display: flex; gap: 1rem;">
-                <!-- Pulsante Nuova Prenotazione (condizionale) -->
                 <div th:if="${!hasFutureBooking}">
                     <a th:href="@{/booking/new}" class="btn-action" style="border-color: #fff; color: #fff;">+ Nuova Prenotazione</a>
                 </div>
@@ -120,7 +116,6 @@
         </div>
 
         <div class="dashboard-layout">
-            <!-- COLONNA SINISTRA: Storico (Scrollabile) -->
             <div class="left-column">
                 <h2 class="section-title" style="margin-top: 0;">Storico Soggiorni</h2>
 
@@ -140,9 +135,7 @@
                 </div>
             </div>
 
-            <!-- COLONNA DESTRA: Attive e Future -->
             <div class="main-column">
-                <!-- Soggiorno in Corso -->
                 <h2 class="section-title" style="margin-top: 0;">Soggiorno in Corso</h2>
                 <div th:if="${prenotazioneAttiva != null}" class="active-stay-card clickable-card" th:onclick="'openDetails(' + ${prenotazioneAttiva.id} + ')'">
                     <h3 th:text="'Camera ' + ${prenotazioneAttiva.camera.numero}">201</h3>
@@ -154,30 +147,25 @@
                         <p class="booking-info" style="font-size: 1.1rem;">Totale Attuale: <strong style="color: var(--primary-gold);" th:text="'€ ' + ${#numbers.formatDecimal(costoTotaleAttuale, 1, 2)}">€ 500.00</strong></p>
                     </div>
 
-                    <!-- Avviso Scadenza -->
                     <div th:if="${isExpired}" style="background-color: rgba(255, 77, 77, 0.2); color: #ff4d4d; padding: 10px; border-radius: 5px; margin-bottom: 1rem; border: 1px solid #ff4d4d;">
                         <strong>⚠️ TEMPO SCADUTO</strong><br>
                         Il soggiorno è terminato. Effettua il check-out per lasciare la camera.
                     </div>
 
-                    <!-- Avviso Camera Non Pronta -->
                     <div th:if="${!isRoomReady && !isExpired}" style="background-color: rgba(255, 204, 0, 0.1); color: #ffcc00; padding: 10px; border-radius: 5px; margin-bottom: 1rem; border: 1px solid #ffcc00;">
                         <strong>⏳ IN ATTESA</strong><br>
                         La camera non è ancora pronta o non è l'orario di check-in (12:00).
                     </div>
 
                     <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;" onclick="event.stopPropagation()">
-                        <!-- Controlli attivi solo se RoomReady e !Expired -->
                         <a th:if="${isRoomReady && !isExpired}" th:href="@{/cliente/domotica}" class="btn-action">🏠 Domotica</a>
                         <a th:if="${isRoomReady && !isExpired}" th:href="@{/cliente/multimedia}" class="btn-action">🎬 Multimedia</a>
                         <a th:if="${isRoomReady && !isExpired}" href="#" class="btn-action" th:onclick="'openNotes(' + ${prenotazioneAttiva.id} + '); event.preventDefault();'">📝 Note</a>
 
-                        <!-- Controlli disabilitati -->
                         <span th:if="${!isRoomReady || isExpired}" class="btn-action" style="opacity: 0.5; cursor: not-allowed; border-color: #555; color: #777;">🏠 Domotica</span>
                         <span th:if="${!isRoomReady || isExpired}" class="btn-action" style="opacity: 0.5; cursor: not-allowed; border-color: #555; color: #777;">🎬 Multimedia</span>
                         <span th:if="${!isRoomReady || isExpired}" class="btn-action" style="opacity: 0.5; cursor: not-allowed; border-color: #555; color: #777;">📝 Note</span>
 
-                        <!-- Tasto Check-out sempre attivo -->
                         <a th:href="@{/cliente/checkout/{id}(id=${prenotazioneAttiva.id})}" class="btn-action" style="border-color: #ffcc00; color: #ffcc00;">🚪 Check-out</a>
                     </div>
                 </div>
@@ -185,7 +173,6 @@
                     Nessun soggiorno in corso al momento.
                 </div>
 
-                <!-- Prenotazioni Future -->
                 <h2 class="section-title">Prenotazioni Future</h2>
                 <div th:if="${!prenotazioniFuture.empty}" class="cards-grid">
                     <div th:each="p : ${prenotazioniFuture}" class="booking-card clickable-card" th:onclick="'openDetails(' + ${p.id} + ')'">
@@ -195,9 +182,7 @@
                         <p class="booking-info">Check-out: <span th:text="${p.dataFine}">2023-01-05</span></p>
                         <span class="status-badge status-confermata" th:text="${p.stato}">CONFERMATA</span>
 
-                        <!-- Pulsanti Azione (Stop propagation per non aprire modale) -->
                         <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;" onclick="event.stopPropagation()">
-                            <!-- Check-in -->
                             <div th:if="${p.stato.name() == 'CONFERMATA'}">
                                 <a th:href="@{/cliente/checkin/{id}(id=${p.id})}" class="btn-action" style="font-size: 0.8rem; padding: 5px 15px;">Check-in Online</a>
                             </div>
@@ -205,7 +190,6 @@
                                 <span style="color: #4dff4d; font-size: 0.9rem;">✓ Check-in Completato</span>
                             </div>
 
-                            <!-- Cancella -->
                             <div th:if="${p.stato.name() == 'CONFERMATA'}">
                                 <button type="button" class="btn-action" style="border-color: #ff4d4d; color: #ff4d4d; font-size: 0.8rem; padding: 5px 15px;"
                                         th:data-id="${p.id}" onclick="openCancelModal(this.getAttribute('data-id'))">
@@ -222,7 +206,6 @@
         </div>
     </div>
 
-    <!-- MODALE DETTAGLI -->
     <div id="detailsModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeDetails()">&times;</span>
@@ -231,13 +214,11 @@
         </div>
     </div>
 
-    <!-- MODALE NOTE -->
     <div id="notesModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeNotes()">&times;</span>
             <h2 style="color: var(--primary-gold); margin-bottom: 1rem;">Note e Richieste</h2>
 
-            <!-- Filtri -->
             <div class="notes-filters">
                 <input type="datetime-local" id="filterFrom" placeholder="Da">
                 <input type="datetime-local" id="filterTo" placeholder="A">
@@ -257,7 +238,6 @@
         </div>
     </div>
 
-    <!-- MODALE CONFERMA CANCELLAZIONE -->
     <div id="cancelModal" class="modal-confirm">
         <div class="modal-confirm-content">
             <h3 class="modal-confirm-title">Conferma Cancellazione</h3>
@@ -286,7 +266,6 @@
 
     <script th:src="@{/js/cliente/dashboard.js}"></script>
     <script>
-        // Gestione Modale Cancellazione
         const cancelModal = document.getElementById('cancelModal');
         const cancelInput = document.getElementById('cancelPrenotazioneId');
 
@@ -299,12 +278,10 @@
             cancelModal.style.display = 'none';
         }
 
-        // Chiudi modale cliccando fuori
         window.onclick = function(event) {
             if (event.target == cancelModal) {
                 closeCancelModal();
             }
-            // Gestione chiusura altre modali (già presente in dashboard.js ma ridondante qui per sicurezza)
             if (event.target.classList.contains('modal')) {
                 closeDetails();
                 closeNotes();

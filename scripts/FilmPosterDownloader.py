@@ -43,7 +43,7 @@ try:
                 # Nome file locale
                 filename = f"{sanitize_filename(title)}.jpg"
                 local_image_path = os.path.join(images_output_dir, filename)
-                web_image_path = f"/image/multimedia/{filename}" # Percorso per il browser
+                web_image_path = f"/image/Multimedia/{filename}" # Percorso per il browser
 
                 # Scarica l'immagine se non esiste già
                 if not os.path.exists(local_image_path):

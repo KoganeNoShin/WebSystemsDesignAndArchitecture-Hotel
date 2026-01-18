@@ -1,10 +1,7 @@
 package com.websystemdesign.controller.web;
 
 import com.websystemdesign.model.*;
-import com.websystemdesign.repository.*;
-import com.websystemdesign.service.CameraService;
-import com.websystemdesign.service.ClienteService;
-import com.websystemdesign.service.SedeService;
+import com.websystemdesign.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
@@ -29,30 +26,28 @@ public class BookingController {
 
     private final SedeService sedeService;
     private final CameraService cameraService;
-    private final PrenotazioneRepository prenotazioneRepository;
-    private final UtenteRepository utenteRepository;
-    private final ClienteRepository clienteRepository;
-    private final ServiceRepository serviceRepository;
+    private final PrenotazioneService prenotazioneService;
+    private final UtenteService utenteService;
     private final ClienteService clienteService;
+    private final ServiceHotelService serviceHotelService;
 
     @Autowired
-    public BookingController(SedeService sedeService, CameraService cameraService, PrenotazioneRepository prenotazioneRepository, UtenteRepository utenteRepository, ClienteRepository clienteRepository, ServiceRepository serviceRepository, ClienteService clienteService) {
+    public BookingController(SedeService sedeService, CameraService cameraService, PrenotazioneService prenotazioneService, UtenteService utenteService, ClienteService clienteService, ServiceHotelService serviceHotelService) {
         this.sedeService = sedeService;
         this.cameraService = cameraService;
-        this.prenotazioneRepository = prenotazioneRepository;
-        this.utenteRepository = utenteRepository;
-        this.clienteRepository = clienteRepository;
-        this.serviceRepository = serviceRepository;
+        this.prenotazioneService = prenotazioneService;
+        this.utenteService = utenteService;
         this.clienteService = clienteService;
+        this.serviceHotelService = serviceHotelService;
     }
 
     private boolean checkCanBook(Authentication authentication, RedirectAttributes redirectAttributes) {
         if (authentication == null) return true;
         
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        Utente utente = utenteRepository.findByUsername(userDetails.getUsername()).orElseThrow();
-        if (clienteRepository.findByUtenteId(utente.getId()).isPresent()) {
-            Cliente cliente = clienteRepository.findByUtenteId(utente.getId()).get();
+        Utente utente = utenteService.getUtenteByUsername(userDetails.getUsername()).orElseThrow();
+        if (clienteService.getClienteByUsername(utente.getUsername()).isPresent()) {
+            Cliente cliente = clienteService.getClienteByUsername(utente.getUsername()).get();
             if (!clienteService.canBook(cliente.getId())) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Hai già una prenotazione attiva o futura. Completala prima di farne un'altra.");
                 return false;
@@ -117,8 +112,7 @@ public class BookingController {
         }
 
         // Controllo sovrapposizioni
-        List<Prenotazione> sovrapposizioni = prenotazioneRepository.findSovrapposizioni(cameraId, checkout, checkin);
-        if (!sovrapposizioni.isEmpty()) {
+        if (!prenotazioneService.isCameraDisponibile(cameraId, checkin, checkout)) {
             redirectAttributes.addFlashAttribute("errorMessage", "La camera non è disponibile per le date selezionate.");
             return "redirect:/booking/dates?cameraId=" + cameraId;
         }
@@ -129,7 +123,7 @@ public class BookingController {
 
         Set<Service> servizi = new HashSet<>();
         if (selectedServices != null && !selectedServices.isEmpty()) {
-            servizi.addAll(serviceRepository.findAllById(selectedServices));
+            servizi.addAll(serviceHotelService.getServicesByIds(selectedServices));
         }
 
         float costoCamera = camera.getPrezzoBase() * nights;
@@ -165,22 +159,21 @@ public class BookingController {
             return "redirect:/booking/dates?cameraId=" + cameraId;
         }
 
-        List<Prenotazione> sovrapposizioni = prenotazioneRepository.findSovrapposizioni(cameraId, checkout, checkin);
-        if (!sovrapposizioni.isEmpty()) {
+        if (!prenotazioneService.isCameraDisponibile(cameraId, checkin, checkout)) {
             redirectAttributes.addFlashAttribute("errorMessage", "La camera non è più disponibile per le date selezionate.");
             return "redirect:/booking/dates?cameraId=" + cameraId;
         }
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        Utente utente = utenteRepository.findByUsername(userDetails.getUsername()).orElseThrow();
-        Cliente cliente = clienteRepository.findByUtenteId(utente.getId()).orElseThrow();
+        Utente utente = utenteService.getUtenteByUsername(userDetails.getUsername()).orElseThrow();
+        Cliente cliente = clienteService.getClienteByUsername(utente.getUsername()).orElseThrow();
 
         long nights = ChronoUnit.DAYS.between(checkin, checkout);
         if (nights < 1) nights = 1;
 
         Set<Service> servizi = new HashSet<>();
         if (selectedServices != null && !selectedServices.isEmpty()) {
-            servizi.addAll(serviceRepository.findAllById(selectedServices));
+            servizi.addAll(serviceHotelService.getServicesByIds(selectedServices));
         }
 
         Camera camera = cameraService.getRoomById(cameraId).orElseThrow();
@@ -199,7 +192,7 @@ public class BookingController {
         prenotazione.setCosto(costoTotale);
         prenotazione.setServices(new HashSet<>(servizi));
 
-        prenotazioneRepository.save(prenotazione);
+        prenotazioneService.savePrenotazione(prenotazione);
 
         redirectAttributes.addFlashAttribute("successMessage", "Prenotazione confermata con successo!");
         return "redirect:/cliente/dashboard";

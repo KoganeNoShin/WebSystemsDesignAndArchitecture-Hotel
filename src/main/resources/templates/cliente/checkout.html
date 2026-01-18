@@ -51,6 +51,15 @@
                 <strong th:text="'€ ' + ${#numbers.formatDecimal(costoMultimedia, 1, 2)}">€ 15.00</strong>
             </div>
 
+            <div class="summary-item">
+                <span>Tassa di Soggiorno:</span>
+                <strong th:text="'€ ' + ${#numbers.formatDecimal(costoTassaSoggiorno, 1, 2)}">€ 10.00</strong>
+            </div>
+
+            <div th:if="${numEsenzioni > 0}" class="summary-item" style="font-size: 0.9rem; color: #aaa;">
+                <span>(Esenzioni applicate per <span th:text="${numEsenzioni}">1</span> ospiti under 12)</span>
+            </div>
+
             <div class="total-row">
                 <span>Totale da Pagare:</span>
                 <span th:text="'€ ' + ${#numbers.formatDecimal(totaleDaPagare, 1, 2)}">€ 315.00</span>

@@ -1,7 +1,10 @@
 package com.websystemdesign.controller.web;
 
 import com.websystemdesign.model.*;
-import com.websystemdesign.repository.*;
+import com.websystemdesign.service.ClienteService;
+import com.websystemdesign.service.OspiteService;
+import com.websystemdesign.service.PrenotazioneService;
+import com.websystemdesign.service.UtenteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,28 +23,26 @@ import java.util.List;
 @RequestMapping("/cliente/checkin")
 public class CheckInController {
 
-    private final PrenotazioneRepository prenotazioneRepository;
-    private final UtenteRepository utenteRepository;
-    private final ClienteRepository clienteRepository;
-    private final OspiteRepository ospiteRepository;
-    private final CameraRepository cameraRepository;
+    private final PrenotazioneService prenotazioneService;
+    private final UtenteService utenteService;
+    private final ClienteService clienteService;
+    private final OspiteService ospiteService;
 
     @Autowired
-    public CheckInController(PrenotazioneRepository prenotazioneRepository, UtenteRepository utenteRepository, ClienteRepository clienteRepository, OspiteRepository ospiteRepository, CameraRepository cameraRepository) {
-        this.prenotazioneRepository = prenotazioneRepository;
-        this.utenteRepository = utenteRepository;
-        this.clienteRepository = clienteRepository;
-        this.ospiteRepository = ospiteRepository;
-        this.cameraRepository = cameraRepository;
+    public CheckInController(PrenotazioneService prenotazioneService, UtenteService utenteService, ClienteService clienteService, OspiteService ospiteService) {
+        this.prenotazioneService = prenotazioneService;
+        this.utenteService = utenteService;
+        this.clienteService = clienteService;
+        this.ospiteService = ospiteService;
     }
 
     @GetMapping("/{id}")
     public String showCheckInForm(@PathVariable Long id, Authentication authentication, Model model, RedirectAttributes redirectAttributes) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        Utente utente = utenteRepository.findByUsername(userDetails.getUsername()).orElseThrow();
-        Cliente cliente = clienteRepository.findByUtenteId(utente.getId()).orElseThrow();
+        Utente utente = utenteService.getUtenteByUsername(userDetails.getUsername()).orElseThrow();
+        Cliente cliente = clienteService.getClienteByUsername(utente.getUsername()).orElseThrow();
 
-        Prenotazione prenotazione = prenotazioneRepository.findById(id)
+        Prenotazione prenotazione = prenotazioneService.getPrenotazioneById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Prenotazione non trovata"));
 
         if (!prenotazione.getCliente().getId().equals(cliente.getId())) {
@@ -90,7 +91,7 @@ public class CheckInController {
                                  Authentication authentication,
                                  RedirectAttributes redirectAttributes) {
 
-        Prenotazione prenotazione = prenotazioneRepository.findById(prenotazioneId).orElseThrow();
+        Prenotazione prenotazione = prenotazioneService.getPrenotazioneById(prenotazioneId).orElseThrow();
         Cliente clienteDb = prenotazione.getCliente();
 
         boolean wasProfileLocked = clienteDb.getCittadinanza() != null && !clienteDb.getCittadinanza().isEmpty();
@@ -110,7 +111,7 @@ public class CheckInController {
         
         clienteDb.setTipoDocumento(clienteForm.getTipoDocumento());
         clienteDb.setNumDocumento(clienteForm.getNumDocumento());
-        clienteRepository.save(clienteDb);
+        clienteService.saveCliente(clienteDb);
 
         Ospite capogruppoOspite = new Ospite();
         capogruppoOspite.setPrenotazione(prenotazione);
@@ -121,7 +122,7 @@ public class CheckInController {
         if (clienteDb.getDataNascita() != null) {
             capogruppoOspite.setDataNascita(LocalDate.parse(clienteDb.getDataNascita()));
         }
-        ospiteRepository.save(capogruppoOspite);
+        ospiteService.saveOspite(capogruppoOspite);
 
         if (nomi != null) {
             for (int i = 0; i < nomi.size(); i++) {
@@ -133,13 +134,13 @@ public class CheckInController {
                     ospite.setCittadinanza(cittadinanze.get(i));
                     ospite.setLuogo(luoghi.get(i));
                     ospite.setDataNascita(LocalDate.parse(date.get(i)));
-                    ospiteRepository.save(ospite);
+                    ospiteService.saveOspite(ospite);
                 }
             }
         }
 
         prenotazione.setStato(StatoPrenotazione.CHECKED_IN);
-        prenotazioneRepository.save(prenotazione);
+        prenotazioneService.savePrenotazione(prenotazione);
         
         redirectAttributes.addFlashAttribute("successMessage", "Check-in online completato con successo! Benvenuto.");
         return "redirect:/cliente/dashboard";

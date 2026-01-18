@@ -1,10 +1,9 @@
 package com.websystemdesign.controller.web;
 
 import com.websystemdesign.model.*;
-import com.websystemdesign.repository.ClienteRepository;
-import com.websystemdesign.repository.PrenotazioneRepository;
-import com.websystemdesign.repository.UtenteRepository;
 import com.websystemdesign.service.ClienteService;
+import com.websystemdesign.service.PrenotazioneService;
+import com.websystemdesign.service.UtenteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,17 +25,15 @@ import java.util.stream.Collectors;
 @RequestMapping("/cliente")
 public class ClienteDashboardController {
 
-    private final UtenteRepository utenteRepository;
-    private final ClienteRepository clienteRepository;
-    private final PrenotazioneRepository prenotazioneRepository;
+    private final UtenteService utenteService;
     private final ClienteService clienteService;
+    private final PrenotazioneService prenotazioneService;
 
     @Autowired
-    public ClienteDashboardController(UtenteRepository utenteRepository, ClienteRepository clienteRepository, PrenotazioneRepository prenotazioneRepository, ClienteService clienteService) {
-        this.utenteRepository = utenteRepository;
-        this.clienteRepository = clienteRepository;
-        this.prenotazioneRepository = prenotazioneRepository;
+    public ClienteDashboardController(UtenteService utenteService, ClienteService clienteService, PrenotazioneService prenotazioneService) {
+        this.utenteService = utenteService;
         this.clienteService = clienteService;
+        this.prenotazioneService = prenotazioneService;
     }
 
     @GetMapping("/dashboard")
@@ -48,14 +45,14 @@ public class ClienteDashboardController {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String username = userDetails.getUsername();
         
-        Utente utente = utenteRepository.findByUsername(username)
+        Utente utente = utenteService.getUtenteByUsername(username)
                 .orElseThrow(() -> new IllegalStateException("Utente non trovato"));
-        Cliente cliente = clienteRepository.findByUtenteId(utente.getId())
+        Cliente cliente = clienteService.getClienteByUsername(utente.getUsername())
                 .orElseThrow(() -> new IllegalStateException("Cliente non trovato"));
 
         model.addAttribute("utente", utente);
 
-        List<Prenotazione> tutteLePrenotazioni = prenotazioneRepository.findByClienteId(cliente.getId());
+        List<Prenotazione> tutteLePrenotazioni = prenotazioneService.getPrenotazioniByCliente(cliente.getId());
         LocalDateTime now = LocalDateTime.now();
         LocalDate today = LocalDate.now();
 
@@ -65,7 +62,6 @@ public class ClienteDashboardController {
 
         Optional<Prenotazione> attivaOpt = prenotazioniValide.stream()
                 .filter(p -> p.getStato() == StatoPrenotazione.CHECKED_IN)
-                .filter(p -> p.getCamera().getStatus() == StatoCamera.OCCUPATA)
                 .filter(p -> now.isAfter(p.getDataInizio().atTime(12, 0)) || now.isEqual(p.getDataInizio().atTime(12, 0)))
                 .findFirst();
         
@@ -115,10 +111,10 @@ public class ClienteDashboardController {
     @PostMapping("/booking/cancel")
     public String cancelBooking(@RequestParam Long prenotazioneId, Authentication authentication, RedirectAttributes redirectAttributes) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        Utente utente = utenteRepository.findByUsername(userDetails.getUsername()).orElseThrow();
-        Cliente cliente = clienteRepository.findByUtenteId(utente.getId()).orElseThrow();
+        Utente utente = utenteService.getUtenteByUsername(userDetails.getUsername()).orElseThrow();
+        Cliente cliente = clienteService.getClienteByUsername(utente.getUsername()).orElseThrow();
 
-        Prenotazione prenotazione = prenotazioneRepository.findById(prenotazioneId)
+        Prenotazione prenotazione = prenotazioneService.getPrenotazioneById(prenotazioneId)
                 .orElseThrow(() -> new IllegalArgumentException("Prenotazione non trovata"));
 
         if (!prenotazione.getCliente().getId().equals(cliente.getId())) {
@@ -136,7 +132,7 @@ public class ClienteDashboardController {
         }
 
         prenotazione.setStato(StatoPrenotazione.CANCELLATA);
-        prenotazioneRepository.save(prenotazione);
+        prenotazioneService.savePrenotazione(prenotazione);
 
         redirectAttributes.addFlashAttribute("successMessage", "Prenotazione cancellata con successo.");
         return "redirect:/cliente/dashboard";

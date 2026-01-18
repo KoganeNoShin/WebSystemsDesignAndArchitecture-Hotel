@@ -3,8 +3,8 @@ package com.websystemdesign.controller.api;
 import com.websystemdesign.dto.CameraDto;
 import com.websystemdesign.model.Camera;
 import com.websystemdesign.model.StatoPrenotazione;
-import com.websystemdesign.repository.PrenotazioneRepository;
 import com.websystemdesign.service.CameraService;
+import com.websystemdesign.service.PrenotazioneService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,12 +21,12 @@ import java.util.stream.Collectors;
 public class ApiBookingController {
 
     private final CameraService cameraService;
-    private final PrenotazioneRepository prenotazioneRepository;
+    private final PrenotazioneService prenotazioneService;
 
     @Autowired
-    public ApiBookingController(CameraService cameraService, PrenotazioneRepository prenotazioneRepository) {
+    public ApiBookingController(CameraService cameraService, PrenotazioneService prenotazioneService) {
         this.cameraService = cameraService;
-        this.prenotazioneRepository = prenotazioneRepository;
+        this.prenotazioneService = prenotazioneService;
     }
 
     @GetMapping("/available-rooms")
@@ -38,7 +38,7 @@ public class ApiBookingController {
 
         List<Camera> camereSede = cameraService.getCamereBySede(sedeId);
 
-        List<Long> idCamereOccupate = prenotazioneRepository.findAll().stream()
+        List<Long> idCamereOccupate = prenotazioneService.getAllPrenotazioni().stream()
                 .filter(p -> p.getCamera().getSede().getId().equals(sedeId))
                 .filter(p -> p.getStato() != StatoPrenotazione.CANCELLATA)
                 .filter(p -> p.getDataInizio().isBefore(checkout) && p.getDataFine().isAfter(checkin))

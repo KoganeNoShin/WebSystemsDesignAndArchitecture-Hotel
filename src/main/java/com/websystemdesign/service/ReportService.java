@@ -2,7 +2,6 @@ package com.websystemdesign.service;
 
 import com.websystemdesign.dto.report.*;
 import com.websystemdesign.model.*;
-import com.websystemdesign.repository.PrenotazioneRepository;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
 import org.springframework.stereotype.Service;
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Service;
 import java.io.StringWriter;
 import java.time.LocalDate;
 import java.time.Period;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,14 +16,14 @@ import java.util.stream.Collectors;
 @Service
 public class ReportService {
 
-    private final PrenotazioneRepository prenotazioneRepository;
+    private final PrenotazioneService prenotazioneService;
 
-    public ReportService(PrenotazioneRepository prenotazioneRepository) {
-        this.prenotazioneRepository = prenotazioneRepository;
+    public ReportService(PrenotazioneService prenotazioneService) {
+        this.prenotazioneService = prenotazioneService;
     }
 
     public String generaXmlQuestura() throws Exception {
-        List<Prenotazione> attive = prenotazioneRepository.findAll().stream()
+        List<Prenotazione> attive = prenotazioneService.getAllPrenotazioni().stream()
                 .filter(p -> p.getStato() == StatoPrenotazione.CHECKED_IN)
                 .collect(Collectors.toList());
 
@@ -63,7 +61,7 @@ public class ReportService {
     }
 
     public String generaXmlTassa() throws Exception {
-        List<Prenotazione> attive = prenotazioneRepository.findAll().stream()
+        List<Prenotazione> attive = prenotazioneService.getAllPrenotazioni().stream()
                 .filter(p -> p.getStato() == StatoPrenotazione.CHECKED_IN)
                 .collect(Collectors.toList());
 

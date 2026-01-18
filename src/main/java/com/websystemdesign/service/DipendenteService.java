@@ -82,6 +82,10 @@ public class DipendenteService {
     public Optional<Dipendente> getDipendenteById(Long id) {
         return dipendenteRepository.findById(id);
     }
+    
+    public Optional<Dipendente> getDipendenteByUtenteId(Long utenteId) {
+        return dipendenteRepository.findByUtenteId(utenteId);
+    }
 
     public Dipendente saveDipendente(Dipendente dipendente) {
         return dipendenteRepository.save(dipendente);

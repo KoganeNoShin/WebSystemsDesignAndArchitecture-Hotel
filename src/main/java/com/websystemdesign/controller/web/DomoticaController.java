@@ -5,10 +5,10 @@ import com.websystemdesign.model.Cliente;
 import com.websystemdesign.model.Prenotazione;
 import com.websystemdesign.model.StatoPrenotazione;
 import com.websystemdesign.model.Utente;
-import com.websystemdesign.repository.CameraRepository;
-import com.websystemdesign.repository.ClienteRepository;
-import com.websystemdesign.repository.PrenotazioneRepository;
-import com.websystemdesign.repository.UtenteRepository;
+import com.websystemdesign.service.CameraService;
+import com.websystemdesign.service.ClienteService;
+import com.websystemdesign.service.PrenotazioneService;
+import com.websystemdesign.service.UtenteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -18,23 +18,22 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/cliente/domotica")
 public class DomoticaController {
 
-    private final PrenotazioneRepository prenotazioneRepository;
-    private final UtenteRepository utenteRepository;
-    private final ClienteRepository clienteRepository;
-    private final CameraRepository cameraRepository;
+    private final PrenotazioneService prenotazioneService;
+    private final UtenteService utenteService;
+    private final ClienteService clienteService;
+    private final CameraService cameraService;
 
     @Autowired
-    public DomoticaController(PrenotazioneRepository prenotazioneRepository, UtenteRepository utenteRepository, ClienteRepository clienteRepository, CameraRepository cameraRepository) {
-        this.prenotazioneRepository = prenotazioneRepository;
-        this.utenteRepository = utenteRepository;
-        this.clienteRepository = clienteRepository;
-        this.cameraRepository = cameraRepository;
+    public DomoticaController(PrenotazioneService prenotazioneService, UtenteService utenteService, ClienteService clienteService, CameraService cameraService) {
+        this.prenotazioneService = prenotazioneService;
+        this.utenteService = utenteService;
+        this.clienteService = clienteService;
+        this.cameraService = cameraService;
     }
 
     @GetMapping
@@ -71,16 +70,16 @@ public class DomoticaController {
             }
         }
 
-        cameraRepository.save(camera);
+        cameraService.saveRoom(camera);
         return ResponseEntity.ok().body(Map.of("success", true));
     }
 
     private Prenotazione getActiveBooking(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        Utente utente = utenteRepository.findByUsername(userDetails.getUsername()).orElseThrow();
-        Cliente cliente = clienteRepository.findByUtenteId(utente.getId()).orElseThrow();
+        Utente utente = utenteService.getUtenteByUsername(userDetails.getUsername()).orElseThrow();
+        Cliente cliente = clienteService.getClienteByUsername(utente.getUsername()).orElseThrow();
 
-        return prenotazioneRepository.findByClienteId(cliente.getId()).stream()
+        return prenotazioneService.getPrenotazioniByCliente(cliente.getId()).stream()
                 .filter(p -> p.getStato() == StatoPrenotazione.CHECKED_IN)
                 .findFirst()
                 .orElse(null);

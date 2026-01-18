@@ -5,10 +5,10 @@ import com.websystemdesign.model.Multimedia;
 import com.websystemdesign.model.Prenotazione;
 import com.websystemdesign.model.StatoPrenotazione;
 import com.websystemdesign.model.Utente;
-import com.websystemdesign.repository.ClienteRepository;
-import com.websystemdesign.repository.MultimediaRepository;
-import com.websystemdesign.repository.PrenotazioneRepository;
-import com.websystemdesign.repository.UtenteRepository;
+import com.websystemdesign.service.ClienteService;
+import com.websystemdesign.service.MultimediaService;
+import com.websystemdesign.service.PrenotazioneService;
+import com.websystemdesign.service.UtenteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -29,26 +28,26 @@ import java.util.Set;
 @RequestMapping("/cliente/multimedia")
 public class MultimediaController {
 
-    private final MultimediaRepository multimediaRepository;
-    private final PrenotazioneRepository prenotazioneRepository;
-    private final UtenteRepository utenteRepository;
-    private final ClienteRepository clienteRepository;
+    private final MultimediaService multimediaService;
+    private final PrenotazioneService prenotazioneService;
+    private final UtenteService utenteService;
+    private final ClienteService clienteService;
 
     @Autowired
-    public MultimediaController(MultimediaRepository multimediaRepository, PrenotazioneRepository prenotazioneRepository, UtenteRepository utenteRepository, ClienteRepository clienteRepository) {
-        this.multimediaRepository = multimediaRepository;
-        this.prenotazioneRepository = prenotazioneRepository;
-        this.utenteRepository = utenteRepository;
-        this.clienteRepository = clienteRepository;
+    public MultimediaController(MultimediaService multimediaService, PrenotazioneService prenotazioneService, UtenteService utenteService, ClienteService clienteService) {
+        this.multimediaService = multimediaService;
+        this.prenotazioneService = prenotazioneService;
+        this.utenteService = utenteService;
+        this.clienteService = clienteService;
     }
 
     @GetMapping
     public String showMultimediaPage(Model model, Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        Utente utente = utenteRepository.findByUsername(userDetails.getUsername()).orElseThrow();
-        Cliente cliente = clienteRepository.findByUtenteId(utente.getId()).orElseThrow();
+        Utente utente = utenteService.getUtenteByUsername(userDetails.getUsername()).orElseThrow();
+        Cliente cliente = clienteService.getClienteByUsername(utente.getUsername()).orElseThrow();
 
-        Optional<Prenotazione> prenotazioneOpt = prenotazioneRepository.findByClienteId(cliente.getId()).stream()
+        Optional<Prenotazione> prenotazioneOpt = prenotazioneService.getPrenotazioniByCliente(cliente.getId()).stream()
                 .filter(p -> p.getStato() == StatoPrenotazione.CHECKED_IN)
                 .findFirst();
 
@@ -57,7 +56,7 @@ public class MultimediaController {
         }
 
         Prenotazione prenotazione = prenotazioneOpt.get();
-        List<Multimedia> catalogo = multimediaRepository.findAll();
+        List<Multimedia> catalogo = multimediaService.getAllMultimedia();
         Set<Multimedia> acquistati = prenotazione.getMultimedia();
 
         catalogo.removeAll(acquistati);
@@ -71,8 +70,8 @@ public class MultimediaController {
 
     @PostMapping("/buy")
     public String buyContent(@RequestParam Long multimediaId, @RequestParam Long prenotazioneId, RedirectAttributes redirectAttributes) {
-        Prenotazione prenotazione = prenotazioneRepository.findById(prenotazioneId).orElseThrow();
-        Multimedia contenuto = multimediaRepository.findById(multimediaId).orElseThrow();
+        Prenotazione prenotazione = prenotazioneService.getPrenotazioneById(prenotazioneId).orElseThrow();
+        Multimedia contenuto = multimediaService.getMultimediaById(multimediaId).orElseThrow();
 
         if (prenotazione.getMultimedia() == null) {
             prenotazione.setMultimedia(new java.util.HashSet<>());
@@ -82,7 +81,7 @@ public class MultimediaController {
             prenotazione.getMultimedia().add(contenuto);
             prenotazione.setCosto(prenotazione.getCosto() + contenuto.getCosto());
             
-            prenotazioneRepository.save(prenotazione);
+            prenotazioneService.savePrenotazione(prenotazione);
             redirectAttributes.addFlashAttribute("successMessage", "Contenuto acquistato! Buona visione.");
         } else {
             redirectAttributes.addFlashAttribute("errorMessage", "Hai già acquistato questo contenuto.");

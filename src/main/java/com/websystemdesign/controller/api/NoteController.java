@@ -6,10 +6,10 @@ import com.websystemdesign.model.Cliente;
 import com.websystemdesign.model.Nota;
 import com.websystemdesign.model.Prenotazione;
 import com.websystemdesign.model.Utente;
-import com.websystemdesign.repository.ClienteRepository;
-import com.websystemdesign.repository.NotaRepository;
-import com.websystemdesign.repository.PrenotazioneRepository;
-import com.websystemdesign.repository.UtenteRepository;
+import com.websystemdesign.service.ClienteService;
+import com.websystemdesign.service.NotaService;
+import com.websystemdesign.service.PrenotazioneService;
+import com.websystemdesign.service.UtenteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
@@ -17,27 +17,25 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/cliente/note")
 public class NoteController {
 
-    private final NotaRepository notaRepository;
-    private final PrenotazioneRepository prenotazioneRepository;
-    private final UtenteRepository utenteRepository;
-    private final ClienteRepository clienteRepository;
+    private final NotaService notaService;
+    private final PrenotazioneService prenotazioneService;
+    private final UtenteService utenteService;
+    private final ClienteService clienteService;
     private final NotaMapper notaMapper;
 
     @Autowired
-    public NoteController(NotaRepository notaRepository, PrenotazioneRepository prenotazioneRepository, UtenteRepository utenteRepository, ClienteRepository clienteRepository, NotaMapper notaMapper) {
-        this.notaRepository = notaRepository;
-        this.prenotazioneRepository = prenotazioneRepository;
-        this.utenteRepository = utenteRepository;
-        this.clienteRepository = clienteRepository;
+    public NoteController(NotaService notaService, PrenotazioneService prenotazioneService, UtenteService utenteService, ClienteService clienteService, NotaMapper notaMapper) {
+        this.notaService = notaService;
+        this.prenotazioneService = prenotazioneService;
+        this.utenteService = utenteService;
+        this.clienteService = clienteService;
         this.notaMapper = notaMapper;
     }
 
@@ -50,43 +48,26 @@ public class NoteController {
         
         checkOwnership(prenotazioneId, authentication);
         
-        Stream<Nota> stream = notaRepository.findByPrenotazioneIdOrderByDataCreazioneDesc(prenotazioneId).stream();
+        List<Nota> note = notaService.getNote(prenotazioneId, from, to, limit);
 
-        if (from != null) {
-            stream = stream.filter(n -> n.getDataCreazione().isAfter(from) || n.getDataCreazione().isEqual(from));
-        }
-        if (to != null) {
-            stream = stream.filter(n -> n.getDataCreazione().isBefore(to) || n.getDataCreazione().isEqual(to));
-        }
-
-        if (!"all".equalsIgnoreCase(limit)) {
-            try {
-                int max = Integer.parseInt(limit);
-                stream = stream.limit(max);
-            } catch (NumberFormatException e) {
-            }
-        }
-
-        return stream.map(notaMapper::toDto).collect(Collectors.toList());
+        return note.stream().map(notaMapper::toDto).collect(Collectors.toList());
     }
 
     @PostMapping("/add")
     public NotaDto addNota(@RequestParam Long prenotazioneId, @RequestParam String testo, Authentication authentication) {
         Prenotazione p = checkOwnership(prenotazioneId, authentication);
         
-        Nota nota = new Nota(testo, p);
-        nota.setDataCreazione(LocalDateTime.now());
-        notaRepository.save(nota);
+        Nota nota = notaService.addNota(testo, p);
         
         return notaMapper.toDto(nota);
     }
 
     private Prenotazione checkOwnership(Long prenotazioneId, Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        Utente utente = utenteRepository.findByUsername(userDetails.getUsername()).orElseThrow();
-        Cliente cliente = clienteRepository.findByUtenteId(utente.getId()).orElseThrow();
+        Utente utente = utenteService.getUtenteByUsername(userDetails.getUsername()).orElseThrow();
+        Cliente cliente = clienteService.getClienteByUsername(utente.getUsername()).orElseThrow();
         
-        Prenotazione p = prenotazioneRepository.findById(prenotazioneId)
+        Prenotazione p = prenotazioneService.getPrenotazioneById(prenotazioneId)
                 .orElseThrow(() -> new IllegalArgumentException("Prenotazione non trovata"));
         
         if (!p.getCliente().getId().equals(cliente.getId())) {

@@ -19,4 +19,8 @@ public class ServiceHotelService {
     public List<Service> getAllServices() {
         return serviceRepository.findAll();
     }
+    
+    public List<Service> getServicesByIds(List<Long> ids) {
+        return serviceRepository.findAllById(ids);
+    }
 }

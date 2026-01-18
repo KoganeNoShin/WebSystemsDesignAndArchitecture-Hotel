@@ -1,7 +1,10 @@
 package com.websystemdesign.controller.web;
 
 import com.websystemdesign.model.*;
-import com.websystemdesign.repository.*;
+import com.websystemdesign.service.CameraService;
+import com.websystemdesign.service.ClienteService;
+import com.websystemdesign.service.PrenotazioneService;
+import com.websystemdesign.service.UtenteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,32 +14,33 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.temporal.ChronoUnit;
 
 @Controller
 @RequestMapping("/cliente/checkout")
 public class CheckOutController {
 
-    private final PrenotazioneRepository prenotazioneRepository;
-    private final UtenteRepository utenteRepository;
-    private final ClienteRepository clienteRepository;
-    private final CameraRepository cameraRepository;
+    private final PrenotazioneService prenotazioneService;
+    private final UtenteService utenteService;
+    private final ClienteService clienteService;
+    private final CameraService cameraService;
 
     @Autowired
-    public CheckOutController(PrenotazioneRepository prenotazioneRepository, UtenteRepository utenteRepository, ClienteRepository clienteRepository, CameraRepository cameraRepository) {
-        this.prenotazioneRepository = prenotazioneRepository;
-        this.utenteRepository = utenteRepository;
-        this.clienteRepository = clienteRepository;
-        this.cameraRepository = cameraRepository;
+    public CheckOutController(PrenotazioneService prenotazioneService, UtenteService utenteService, ClienteService clienteService, CameraService cameraService) {
+        this.prenotazioneService = prenotazioneService;
+        this.utenteService = utenteService;
+        this.clienteService = clienteService;
+        this.cameraService = cameraService;
     }
 
     @GetMapping("/{id}")
     public String showCheckOutPage(@PathVariable Long id, Authentication authentication, Model model, RedirectAttributes redirectAttributes) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        Utente utente = utenteRepository.findByUsername(userDetails.getUsername()).orElseThrow();
-        Cliente cliente = clienteRepository.findByUtenteId(utente.getId()).orElseThrow();
+        Utente utente = utenteService.getUtenteByUsername(userDetails.getUsername()).orElseThrow();
+        Cliente cliente = clienteService.getClienteByUsername(utente.getUsername()).orElseThrow();
 
-        Prenotazione prenotazione = prenotazioneRepository.findById(id)
+        Prenotazione prenotazione = prenotazioneService.getPrenotazioneById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Prenotazione non trovata"));
 
         if (!prenotazione.getCliente().getId().equals(cliente.getId())) {
@@ -77,7 +81,30 @@ public class CheckOutController {
         float costoServizi = (float) prenotazione.getServices().stream().mapToDouble(Service::getCosto).sum();
         float costoMultimedia = (float) prenotazione.getMultimedia().stream().mapToDouble(Multimedia::getCosto).sum();
         
-        float totaleDaPagare = costoCameraFinale + costoServizi + costoMultimedia;
+        float tassaSoggiorno = 0.0f;
+        try {
+            tassaSoggiorno = Float.parseFloat(prenotazione.getCamera().getSede().getTassaSoggiorno());
+        } catch (NumberFormatException e) {
+            // ignore
+        }
+        
+        int numOspitiPaganti = 1;
+        int numEsenzioni = 0;
+
+        // Check ospiti
+        if (prenotazione.getOspiti() != null) {
+            for (Ospite o : prenotazione.getOspiti()) {
+                if (isUnder12(o.getDataNascita())) {
+                    numEsenzioni++;
+                } else {
+                    numOspitiPaganti++;
+                }
+            }
+        }
+        
+        float costoTassaSoggiorno = tassaSoggiorno * numOspitiPaganti * nottiUsufruite;
+        
+        float totaleDaPagare = costoCameraFinale + costoServizi + costoMultimedia + costoTassaSoggiorno;
 
         model.addAttribute("prenotazione", prenotazione);
         model.addAttribute("isAnticipato", isAnticipato);
@@ -87,6 +114,8 @@ public class CheckOutController {
         model.addAttribute("costoCameraFinale", costoCameraFinale);
         model.addAttribute("costoServizi", costoServizi);
         model.addAttribute("costoMultimedia", costoMultimedia);
+        model.addAttribute("costoTassaSoggiorno", costoTassaSoggiorno);
+        model.addAttribute("numEsenzioni", numEsenzioni);
         model.addAttribute("totaleDaPagare", totaleDaPagare);
 
         return "cliente/checkout";
@@ -98,20 +127,25 @@ public class CheckOutController {
                                   Authentication authentication, 
                                   RedirectAttributes redirectAttributes) {
         
-        Prenotazione prenotazione = prenotazioneRepository.findById(prenotazioneId).orElseThrow();
+        Prenotazione prenotazione = prenotazioneService.getPrenotazioneById(prenotazioneId).orElseThrow();
         
         prenotazione.setStato(StatoPrenotazione.CHECKED_OUT);
         prenotazione.setCosto(totalePagato);
         if (LocalDate.now().isBefore(prenotazione.getDataFine())) {
             prenotazione.setDataFine(LocalDate.now());
         }
-        prenotazioneRepository.save(prenotazione);
+        prenotazioneService.savePrenotazione(prenotazione);
         
         Camera camera = prenotazione.getCamera();
         camera.setStatus(StatoCamera.DA_PULIRE);
-        cameraRepository.save(camera);
+        cameraService.saveRoom(camera);
 
         redirectAttributes.addFlashAttribute("successMessage", "Check-out completato. Grazie per aver soggiornato da noi!");
         return "redirect:/cliente/dashboard";
+    }
+
+    private boolean isUnder12(LocalDate dataNascita) {
+        if (dataNascita == null) return false;
+        return Period.between(dataNascita, LocalDate.now()).getYears() < 12;
     }
 }

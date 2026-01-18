@@ -4,6 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.websystemdesign.model.*;
 import com.websystemdesign.repository.*;
+import com.websystemdesign.scheduler.BookingCleanupScheduler;
+import com.websystemdesign.scheduler.RoomScheduler;
+import com.websystemdesign.service.ClienteService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,10 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
@@ -31,7 +31,10 @@ public class DataSeeder implements CommandLineRunner {
     private final PrenotazioneRepository prenotazioneRepository;
     private final OspiteRepository ospiteRepository;
     private final PasswordEncoder passwordEncoder;
-    private final ObjectMapper objectMapper; // Per leggere il JSON
+    private final ObjectMapper objectMapper;
+    private final ClienteService clienteService;
+    private final BookingCleanupScheduler bookingCleanupScheduler;
+    private final RoomScheduler roomScheduler;
 
     public DataSeeder(SedeRepository sedeRepository,
                       CameraRepository cameraRepository,
@@ -43,7 +46,10 @@ public class DataSeeder implements CommandLineRunner {
                       PrenotazioneRepository prenotazioneRepository,
                       OspiteRepository ospiteRepository,
                       PasswordEncoder passwordEncoder,
-                      ObjectMapper objectMapper) {
+                      ObjectMapper objectMapper,
+                      ClienteService clienteService,
+                      BookingCleanupScheduler bookingCleanupScheduler,
+                      RoomScheduler roomScheduler) {
         this.sedeRepository = sedeRepository;
         this.cameraRepository = cameraRepository;
         this.serviceRepository = serviceRepository;
@@ -55,6 +61,9 @@ public class DataSeeder implements CommandLineRunner {
         this.ospiteRepository = ospiteRepository;
         this.passwordEncoder = passwordEncoder;
         this.objectMapper = objectMapper;
+        this.clienteService = clienteService;
+        this.bookingCleanupScheduler = bookingCleanupScheduler;
+        this.roomScheduler = roomScheduler;
     }
 
     @Override
@@ -87,68 +96,126 @@ public class DataSeeder implements CommandLineRunner {
 
             loadMultimediaFromJson();
 
-            seedUsers(sedeCortina);
+            createAdmin();
+            createStaff("staff1", "Staff", "Cortina", sedeCortina);
+            createStaff("staff2", "Staff", "Roma", sedeRoma);
 
-            Utente marioUser = utenteRepository.findByUsername("mario").orElseThrow();
-            Cliente mario = clienteRepository.findByUtenteId(marioUser.getId()).orElseThrow();
+            List<Cliente> clienti = new ArrayList<>();
+            Cliente diego = createCliente("diego", "Diego", "Corona", "2003-07-09");
+            diego.setLuogo("Palermo");
+            clienteRepository.save(diego);
+            clienti.add(diego);
+
+            Cliente simone = createCliente("simone", "Simone", "Comitini", "2003-01-21");
+            simone.setLuogo("Palermo");
+            clienteRepository.save(simone);
+            clienti.add(simone);
             
-            createPrenotazioneTest(mario, camereCortina.get(0), LocalDate.now().plusDays(2), LocalDate.now().plusDays(5), StatoPrenotazione.CONFERMATA);
-            createPrenotazioneTest(mario, camereCortina.get(1), LocalDate.now().plusDays(10), LocalDate.now().plusDays(15), StatoPrenotazione.CONFERMATA);
-
-            if (utenteRepository.findByUsername("Diego").isEmpty()) {
-                Utente diegoUser = new Utente("Diego", passwordEncoder.encode("password"), "Diego", "Corona");
-                utenteRepository.save(diegoUser);
-
-                Cliente diego = new Cliente("Italiana", "Roma", "1995-05-05", "Patente", "RM987654", diegoUser);
-                clienteRepository.save(diego);
-
-                createPrenotazioneTest(diego, camereRoma.get(0), LocalDate.now().minusDays(30), LocalDate.now().minusDays(25), StatoPrenotazione.CHECKED_OUT);
-                createPrenotazioneTest(diego, camereCortina.get(3), LocalDate.now().minusDays(60), LocalDate.now().minusDays(55), StatoPrenotazione.CHECKED_OUT);
-                createPrenotazioneTest(diego, camereRoma.get(2), LocalDate.now().minusDays(100), LocalDate.now().minusDays(95), StatoPrenotazione.CHECKED_OUT);
-                createPrenotazioneTest(diego, camereCortina.get(4), LocalDate.now().minusDays(150), LocalDate.now().minusDays(145), StatoPrenotazione.CHECKED_OUT);
-
-                Camera cameraAttivaDiego = camereCortina.get(2);
-                cameraAttivaDiego.setStatus(StatoCamera.OCCUPATA);
-                cameraRepository.save(cameraAttivaDiego);
-                
-                Prenotazione pAttiva = createPrenotazioneTest(diego, cameraAttivaDiego, LocalDate.now().minusDays(2), LocalDate.now().plusDays(5), StatoPrenotazione.CHECKED_IN);
-
-                Ospite giulia = new Ospite();
-                giulia.setPrenotazione(pAttiva);
-                giulia.setNome("Giulia");
-                giulia.setCognome("Greco");
-                giulia.setCittadinanza("Italiana");
-                giulia.setLuogo("Napoli");
-                giulia.setDataNascita(LocalDate.of(1996, 6, 6));
-                ospiteRepository.save(giulia);
-                
-                pAttiva.setNumeroOspiti(2);
-
-                List<Multimedia> films = multimediaRepository.findAll();
-                if (!films.isEmpty()) {
-                    pAttiva.setMultimedia(new HashSet<>());
-                    pAttiva.getMultimedia().add(films.get(0)); // Aggiunge il primo film
-                    pAttiva.setCosto(pAttiva.getCosto() + films.get(0).getCosto()); // Aggiorna costo
-                }
-                
-                prenotazioneRepository.save(pAttiva);
+            for (int i = 1; i <= 20; i++) {
+                clienti.add(createCliente("cliente" + i, "Cliente", "Numero" + i, "1990-01-01"));
             }
 
-            if (utenteRepository.findByUsername("Simone").isEmpty()) {
-                Utente simoneUser = new Utente("Simone", passwordEncoder.encode("password"), "Simone", "Comitini");
-                utenteRepository.save(simoneUser);
+            for (Cliente c : clienti) {
+                Camera cam = camereRoma.get(0);
+                createPrenotazioneTest(c, cam, LocalDate.now().minusDays(60), LocalDate.now().minusDays(55), StatoPrenotazione.CHECKED_OUT);
+            }
 
-                Cliente simone = new Cliente("Italiana", "Milano", "1992-02-02", "Carta d'Identità", "MI123456", simoneUser);
-                clienteRepository.save(simone);
-                
-                createPrenotazioneTest(simone, camereRoma.get(0), LocalDate.now().minusDays(30), LocalDate.now().minusDays(25), StatoPrenotazione.CHECKED_OUT);
-                createPrenotazioneTest(simone, camereCortina.get(3), LocalDate.now().minusDays(60), LocalDate.now().minusDays(55), StatoPrenotazione.CHECKED_OUT);
-                createPrenotazioneTest(simone, camereRoma.get(2), LocalDate.now().minusDays(100), LocalDate.now().minusDays(95), StatoPrenotazione.CHECKED_OUT);
-                createPrenotazioneTest(simone, camereCortina.get(4), LocalDate.now().minusDays(150), LocalDate.now().minusDays(145), StatoPrenotazione.CHECKED_OUT);
-                createPrenotazioneTest(simone, camereCortina.get(2), LocalDate.now().plusDays(20), LocalDate.now().plusDays(25), StatoPrenotazione.CONFERMATA);
+            List<Camera> tutteLeCamere = new ArrayList<>();
+            tutteLeCamere.addAll(camereCortina);
+            tutteLeCamere.addAll(camereRoma);
+            
+            Random random = new Random();
+
+            for (int i = 0; i < tutteLeCamere.size(); i++) {
+                if (i % 2 == 0) {
+                    Camera camera = tutteLeCamere.get(i);
+                    
+                    Cliente cliente = null;
+                    for (Cliente c : clienti) {
+                        if (clienteService.canBook(c.getId())) {
+                            cliente = c;
+                            break;
+                        }
+                    }
+                    
+                    if (cliente == null) continue;
+                    
+                    int scenario = random.nextInt(4);
+                    LocalDate start, end;
+                    StatoPrenotazione stato;
+                    
+                    switch (scenario) {
+                        case 0:
+                            start = LocalDate.now().minusDays(1);
+                            end = LocalDate.now().plusDays(3);
+                            stato = StatoPrenotazione.CHECKED_IN;
+                            camera.setStatus(StatoCamera.OCCUPATA);
+                            cameraRepository.save(camera);
+                            break;
+                        case 1:
+                            start = LocalDate.now();
+                            end = LocalDate.now().plusDays(2);
+                            stato = StatoPrenotazione.CONFERMATA;
+                            break;
+                        case 2:
+                            start = LocalDate.now().minusDays(3);
+                            end = LocalDate.now();
+                            stato = StatoPrenotazione.CHECKED_IN;
+                            camera.setStatus(StatoCamera.OCCUPATA);
+                            cameraRepository.save(camera);
+                            break;
+                        default:
+                            start = LocalDate.now().plusDays(5);
+                            end = LocalDate.now().plusDays(10);
+                            stato = StatoPrenotazione.CONFERMATA;
+                            break;
+                    }
+
+                    Prenotazione p = createPrenotazioneTest(cliente, camera, start, end, stato);
+                    
+                    if (cliente.getUtente().getUsername().equals("diego")) {
+                        Ospite giulia = new Ospite();
+                        giulia.setPrenotazione(p);
+                        giulia.setNome("Giulia");
+                        giulia.setCognome("Greco");
+                        giulia.setCittadinanza("Italiana");
+                        giulia.setLuogo("Palermo");
+                        giulia.setDataNascita(LocalDate.of(2005, 6, 11));
+                        ospiteRepository.save(giulia);
+                        p.setNumeroOspiti(2);
+                        prenotazioneRepository.save(p);
+                    } else if (stato == StatoPrenotazione.CHECKED_IN || stato == StatoPrenotazione.CHECKED_OUT) {
+                        int numOspitiExtra = random.nextInt(3);
+                        p.setNumeroOspiti(1 + numOspitiExtra);
+                        prenotazioneRepository.save(p);
+                        
+                        for (int k = 0; k < numOspitiExtra; k++) {
+                            boolean isUnder12 = random.nextBoolean();
+                            LocalDate dataNascitaOspite = isUnder12 ? LocalDate.now().minusYears(5) : LocalDate.now().minusYears(25);
+                            
+                            Ospite ospite = new Ospite();
+                            ospite.setPrenotazione(p);
+                            ospite.setNome("Ospite" + k);
+                            ospite.setCognome("Extra");
+                            ospite.setCittadinanza("Italiana");
+                            ospite.setLuogo("Roma");
+                            ospite.setDataNascita(dataNascitaOspite);
+                            ospiteRepository.save(ospite);
+                        }
+                    }
+                    
+                    Collections.shuffle(clienti);
+                }
             }
 
             System.out.println("Data Seeding completato con successo!");
+            
+            // Esegui scheduler per pulizia e aggiornamento stati
+            System.out.println("Esecuzione scheduler post-seeding...");
+            bookingCleanupScheduler.cancelNoShowBookings();
+            roomScheduler.forceRoomCleanupStatus();
+            System.out.println("Scheduler eseguiti.");
+
         } else {
             System.out.println("Database già popolato. Seeding saltato.");
         }
@@ -264,28 +331,34 @@ public class DataSeeder implements CommandLineRunner {
         return saved;
     }
 
-    private void seedUsers(Sede sedeDiLavoro) {
+    private void createAdmin() {
         if (utenteRepository.findByUsername("admin").isEmpty()) {
             Utente adminUser = new Utente("admin", passwordEncoder.encode("admin"), "Admin", "Superuser");
             utenteRepository.save(adminUser);
             Dipendente adminDipendente = new Dipendente(Ruolo.AMMINISTRATORE, adminUser);
-            adminDipendente.setSede(sedeDiLavoro);
             dipendenteRepository.save(adminDipendente);
         }
+    }
 
-        if (utenteRepository.findByUsername("staff").isEmpty()) {
-            Utente staffUser = new Utente("staff", passwordEncoder.encode("staff"), "Luigi", "Verdi");
+    private void createStaff(String username, String nome, String cognome, Sede sede) {
+        if (utenteRepository.findByUsername(username).isEmpty()) {
+            Utente staffUser = new Utente(username, passwordEncoder.encode("password"), nome, cognome);
             utenteRepository.save(staffUser);
             Dipendente staffDipendente = new Dipendente(Ruolo.STAFF, staffUser);
-            staffDipendente.setSede(sedeDiLavoro);
+            staffDipendente.setSede(sede);
             dipendenteRepository.save(staffDipendente);
         }
+    }
 
-        if (utenteRepository.findByUsername("mario").isEmpty()) {
-            Utente clienteUser = new Utente("mario", passwordEncoder.encode("password"), "Mario", "Rossi");
-            utenteRepository.save(clienteUser);
-            Cliente cliente = new Cliente("Italiana", "Milano", "1990-01-01", "Carta d'Identità", "AX123456", clienteUser);
-            clienteRepository.save(cliente);
+    private Cliente createCliente(String username, String nome, String cognome, String dataNascita) {
+        if (utenteRepository.findByUsername(username).isPresent()) {
+            Utente u = utenteRepository.findByUsername(username).get();
+            return clienteRepository.findByUtenteId(u.getId()).orElseThrow();
         }
+        
+        Utente user = new Utente(username, passwordEncoder.encode("password"), nome, cognome);
+        utenteRepository.save(user);
+        Cliente cliente = new Cliente("Italiana", "Roma", dataNascita, "Carta d'Identità", "DOC12345", user);
+        return clienteRepository.save(cliente);
     }
 }

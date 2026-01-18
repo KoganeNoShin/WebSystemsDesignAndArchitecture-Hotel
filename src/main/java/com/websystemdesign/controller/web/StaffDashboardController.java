@@ -2,10 +2,10 @@ package com.websystemdesign.controller.web;
 
 import com.websystemdesign.dto.StaffCameraDto;
 import com.websystemdesign.model.*;
-import com.websystemdesign.repository.CameraRepository;
-import com.websystemdesign.repository.DipendenteRepository;
-import com.websystemdesign.repository.PrenotazioneRepository;
-import com.websystemdesign.repository.UtenteRepository;
+import com.websystemdesign.service.CameraService;
+import com.websystemdesign.service.DipendenteService;
+import com.websystemdesign.service.PrenotazioneService;
+import com.websystemdesign.service.UtenteService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -24,32 +24,32 @@ import java.util.Optional;
 @RequestMapping("/staff")
 public class StaffDashboardController {
 
-    private final DipendenteRepository dipendenteRepository;
-    private final UtenteRepository utenteRepository;
-    private final CameraRepository cameraRepository;
-    private final PrenotazioneRepository prenotazioneRepository;
+    private final DipendenteService dipendenteService;
+    private final UtenteService utenteService;
+    private final CameraService cameraService;
+    private final PrenotazioneService prenotazioneService;
 
-    public StaffDashboardController(DipendenteRepository dipendenteRepository,
-                                    UtenteRepository utenteRepository,
-                                    CameraRepository cameraRepository,
-                                    PrenotazioneRepository prenotazioneRepository) {
-        this.dipendenteRepository = dipendenteRepository;
-        this.utenteRepository = utenteRepository;
-        this.cameraRepository = cameraRepository;
-        this.prenotazioneRepository = prenotazioneRepository;
+    public StaffDashboardController(DipendenteService dipendenteService,
+                                    UtenteService utenteService,
+                                    CameraService cameraService,
+                                    PrenotazioneService prenotazioneService) {
+        this.dipendenteService = dipendenteService;
+        this.utenteService = utenteService;
+        this.cameraService = cameraService;
+        this.prenotazioneService = prenotazioneService;
     }
 
     @GetMapping("/dashboard")
     public String showStaffDashboard(Model model, @AuthenticationPrincipal UserDetails currentUser) {
-        Utente utente = utenteRepository.findByUsername(currentUser.getUsername()).orElseThrow();
+        Utente utente = utenteService.getUtenteByUsername(currentUser.getUsername()).orElseThrow();
 
-        Dipendente dipendente = dipendenteRepository.findByUtenteId(utente.getId())
+        Dipendente dipendente = dipendenteService.getDipendenteByUtenteId(utente.getId())
                 .orElseThrow(() -> new RuntimeException("L'utente corrente non è registrato come dipendente"));
 
         Sede sede = dipendente.getSede();
         model.addAttribute("nomeSede", sede.getNome());
 
-        List<Camera> camereDb = cameraRepository.findBySedeId(sede.getId());
+        List<Camera> camereDb = cameraService.getCamereBySede(sede.getId());
         List<StaffCameraDto> dashboardData = new ArrayList<>();
 
         LocalDate oggi = LocalDate.now();
@@ -61,7 +61,7 @@ public class StaffDashboardController {
             dto.setStatus(c.getStatus());
             dto.setNote(new ArrayList<>());
 
-            Optional<Prenotazione> prenotazioneAttiva = prenotazioneRepository.findAll().stream()
+            Optional<Prenotazione> prenotazioneAttiva = prenotazioneService.getAllPrenotazioni().stream()
                     .filter(p -> p.getCamera().getId().equals(c.getId()))
                     .filter(p -> p.getStato() == StatoPrenotazione.CHECKED_IN)
                     .filter(p -> !p.getDataInizio().isAfter(oggi) && !p.getDataFine().isBefore(oggi))
@@ -85,9 +85,9 @@ public class StaffDashboardController {
 
     @PostMapping("/camera/{id}/pulita")
     public String markAsClean(@PathVariable Long id) {
-        Camera c = cameraRepository.findById(id).orElseThrow();
+        Camera c = cameraService.getRoomById(id).orElseThrow();
         c.setStatus(StatoCamera.LIBERA);
-        cameraRepository.save(c);
+        cameraService.saveRoom(c);
         return "redirect:/staff/dashboard";
     }
 }

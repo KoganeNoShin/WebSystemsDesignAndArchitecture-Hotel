@@ -6,9 +6,9 @@ import com.websystemdesign.model.Multimedia;
 import com.websystemdesign.model.Prenotazione;
 import com.websystemdesign.model.Service;
 import com.websystemdesign.model.Utente;
-import com.websystemdesign.repository.ClienteRepository;
-import com.websystemdesign.repository.PrenotazioneRepository;
-import com.websystemdesign.repository.UtenteRepository;
+import com.websystemdesign.service.ClienteService;
+import com.websystemdesign.service.PrenotazioneService;
+import com.websystemdesign.service.UtenteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,24 +24,24 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/cliente")
 public class ApiClienteController {
 
-    private final PrenotazioneRepository prenotazioneRepository;
-    private final UtenteRepository utenteRepository;
-    private final ClienteRepository clienteRepository;
+    private final PrenotazioneService prenotazioneService;
+    private final UtenteService utenteService;
+    private final ClienteService clienteService;
 
     @Autowired
-    public ApiClienteController(PrenotazioneRepository prenotazioneRepository, UtenteRepository utenteRepository, ClienteRepository clienteRepository) {
-        this.prenotazioneRepository = prenotazioneRepository;
-        this.utenteRepository = utenteRepository;
-        this.clienteRepository = clienteRepository;
+    public ApiClienteController(PrenotazioneService prenotazioneService, UtenteService utenteService, ClienteService clienteService) {
+        this.prenotazioneService = prenotazioneService;
+        this.utenteService = utenteService;
+        this.clienteService = clienteService;
     }
 
     @GetMapping("/booking/{id}")
     public BookingDetailDto getBookingDetails(@PathVariable Long id, Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        Utente utente = utenteRepository.findByUsername(userDetails.getUsername()).orElseThrow();
-        Cliente cliente = clienteRepository.findByUtenteId(utente.getId()).orElseThrow();
+        Utente utente = utenteService.getUtenteByUsername(userDetails.getUsername()).orElseThrow();
+        Cliente cliente = clienteService.getClienteByUsername(utente.getUsername()).orElseThrow();
 
-        Prenotazione p = prenotazioneRepository.findById(id)
+        Prenotazione p = prenotazioneService.getPrenotazioneById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Prenotazione non trovata"));
 
         if (!p.getCliente().getId().equals(cliente.getId())) {

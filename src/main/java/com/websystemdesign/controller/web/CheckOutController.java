@@ -91,7 +91,6 @@ public class CheckOutController {
         int numOspitiPaganti = 1;
         int numEsenzioni = 0;
 
-        // Check ospiti
         if (prenotazione.getOspiti() != null) {
             for (Ospite o : prenotazione.getOspiti()) {
                 if (isUnder12(o.getDataNascita())) {

@@ -210,7 +210,6 @@ public class DataSeeder implements CommandLineRunner {
 
             System.out.println("Data Seeding completato con successo!");
             
-            // Esegui scheduler per pulizia e aggiornamento stati
             System.out.println("Esecuzione scheduler post-seeding...");
             bookingCleanupScheduler.cancelNoShowBookings();
             roomScheduler.forceRoomCleanupStatus();

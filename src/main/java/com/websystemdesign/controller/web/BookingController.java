@@ -111,7 +111,6 @@ public class BookingController {
             return "redirect:/booking/dates?cameraId=" + cameraId;
         }
 
-        // Controllo sovrapposizioni
         if (!prenotazioneService.isCameraDisponibile(cameraId, checkin, checkout)) {
             redirectAttributes.addFlashAttribute("errorMessage", "La camera non è disponibile per le date selezionate.");
             return "redirect:/booking/dates?cameraId=" + cameraId;

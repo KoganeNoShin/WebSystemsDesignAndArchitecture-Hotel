@@ -73,7 +73,8 @@
                 <h3 class="section-title">Metodo di Pagamento</h3>
                 <div class="form-group">
                     <label>Intestatario Carta</label>
-                    <input type="text" class="form-control" placeholder="Mario Rossi" required minlength="3">
+                    <input type="text" id="cardName" class="form-control" placeholder="Mario Rossi" required minlength="5" maxlength="50">
+                    <small id="nameError" style="color: #ff4d4d; display: none;">Nome troppo breve o non valido.</small>
                 </div>
                 <div class="form-group">
                     <label>Numero Carta</label>
@@ -82,7 +83,16 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Scadenza</label>
-                        <input type="text" id="expiryDate" class="form-control" placeholder="MM/YY" required pattern="(0[1-9]|1[0-2])\/\d{2}" title="Formato MM/YY">
+                        <div style="display: flex; gap: 10px;">
+                            <select id="expiryMonth" class="form-control" required style="width: 80px;">
+                                <option value="" disabled selected>MM</option>
+                                <option th:each="i : ${#numbers.sequence(1, 12)}" th:value="${i}" th:text="${i < 10 ? '0' + i : i}"></option>
+                            </select>
+                            <select id="expiryYear" class="form-control" required style="width: 100px;">
+                                <option value="" disabled selected>YYYY</option>
+                                <option th:each="i : ${#numbers.sequence(0, 10)}" th:value="${#dates.year(#dates.createNow()) + i}" th:text="${#dates.year(#dates.createNow()) + i}"></option>
+                            </select>
+                        </div>
                         <small id="expiryError" style="color: #ff4d4d; display: none;">Carta scaduta.</small>
                     </div>
                     <div class="form-group">
@@ -108,26 +118,46 @@
 
     <script>
         function validatePayment() {
-            const expiryInput = document.getElementById('expiryDate');
-            const errorMsg = document.getElementById('expiryError');
-            const [month, year] = expiryInput.value.split('/');
+            let isValid = true;
 
-            const now = new Date();
-            const currentYear = now.getFullYear() % 100; // Ultime 2 cifre
-            const currentMonth = now.getMonth() + 1; // 1-12
-
-            const expMonth = parseInt(month, 10);
-            const expYear = parseInt(year, 10);
-
-            if (expYear < currentYear || (expYear === currentYear && expMonth < currentMonth)) {
-                errorMsg.style.display = 'block';
-                expiryInput.style.borderColor = '#ff4d4d';
-                return false;
+            // Validazione Nome
+            const nameInput = document.getElementById('cardName');
+            const nameError = document.getElementById('nameError');
+            if (nameInput.value.trim().length < 5 || !/^[a-zA-Z\s]+$/.test(nameInput.value)) {
+                nameError.style.display = 'block';
+                nameInput.style.borderColor = '#ff4d4d';
+                isValid = false;
+            } else {
+                nameError.style.display = 'none';
+                nameInput.style.borderColor = '#555';
             }
 
-            errorMsg.style.display = 'none';
-            expiryInput.style.borderColor = '#555';
-            return true;
+            // Validazione Scadenza
+            const monthSelect = document.getElementById('expiryMonth');
+            const yearSelect = document.getElementById('expiryYear');
+            const expiryError = document.getElementById('expiryError');
+
+            const expMonth = parseInt(monthSelect.value, 10);
+            const expYear = parseInt(yearSelect.value, 10);
+
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1;
+
+            if (!expMonth || !expYear) {
+                isValid = false; // Campi non selezionati
+            } else if (expYear < currentYear || (expYear === currentYear && expMonth < currentMonth)) {
+                expiryError.style.display = 'block';
+                monthSelect.style.borderColor = '#ff4d4d';
+                yearSelect.style.borderColor = '#ff4d4d';
+                isValid = false;
+            } else {
+                expiryError.style.display = 'none';
+                monthSelect.style.borderColor = '#555';
+                yearSelect.style.borderColor = '#555';
+            }
+
+            return isValid;
         }
     </script>
 

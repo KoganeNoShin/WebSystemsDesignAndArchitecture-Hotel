@@ -60,7 +60,7 @@
         <span th:if="${camera.temperatura > 0}" title="Termostato Smart">🌡️</span>
       </td>
       <td data-label="Stato">
-        <span th:class="'badge ' + ${camera.status}" th:text="${camera.status}">LIBERA</span>
+        <span th:class="'badge ' + ${camera.status}" th:text="${camera.status.toString().replace('_', ' ')}">LIBERA</span>
       </td>
       <td data-label="Azioni">
         <button type="button" class="action-btn"
@@ -136,7 +136,7 @@
         </div>
         <div class="form-group" style="flex: 1;">
           <label>Prezzo *</label>
-          <input type="number" step="0.01" id="field-prezzo" th:field="*{prezzoBase}" class="form-control" placeholder="0.00" min="0" required>
+          <input type="number" step="0.01" id="field-prezzo" th:field="*{prezzoBase}" class="form-control" placeholder="0.00" min="100" required>
           <small id="prezzo-warning" style="color: red; display: none;">Non modificabile (prenotazione attiva)</small>
         </div>
       </div>

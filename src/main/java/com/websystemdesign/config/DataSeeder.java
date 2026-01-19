@@ -119,12 +119,22 @@ public class DataSeeder implements CommandLineRunner {
                 Camera cam = camereRoma.get(0);
                 createPrenotazioneTest(c, cam, LocalDate.now().minusDays(60), LocalDate.now().minusDays(55), StatoPrenotazione.CHECKED_OUT);
             }
-
+            
+            Random random = new Random();
             List<Camera> tutteLeCamere = new ArrayList<>();
             tutteLeCamere.addAll(camereCortina);
             tutteLeCamere.addAll(camereRoma);
-            
-            Random random = new Random();
+
+            for (int i = 0; i < 30; i++) {
+                Camera camera = tutteLeCamere.get(random.nextInt(tutteLeCamere.size()));
+                Cliente cliente = clienti.get(random.nextInt(clienti.size()));
+                
+                int monthsAgo = random.nextInt(11) + 1;
+                LocalDate start = LocalDate.now().minusMonths(monthsAgo);
+                LocalDate end = start.plusDays(random.nextInt(5) + 1);
+                
+                createPrenotazioneTest(cliente, camera, start, end, StatoPrenotazione.CHECKED_OUT);
+            }
 
             for (int i = 0; i < tutteLeCamere.size(); i++) {
                 if (i % 2 == 0) {

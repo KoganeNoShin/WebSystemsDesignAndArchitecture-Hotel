@@ -74,6 +74,7 @@
                 th:data-tapparelle="${camera.tapparelle}"
                 th:data-temp="${camera.temperatura}"
                 th:data-status="${camera.status}"
+                th:data-has-active-reservation="${activeReservations[camera.id]}"
                 onclick="openEditModal(this)">
           Modifica
         </button>
@@ -131,10 +132,12 @@
         <div class="form-group" style="flex: 1;">
           <label>Posti</label>
           <input type="number" id="field-posti" th:field="*{postiLetto}" class="form-control" min="1" max="8" required>
+          <small id="posti-warning" style="color: red; display: none;">Non modificabile (prenotazione attiva)</small>
         </div>
         <div class="form-group" style="flex: 1;">
           <label>Prezzo *</label>
           <input type="number" step="0.01" id="field-prezzo" th:field="*{prezzoBase}" class="form-control" placeholder="0.00" min="0" required>
+          <small id="prezzo-warning" style="color: red; display: none;">Non modificabile (prenotazione attiva)</small>
         </div>
       </div>
       <hr style="border-color: #444; margin: 20px 0;">
@@ -216,6 +219,13 @@
       document.getElementById("field-tapparelle").checked = false;
       document.getElementById("field-temp").value = "20.0";
       document.getElementById("field-status").value = "LIBERA";
+
+      // Reset readonly states
+      document.getElementById("field-posti").readOnly = false;
+      document.getElementById("field-prezzo").readOnly = false;
+      document.getElementById("posti-warning").style.display = "none";
+      document.getElementById("prezzo-warning").style.display = "none";
+
       document.getElementById("submitBtn").innerText = "Crea Camera";
       document.getElementById("modalTitle").innerText = "Nuova Camera";
       modal.style.display = "block";
@@ -232,6 +242,7 @@
       var tapparelle = btn.getAttribute("data-tapparelle") === 'true';
       var temp = btn.getAttribute("data-temp");
       var status = btn.getAttribute("data-status");
+      var hasActiveReservation = btn.getAttribute("data-has-active-reservation") === 'true';
 
       document.getElementById("field-id").value = id;
       document.getElementById("field-numero").value = numero;
@@ -242,6 +253,18 @@
       document.getElementById("field-tapparelle").checked = tapparelle;
       document.getElementById("field-temp").value = temp;
       document.getElementById("field-status").value = status;
+
+      if (hasActiveReservation) {
+          document.getElementById("field-posti").readOnly = true;
+          document.getElementById("field-prezzo").readOnly = true;
+          document.getElementById("posti-warning").style.display = "block";
+          document.getElementById("prezzo-warning").style.display = "block";
+      } else {
+          document.getElementById("field-posti").readOnly = false;
+          document.getElementById("field-prezzo").readOnly = false;
+          document.getElementById("posti-warning").style.display = "none";
+          document.getElementById("prezzo-warning").style.display = "none";
+      }
 
       document.getElementById("submitBtn").innerText = "Aggiorna Camera";
       document.getElementById("modalTitle").innerText = "Modifica Camera " + numero;

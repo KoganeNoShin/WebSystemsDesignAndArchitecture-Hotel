@@ -84,8 +84,16 @@ public class AdminSedeController {
         Sede sede = sedeService.getSedeById(sedeId)
                 .orElseThrow(() -> new IllegalArgumentException("Sede non valida:" + sedeId));
 
+        List<Camera> camere = cameraService.getCamereBySede(sedeId);
         model.addAttribute("sede", sede);
-        model.addAttribute("camere", cameraService.getCamereBySede(sedeId));
+        model.addAttribute("camere", camere);
+
+        Map<Long, Boolean> activeReservations = new HashMap<>();
+        for (Camera c : camere) {
+            boolean hasActive = !prenotazioneService.isCameraDisponibile(c.getId(), LocalDate.now(), LocalDate.now().plusDays(1));
+            activeReservations.put(c.getId(), hasActive);
+        }
+        model.addAttribute("activeReservations", activeReservations);
 
         if (!model.containsAttribute("cameraDto")) {
             CameraDto dto = new CameraDto();
@@ -107,10 +115,34 @@ public class AdminSedeController {
             bindingResult.rejectValue("prezzoBase", "error.cameraDto", "Il prezzo minimo per una Suite è 250€");
         }
 
+        if (cameraDto.getId() != null) {
+            Camera existingCamera = cameraService.getRoomById(cameraDto.getId()).orElse(null);
+            if (existingCamera != null) {
+                boolean hasActiveReservation = !prenotazioneService.isCameraDisponibile(existingCamera.getId(), LocalDate.now(), LocalDate.now().plusDays(1));
+                if (hasActiveReservation) {
+                    if (existingCamera.getPostiLetto() != cameraDto.getPostiLetto()) {
+                        bindingResult.rejectValue("postiLetto", "error.cameraDto", "Non è possibile modificare i posti letto se esiste una prenotazione in corso.");
+                    }
+                    if (cameraDto.getPrezzoBase() != null && Float.compare(existingCamera.getPrezzoBase(), cameraDto.getPrezzoBase()) != 0) {
+                        bindingResult.rejectValue("prezzoBase", "error.cameraDto", "Non è possibile modificare il prezzo se esiste una prenotazione in corso.");
+                    }
+                }
+            }
+        }
+
         if (bindingResult.hasErrors()) {
             Sede sede = sedeService.getSedeById(sedeId).orElseThrow();
+            List<Camera> camere = cameraService.getCamereBySede(sedeId);
             model.addAttribute("sede", sede);
-            model.addAttribute("camere", cameraService.getCamereBySede(sedeId));
+            model.addAttribute("camere", camere);
+            
+            Map<Long, Boolean> activeReservations = new HashMap<>();
+            for (Camera c : camere) {
+                boolean hasActive = !prenotazioneService.isCameraDisponibile(c.getId(), LocalDate.now(), LocalDate.now().plusDays(1));
+                activeReservations.put(c.getId(), hasActive);
+            }
+            model.addAttribute("activeReservations", activeReservations);
+
             model.addAttribute("openModal", true);
             return "admin/camere";
         }

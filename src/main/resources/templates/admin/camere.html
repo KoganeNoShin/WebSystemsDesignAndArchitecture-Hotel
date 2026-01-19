@@ -6,6 +6,65 @@
   <title>Gestione Camere - Admin</title>
   <link rel="stylesheet" th:href="@{/css/style.css}">
   <link rel="stylesheet" th:href="@{/css/admin.css}">
+  <style>
+    .sortable {
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      padding-right: 25px !important;
+    }
+    .sortable:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    .sort-icon {
+      font-size: 0.8em;
+      margin-left: 5px;
+      opacity: 0.5;
+      position: relative;
+      top: -1px;
+    }
+    .sort-active .sort-icon {
+      opacity: 1;
+      color: var(--primary-gold);
+    }
+    th, td {
+      text-align: center !important;
+      vertical-align: middle !important;
+    }
+    .filters-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      width: 100%;
+      max-width: 1200px;
+    }
+    .filters-left {
+      display: flex;
+      gap: 15px;
+    }
+    .filter-select {
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: 1px solid #444;
+      background-color: #222;
+      color: #fff;
+      font-size: 0.9rem;
+    }
+    .btn-submit-custom {
+      background-color: var(--primary-gold);
+      color: #000;
+      font-weight: bold;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .btn-submit-custom:hover {
+      background-color: #d4af37;
+    }
+  </style>
 </head>
 <body>
 
@@ -32,19 +91,36 @@
 
   <div th:if="${successMessage}" class="alert-box success" th:text="${successMessage}"></div>
 
-  <div style="width: 100%; max-width: 1200px; text-align: right; margin-bottom: 1rem;">
-    <button id="openModalBtn" class="btn-submit" style="width: auto; padding: 10px 20px;">+ Nuova Camera</button>
+  <div class="filters-container">
+    <div class="filters-left">
+      <select id="filterTipologia" class="filter-select" onchange="applyFilters()">
+        <option value="">Tutte le Tipologie</option>
+        <option value="Standard">Standard</option>
+        <option value="Suite">Suite</option>
+        <option value="Deluxe">Deluxe</option>
+        <option value="Family">Family</option>
+      </select>
+
+      <select id="filterStato" class="filter-select" onchange="applyFilters()">
+        <option value="">Tutti gli Stati</option>
+        <option value="LIBERA">Libera</option>
+        <option value="OCCUPATA">Occupata</option>
+        <option value="DA PULIRE">Da Pulire</option>
+      </select>
+    </div>
+
+    <button id="openModalBtn" class="btn-submit-custom">+ Nuova Camera</button>
   </div>
 
-  <table class="admin-table" style="width: 100%; max-width: 1200px;">
+  <table class="admin-table" style="width: 100%; max-width: 1200px;" id="camereTable">
     <thead>
     <tr>
-      <th>Numero</th>
-      <th>Tipologia</th>
-      <th>Posti</th>
-      <th>Prezzo</th>
+      <th class="sortable" onclick="sortTable(0, 'string')">Numero <span class="sort-icon">↕</span></th>
+      <th class="sortable" onclick="sortTable(1, 'string')">Tipologia <span class="sort-icon">↕</span></th>
+      <th class="sortable" onclick="sortTable(2, 'number')">Posti <span class="sort-icon">↕</span></th>
+      <th class="sortable" onclick="sortTable(3, 'currency')">Prezzo <span class="sort-icon">↕</span></th>
       <th>Domotica</th>
-      <th>Stato</th>
+      <th class="sortable" onclick="sortTable(5, 'string')">Stato <span class="sort-icon">↕</span></th>
       <th>Azioni</th>
     </tr>
     </thead>
@@ -204,6 +280,73 @@
   var errorBox = document.getElementById("error-box");
   var currentCameraId = null;
 
+  let currentSort = { column: -1, direction: 'asc' };
+
+  function sortTable(colIndex, type) {
+      const table = document.querySelector("#camereTable tbody");
+      const rows = Array.from(table.rows);
+      const headers = document.querySelectorAll("#camereTable th");
+
+      headers.forEach(th => th.classList.remove('sort-active'));
+      headers.forEach(th => {
+          const icon = th.querySelector('.sort-icon');
+          if(icon) icon.innerText = '↕';
+      });
+
+      let direction = 'asc';
+      if (currentSort.column === colIndex && currentSort.direction === 'asc') {
+          direction = 'desc';
+      }
+      currentSort = { column: colIndex, direction: direction };
+
+      headers[colIndex].classList.add('sort-active');
+      const activeIcon = headers[colIndex].querySelector('.sort-icon');
+      if(activeIcon) activeIcon.innerText = direction === 'asc' ? '↑' : '↓';
+
+      rows.sort((a, b) => {
+          let valA = a.cells[colIndex].innerText.trim();
+          let valB = b.cells[colIndex].innerText.trim();
+
+          if (type === 'number') {
+              valA = parseFloat(valA.replace(/[^0-9.-]+/g,"")) || 0;
+              valB = parseFloat(valB.replace(/[^0-9.-]+/g,"")) || 0;
+          } else if (type === 'currency') {
+              valA = parseFloat(valA.replace('€', '').replace(',', '.').trim()) || 0;
+              valB = parseFloat(valB.replace('€', '').replace(',', '.').trim()) || 0;
+          } else {
+              valA = valA.toLowerCase();
+              valB = valB.toLowerCase();
+          }
+
+          if (valA < valB) return direction === 'asc' ? -1 : 1;
+          if (valA > valB) return direction === 'asc' ? 1 : -1;
+          return 0;
+      });
+
+      table.innerHTML = "";
+      rows.forEach(row => table.appendChild(row));
+  }
+
+  function applyFilters() {
+      const tipologia = document.getElementById('filterTipologia').value.toLowerCase();
+      const stato = document.getElementById('filterStato').value.toLowerCase();
+      const rows = document.querySelectorAll("#camereTable tbody tr");
+
+      rows.forEach(row => {
+          const rowTipologia = row.querySelector('td[data-label="Tipologia"]').innerText.toLowerCase();
+          const rowStato = row.querySelector('td[data-label="Stato"]').innerText.toLowerCase();
+
+          const matchTipologia = !tipologia || rowTipologia.includes(tipologia);
+          const matchStato = !stato || rowStato.includes(stato);
+
+          if (matchTipologia && matchStato) {
+              row.style.display = "";
+          } else {
+              row.style.display = "none";
+          }
+      });
+  }
+
   function resetErrors() {
       if(errorBox) errorBox.style.display = 'none';
   }
@@ -220,7 +363,6 @@
       document.getElementById("field-temp").value = "20.0";
       document.getElementById("field-status").value = "LIBERA";
 
-      // Reset readonly states
       document.getElementById("field-posti").readOnly = false;
       document.getElementById("field-prezzo").readOnly = false;
       document.getElementById("posti-warning").style.display = "none";

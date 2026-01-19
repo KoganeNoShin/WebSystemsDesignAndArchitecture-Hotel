@@ -85,7 +85,6 @@ public class CheckOutController {
         try {
             tassaSoggiorno = Float.parseFloat(prenotazione.getCamera().getSede().getTassaSoggiorno());
         } catch (NumberFormatException e) {
-            // ignore
         }
         
         int numOspitiPaganti = 1;

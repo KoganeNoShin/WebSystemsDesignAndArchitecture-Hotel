@@ -24,7 +24,6 @@
 
         <div class="sedi-grid">
             <div th:each="sede : ${sedi}">
-                <!-- Link aggiornato per puntare allo Step 2: Scelta Camera -->
                 <a th:href="@{/booking/rooms(sedeId=${sede.id})}" class="sede-card">
                     <div class="sede-image"></div>
                     <div class="sede-content">

@@ -107,7 +107,16 @@
       <input type="hidden" id="field-status" th:field="*{status}">
       <div class="form-group">
         <label>Numero Camera *</label>
-        <input type="text" id="field-numero" th:field="*{numero}" class="form-control" required>
+        <input type="text"
+               pattern="[0-9]{3}"
+               title="Il campo deve contenere esattamente 3 cifre (es. 101)"
+               placeholder="es. 101"
+               id="field-numero"
+               th:field="*{numero}"
+               class="form-control"
+               required>
+
+        <div th:if="${#fields.hasErrors('numero')}" th:errors="*{numero}" class="error-message"></div>
       </div>
       <div class="form-group">
         <label>Tipologia</label>
@@ -136,7 +145,7 @@
       </div>
       <div class="form-group" style="marginTop: 10px;">
         <label>Temp (°C)</label>
-        <input type="number" step="0.1" min="10" max="35" id="field-temp" th:field="*{temperatura}" class="form-control" value="20.0">
+        <input type="number" step="0.1" min="16" max="24" id="field-temp" th:field="*{temperatura}" class="form-control" value="20.0">
       </div>
       <button type="submit" class="btn-submit" id="submitBtn">Salva</button>
     </form>

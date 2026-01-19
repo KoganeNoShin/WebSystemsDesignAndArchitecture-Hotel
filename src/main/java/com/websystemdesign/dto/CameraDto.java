@@ -1,10 +1,7 @@
 package com.websystemdesign.dto;
 
 import com.websystemdesign.model.StatoCamera;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.util.List;
 
@@ -18,7 +15,8 @@ public class CameraDto {
     @NotNull(message = "La tipologia è obbligatoria")
     private String tipologia = "Standard";
 
-    @NotNull(message = "Il numero o nome della camera è obbligatorio")
+    @NotNull(message = "Il numero della camera è obbligatorio")
+    @Pattern(regexp = "^\\d{3}$", message = "Il campo deve contenere esattamente 3 cifre")
     private String numero;
 
     @Min(value = 1, message = "I posti letto devono essere almeno 1")

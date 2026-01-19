@@ -1,5 +1,3 @@
-// --- ENUMS (Per definire i valori fissi) ---
-
 Enum Ruolo {
   CLIENTE
   STAFF
@@ -13,13 +11,11 @@ Enum StatoCamera {
 }
 
 Enum StatoPrenotazione {
-  CONFERMATA    // Prenotata, cliente non ancora arrivato
-  CHECKED_IN    // Cliente attualmente in hotel (Domotica attiva)
-  CHECKED_OUT   // Cliente partito (Fatturazione e pulizie)
+  CONFERMATA
+  CHECKED_IN
+  CHECKED_OUT
   CANCELLATA
 }
-
-// --- TABELLE UTENTI ---
 
 Table utente {
   id integer [primary key, increment]
@@ -36,17 +32,15 @@ Table cliente {
   dataNascita varchar
   tipoDocumento varchar
   numDocumento varchar
-  ref_utente integer [ref: - utente.id] // 1-to-1
+  ref_utente integer [not null, unique, ref: - utente.id]
 }
 
 Table dipendente {
   id integer [primary key, increment]
   ruolo Ruolo [not null]
-  ref_sede integer [ref: > sede.id] // Many-to-1
-  ref_utente integer [ref: - utente.id] // 1-to-1
+  ref_sede integer [ref: > sede.id]
+  ref_utente integer [not null, unique, ref: - utente.id]
 }
-
-// --- STRUTTURA HOTEL ---
 
 Table sede {
   id integer [primary key, increment]
@@ -57,19 +51,16 @@ Table sede {
 
 Table camera {
   id integer [primary key, increment]
-  ref_sede integer [ref: > sede.id]
+  ref_sede integer [not null, ref: > sede.id]
   numero varchar [not null]
   postiLetto integer [not null]
   prezzoBase float [not null]
-  tipologia varchar [default: 'Standard']
+  tipologia varchar [not null, default: 'Standard']
   status StatoCamera [not null]
-  // Domotica
   luce boolean [not null, default: 0]
   tapparelle boolean [not null, default: 0]
   temperatura float [not null, default: 18.0]
 }
-
-// --- SERVIZI E MULTIMEDIA ---
 
 Table service {
   id integer [primary key, increment]
@@ -89,15 +80,13 @@ Table multimedia {
   costo float [not null]
   immagine varchar
   descrizione varchar [note: 'length=1000']
-  voto double
+  voto double [not null]
 }
-
-// --- PRENOTAZIONI ---
 
 Table prenotazione {
   id integer [primary key, increment]
-  ref_cliente integer [ref: > cliente.id]
-  ref_camera integer [ref: > camera.id]
+  ref_cliente integer [not null, ref: > cliente.id]
+  ref_camera integer [not null, ref: > camera.id]
   dataInizio date [not null]
   dataFine date [not null]
   costo float [not null]
@@ -105,7 +94,6 @@ Table prenotazione {
   stato StatoPrenotazione [not null]
 }
 
-// Collegamenti per acquisti extra
 Table prenotazione_service {
   id integer [primary key, increment]
   ref_prenotazione integer [ref: > prenotazione.id]
@@ -118,7 +106,6 @@ Table prenotazione_multimedia {
   ref_multimedia integer [ref: > multimedia.id]
 }
 
-// --- REPORTISTICA E NOTE ---
 Table ospite {
   id integer [primary key, increment]
   nome varchar [not null]
@@ -126,12 +113,12 @@ Table ospite {
   cittadinanza varchar [not null]
   luogo varchar [not null]
   dataNascita date [not null]
-  ref_prenotazione integer [ref: > prenotazione.id]
+  ref_prenotazione integer [not null, ref: > prenotazione.id]
 }
 
 Table nota {
   id integer [primary key, increment]
   testo varchar [not null, note: 'length=1000']
-  dataCreazione timestamp
-  ref_prenotazione integer [ref: > prenotazione.id]
+  dataCreazione timestamp [not null]
+  ref_prenotazione integer [not null, ref: > prenotazione.id]
 }

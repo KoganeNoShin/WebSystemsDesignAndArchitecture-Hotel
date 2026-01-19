@@ -11,20 +11,28 @@
     <header>
         <a href="/home" class="logo">Comitini Residence</a>
 
-        <div sec:authorize="!isAuthenticated()">
-            <a th:href="@{/login}" class="btn-login">Login</a>
-        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <div sec:authorize="!isAuthenticated()">
+                <a th:href="@{/login}" class="btn-login">Login</a>
+            </div>
 
-        <div sec:authorize="hasRole('CLIENTE')">
-            <a th:href="@{/cliente/dashboard}" class="btn-login">Dashboard</a>
-        </div>
+            <div sec:authorize="hasRole('CLIENTE')">
+                <a th:href="@{/cliente/dashboard}" class="btn-login">Dashboard</a>
+            </div>
 
-        <div sec:authorize="hasRole('STAFF')">
-            <a th:href="@{/staff/dashboard}" class="btn-login">Dashboard</a>
-        </div>
+            <div sec:authorize="hasRole('STAFF')">
+                <a th:href="@{/staff/dashboard}" class="btn-login">Dashboard</a>
+            </div>
 
-        <div sec:authorize="hasRole('AMMINISTRATORE')">
-            <a th:href="@{/admin/dashboard}" class="btn-login">Dashboard</a>
+            <div sec:authorize="hasRole('AMMINISTRATORE')">
+                <a th:href="@{/admin/dashboard}" class="btn-login">Dashboard</a>
+            </div>
+
+            <div sec:authorize="isAuthenticated()">
+                <form th:action="@{/logout}" method="post" style="display: inline;">
+                    <button type="submit" class="btn-login" style="background: none; border: 1px solid var(--primary-gold); cursor: pointer;">Logout</button>
+                </form>
+            </div>
         </div>
     </header>
 
@@ -43,12 +51,6 @@
                 <li><a th:href="@{/home/rooms}">Le Nostre Camere</a></li>
                 <li><a th:href="@{/home/services}">Servizi</a></li>
                 <li><a th:href="@{/home/contact}">Contatti</a></li>
-
-                <li sec:authorize="isAuthenticated()">
-                    <form th:action="@{/logout}" method="post" style="display: inline;">
-                        <button type="submit" style="background:none; border:none; color:rgba(255, 255, 255, 0.7); font-size:0.8rem; text-transform:uppercase; letter-spacing:2px; cursor:pointer; font-family:'Lato', sans-serif; transition: color 0.3s ease;" onmouseover="this.style.color='#c5a059'" onmouseout="this.style.color='rgba(255, 255, 255, 0.7)'">Logout</button>
-                    </form>
-                </li>
             </ul>
         </nav>
     </footer>

@@ -21,38 +21,38 @@ Il sistema non è un semplice CRUD, ma un motore di gestione complesso che orche
 ```mermaid
 graph TD
     subgraph Client_Side ["Client Side (Browser)"]
-        Guest[Guest / Cliente]
-        Staff[Staff / Admin]
-        IoT[IoT Dashboard]
+        Guest["Guest / Cliente"]
+        Staff["Staff / Admin"]
+        IoT["IoT Dashboard"]
     end
 
     subgraph Backend ["Spring Boot Application"]
         subgraph Controllers ["Controller Layer"]
-            WebCtrl[Web Controller (MVC)]
-            ApiCtrl[API Rest Controller]
+            WebCtrl["Web Controller (MVC)"]
+            ApiCtrl["API Rest Controller"]
         end
 
         subgraph Services ["Service Layer"]
-            BookingSvc[Booking Service]
-            CheckOutSvc[Billing & Penalty Logic]
-            ReportSvc[Report Service (JAXB)]
-            IoTSvc[Domotica Service]
-            Scheduler[Automation Schedulers]
+            BookingSvc["Booking Service"]
+            CheckOutSvc["Billing & Penalty Logic"]
+            ReportSvc["Report Service (JAXB)"]
+            IoTSvc["Domotica Service"]
+            Scheduler["Automation Schedulers"]
         end
 
         subgraph Data ["Data Layer"]
-            Repos[JPA Repositories]
-            MapStruct[MapStruct DTO Mapping]
+            Repos["JPA Repositories"]
+            MapStruct["MapStruct DTO Mapping"]
         end
     end
 
     subgraph Database ["Persistence"]
-        Postgres[(PostgreSQL DB)]
+        Postgres[("PostgreSQL DB")]
     end
 
     subgraph External ["Output & Files"]
-        XML[XML Reports (Questura/Istat)]
-        JSON[JSON Config (Cities/Movies)]
+        XML["XML Reports (Questura/Istat)"]
+        JSON["JSON Config (Cities/Movies)"]
     end
 
     Guest -->|Thymeleaf Views| WebCtrl
@@ -75,6 +75,7 @@ graph TD
     style Backend fill:#f9f,stroke:#333,stroke-width:2px
     style Database fill:#bbf,stroke:#333,stroke-width:2px
     style Client_Side fill:#dfd,stroke:#333,stroke-width:2px
+```
 
 ---
 

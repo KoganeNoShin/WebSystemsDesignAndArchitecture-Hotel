@@ -17,8 +17,8 @@ Il sistema non è un semplice CRUD, ma un motore di gestione complesso che orche
 * **Integrazione IoT** per il controllo domotico della stanza.
 * **Compliance Legale** con generazione report XML per la Pubblica Amministrazione.
 
-
-
+### 📐 Architettura del Sistema
+```mermaid
 graph TD
     subgraph Client_Side ["Client Side (Browser)"]
         Guest[Guest / Cliente]
@@ -75,7 +75,6 @@ graph TD
     style Backend fill:#f9f,stroke:#333,stroke-width:2px
     style Database fill:#bbf,stroke:#333,stroke-width:2px
     style Client_Side fill:#dfd,stroke:#333,stroke-width:2px
-
 
 ---
 
